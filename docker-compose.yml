@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: playforge-postgres
+    environment:
+      POSTGRES_DB: playforge
+      POSTGRES_USER: playforge
+      POSTGRES_PASSWORD: playforge
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U playforge"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: playforge-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: playforge-api
+    environment:
+      PORT: 8080
+      DATABASE_URL: postgres://playforge:playforge@postgres:5432/playforge?sslmode=disable
+      REDIS_URL: redis:6379
+      JWT_SECRET: your-secret-key-change-in-production
+      CORS_ORIGINS: http://localhost:5173
+      ENVIRONMENT: development
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    command: go run cmd/api/main.go
+
+volumes:
+  postgres-data:
+  redis-data:
+
+
