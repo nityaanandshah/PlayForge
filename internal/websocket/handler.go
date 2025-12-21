@@ -29,17 +29,21 @@ const (
 
 // Handler handles WebSocket connections
 type Handler struct {
-	hub         *Hub
-	authService *services.AuthService
-	gameService *services.GameService
+	hub                *Hub
+	authService        *services.AuthService
+	gameService        *services.GameService
+	roomService        *services.RoomService
+	matchmakingService *services.MatchmakingService
 }
 
 // NewHandler creates a new WebSocket handler
-func NewHandler(hub *Hub, authService *services.AuthService, gameService *services.GameService) *Handler {
+func NewHandler(hub *Hub, authService *services.AuthService, gameService *services.GameService, roomService *services.RoomService, matchmakingService *services.MatchmakingService) *Handler {
 	return &Handler{
-		hub:         hub,
-		authService: authService,
-		gameService: gameService,
+		hub:                hub,
+		authService:        authService,
+		gameService:        gameService,
+		roomService:        roomService,
+		matchmakingService: matchmakingService,
 	}
 }
 
@@ -161,6 +165,15 @@ func (h *Handler) handleMessage(client *Client, msg *Message) {
 
 	case MessageTypeGameMove:
 		h.handleGameMove(client, msg)
+
+	case MessageTypeRoomJoined:
+		h.handleRoomJoin(client, msg)
+
+	case MessageTypeRoomLeft:
+		h.handleRoomLeave(client, msg)
+
+	case MessageTypeRoomParticipantReady:
+		h.handleRoomReady(client, msg)
 
 	default:
 		log.Printf("Unknown message type: %s", msg.Type)
@@ -298,6 +311,155 @@ func (h *Handler) sendPong(client *Client) {
 	}
 
 	if data, err := json.Marshal(msg); err == nil {
+		select {
+		case client.Send <- data:
+		default:
+		}
+	}
+}
+
+// handleRoomJoin handles joining a room via WebSocket
+func (h *Handler) handleRoomJoin(client *Client, msg *Message) {
+	ctx := context.Background()
+	
+	payload, ok := msg.Payload.(map[string]interface{})
+	if !ok {
+		h.sendError(client, "Invalid room join payload")
+		return
+	}
+
+	// Try to get room by ID or join code
+	var room interface{}
+	var err error
+
+	if roomIDStr, ok := payload["room_id"].(string); ok {
+		roomID, parseErr := uuid.Parse(roomIDStr)
+		if parseErr != nil {
+			h.sendError(client, "Invalid room_id")
+			return
+		}
+		room, err = h.roomService.GetRoom(ctx, roomID)
+	} else if joinCode, ok := payload["join_code"].(string); ok {
+		room, err = h.roomService.JoinRoomByCode(ctx, joinCode, client.UserID, client.Username)
+	} else {
+		h.sendError(client, "Missing room_id or join_code")
+		return
+	}
+
+	if err != nil {
+		h.sendError(client, err.Error())
+		return
+	}
+
+	// Send confirmation
+	confirmMsg := Message{
+		Type:      MessageTypeRoomJoined,
+		Payload:   room,
+		Timestamp: time.Now(),
+	}
+
+	if data, err := json.Marshal(confirmMsg); err == nil {
+		select {
+		case client.Send <- data:
+		default:
+		}
+	}
+}
+
+// handleRoomLeave handles leaving a room via WebSocket
+func (h *Handler) handleRoomLeave(client *Client, msg *Message) {
+	ctx := context.Background()
+	
+	payload, ok := msg.Payload.(map[string]interface{})
+	if !ok {
+		h.sendError(client, "Invalid room leave payload")
+		return
+	}
+
+	roomIDStr, ok := payload["room_id"].(string)
+	if !ok {
+		h.sendError(client, "Missing room_id")
+		return
+	}
+
+	roomID, err := uuid.Parse(roomIDStr)
+	if err != nil {
+		h.sendError(client, "Invalid room_id")
+		return
+	}
+
+	err = h.roomService.LeaveRoom(ctx, roomID, client.UserID)
+	if err != nil {
+		h.sendError(client, err.Error())
+		return
+	}
+
+	// Send confirmation
+	confirmMsg := Message{
+		Type: MessageTypeRoomLeft,
+		Payload: map[string]string{
+			"room_id": roomID.String(),
+		},
+		Timestamp: time.Now(),
+	}
+
+	if data, err := json.Marshal(confirmMsg); err == nil {
+		select {
+		case client.Send <- data:
+		default:
+		}
+	}
+}
+
+// handleRoomReady handles ready status change via WebSocket
+func (h *Handler) handleRoomReady(client *Client, msg *Message) {
+	ctx := context.Background()
+	
+	payload, ok := msg.Payload.(map[string]interface{})
+	if !ok {
+		h.sendError(client, "Invalid ready payload")
+		return
+	}
+
+	roomIDStr, ok := payload["room_id"].(string)
+	if !ok {
+		h.sendError(client, "Missing room_id")
+		return
+	}
+
+	isReady, ok := payload["is_ready"].(bool)
+	if !ok {
+		h.sendError(client, "Missing is_ready")
+		return
+	}
+
+	roomID, err := uuid.Parse(roomIDStr)
+	if err != nil {
+		h.sendError(client, "Invalid room_id")
+		return
+	}
+
+	err = h.roomService.SetParticipantReady(ctx, roomID, client.UserID, isReady)
+	if err != nil {
+		h.sendError(client, err.Error())
+		return
+	}
+
+	// Get updated room
+	room, err := h.roomService.GetRoom(ctx, roomID)
+	if err != nil {
+		h.sendError(client, err.Error())
+		return
+	}
+
+	// Send confirmation
+	confirmMsg := Message{
+		Type:      MessageTypeRoomUpdated,
+		Payload:   room,
+		Timestamp: time.Now(),
+	}
+
+	if data, err := json.Marshal(confirmMsg); err == nil {
 		select {
 		case client.Send <- data:
 		default:

@@ -32,6 +32,20 @@ const (
 
 	// Game room events
 	MessageTypeJoinGame MessageType = "join_game"
+
+	// Matchmaking events
+	MessageTypeMatchmakingQueued   MessageType = "matchmaking_queued"
+	MessageTypeMatchmakingMatched  MessageType = "matchmaking_matched"
+	MessageTypeMatchmakingCancelled MessageType = "matchmaking_cancelled"
+	MessageTypeMatchmakingTimeout  MessageType = "matchmaking_timeout"
+
+	// Room events
+	MessageTypeRoomCreated       MessageType = "room_created"
+	MessageTypeRoomJoined        MessageType = "room_joined"
+	MessageTypeRoomLeft          MessageType = "room_left"
+	MessageTypeRoomUpdated       MessageType = "room_updated"
+	MessageTypeRoomClosed        MessageType = "room_closed"
+	MessageTypeRoomParticipantReady MessageType = "room_participant_ready"
 )
 
 // Client represents a connected WebSocket client
@@ -81,5 +95,32 @@ type GameStateMessage struct {
 type ErrorMessage struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
+}
+
+// MatchmakingQueueMessage represents a matchmaking queue request
+type MatchmakingQueueMessage struct {
+	GameType string `json:"game_type"`
+}
+
+// MatchmakingCancelMessage represents a matchmaking cancel request
+type MatchmakingCancelMessage struct {
+	QueueEntryID string `json:"queue_entry_id"`
+}
+
+// RoomJoinMessage represents a room join request
+type RoomJoinMessage struct {
+	RoomID   string `json:"room_id,omitempty"`
+	JoinCode string `json:"join_code,omitempty"`
+}
+
+// RoomLeaveMessage represents a room leave request
+type RoomLeaveMessage struct {
+	RoomID string `json:"room_id"`
+}
+
+// RoomReadyMessage represents a player ready status
+type RoomReadyMessage struct {
+	RoomID  string `json:"room_id"`
+	IsReady bool   `json:"is_ready"`
 }
 

@@ -4,7 +4,10 @@ import { useAuth } from '../hooks/useAuth'
 import api from '../lib/api'
 import { WebSocketClient, WebSocketMessage } from '../lib/websocket'
 import TicTacToeBoard from '../components/TicTacToeBoard'
-import { Game as GameType, TicTacToeState, TicTacToeMove } from '../types/game'
+import Connect4Board from '../components/Connect4Board'
+import RPSBoard from '../components/RPSBoard'
+import DotsAndBoxesBoard from '../components/DotsAndBoxesBoard'
+import { Game as GameType, TicTacToeState, TicTacToeMove, Connect4State, Connect4Move, RPSState, RPSMove, DotsAndBoxesState, DotsAndBoxesMove } from '../types/game'
 
 const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8080/ws'
 
@@ -138,7 +141,7 @@ export default function Game() {
     }
   }
 
-  const handleMove = (move: TicTacToeMove) => {
+  const handleMove = (move: TicTacToeMove | Connect4Move | RPSMove | DotsAndBoxesMove) => {
     if (!wsClient.current || !game || !user) return
 
     const message: WebSocketMessage = {
@@ -183,79 +186,165 @@ export default function Game() {
   const isPlayer1 = game.player1_id === user?.id
   const isPlayer2 = game.player2_id === user?.id
   const opponent = isPlayer1 ? game.player2_name : game.player1_name
-  const playerSymbol = isPlayer1 ? 'X' : 'O'
+  
+  // Get player symbols based on game type
+  const getPlayerSymbols = () => {
+    if (game.type === 'tictactoe') {
+      return { player1: 'X', player2: 'O' }
+    } else if (game.type === 'connect4') {
+      return { player1: '🔴 Red', player2: '🟡 Yellow' }
+    }
+    return { player1: 'P1', player2: 'P2' }
+  }
+  
+  const playerSymbols = getPlayerSymbols()
+  const playerSymbol = isPlayer1 ? playerSymbols.player1 : playerSymbols.player2
+  
+  // Get game title
+  const getGameTitle = () => {
+    if (game.type === 'tictactoe') return 'Tic-Tac-Toe'
+    if (game.type === 'connect4') return 'Connect-4'
+    if (game.type === 'rps') return 'Rock Paper Scissors'
+    if (game.type === 'dotsandboxes') return 'Dots & Boxes'
+    return 'Game'
+  }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="bg-white rounded-lg shadow-lg p-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-8">
+      <div className="max-w-5xl mx-auto px-4">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-center mb-2">Tic-Tac-Toe</h1>
-          <div className="flex justify-between items-center text-sm text-gray-600">
-            <div>
-              <span className="font-semibold">You:</span> {user?.username} ({playerSymbol})
+        <div className="text-center mb-8">
+          <h1 className="text-5xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            {getGameTitle()}
+          </h1>
+          
+          {/* Players Info */}
+          <div className="flex justify-center items-center gap-8 mt-6">
+            {/* Player 1 */}
+            <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl shadow-lg ${isPlayer1 ? 'bg-blue-500 text-white' : 'bg-white text-gray-700'}`}>
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-2xl font-bold text-blue-600">
+                {isPlayer1 ? user?.username.charAt(0).toUpperCase() : game.player1_name?.charAt(0).toUpperCase()}
+              </div>
+              <div className="text-left">
+                <div className="font-bold">{isPlayer1 ? user?.username : game.player1_name}</div>
+                <div className="text-sm opacity-80">{playerSymbols.player1}</div>
+              </div>
+              {isPlayer1 && <span className="ml-2 text-xs bg-white/20 px-2 py-1 rounded-full">You</span>}
             </div>
-            <div>
-              <span className="font-semibold">Opponent:</span> {opponent || 'Waiting...'}
+            
+            {/* VS */}
+            <div className="text-3xl font-bold text-gray-400">VS</div>
+            
+            {/* Player 2 */}
+            <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl shadow-lg ${isPlayer2 ? 'bg-red-500 text-white' : 'bg-white text-gray-700'}`}>
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-2xl font-bold text-red-600">
+                {isPlayer2 ? user?.username.charAt(0).toUpperCase() : game.player2_name?.charAt(0).toUpperCase() || '?'}
+              </div>
+              <div className="text-left">
+                <div className="font-bold">{isPlayer2 ? user?.username : game.player2_name || 'Waiting...'}</div>
+                <div className="text-sm opacity-80">{playerSymbols.player2}</div>
+              </div>
+              {isPlayer2 && <span className="ml-2 text-xs bg-white/20 px-2 py-1 rounded-full">You</span>}
             </div>
           </div>
         </div>
 
         {/* Connection Status */}
         {!wsConnected && (
-          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800">
-            Connecting to game server...
+          <div className="mb-6 p-4 bg-yellow-100 border-2 border-yellow-300 rounded-xl text-center animate-pulse">
+            <p className="text-yellow-800 font-semibold">🔄 Connecting to game server...</p>
           </div>
         )}
 
-        {/* Game Status */}
+        {/* Game Status Messages */}
         {game.status === 'waiting' && (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md text-center">
-            <p className="text-lg font-semibold text-blue-900">Waiting for opponent to join...</p>
-            <p className="text-sm text-blue-700 mt-2">Share this game ID: {game.id}</p>
+          <div className="mb-8 p-6 bg-blue-100 border-2 border-blue-300 rounded-2xl text-center shadow-lg">
+            <p className="text-2xl font-bold text-blue-900 mb-2">⏳ Waiting for opponent...</p>
+            <p className="text-sm text-blue-700">Share the game link with a friend to start playing!</p>
           </div>
         )}
 
         {game.status === 'completed' && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md text-center">
+          <div className={`mb-8 p-8 rounded-2xl text-center shadow-2xl border-4 ${
+            game.winner_id === user?.id 
+              ? 'bg-gradient-to-r from-green-400 to-emerald-500 border-green-300' 
+              : game.winner_id 
+              ? 'bg-gradient-to-r from-red-400 to-rose-500 border-red-300'
+              : 'bg-gradient-to-r from-gray-400 to-slate-500 border-gray-300'
+          }`}>
             {game.winner_id === user?.id && (
-              <p className="text-2xl font-bold text-green-900">You Won! 🎉</p>
+              <div className="text-white">
+                <p className="text-5xl font-extrabold mb-2">🎉 VICTORY! 🎉</p>
+                <p className="text-xl">You won the game!</p>
+              </div>
             )}
             {game.winner_id && game.winner_id !== user?.id && (
-              <p className="text-2xl font-bold text-red-900">You Lost 😞</p>
+              <div className="text-white">
+                <p className="text-5xl font-extrabold mb-2">😞 DEFEAT</p>
+                <p className="text-xl">Better luck next time!</p>
+              </div>
             )}
             {!game.winner_id && (
-              <p className="text-2xl font-bold text-gray-900">It's a Draw! 🤝</p>
+              <div className="text-white">
+                <p className="text-5xl font-extrabold mb-2">🤝 DRAW</p>
+                <p className="text-xl">Well played by both!</p>
+              </div>
             )}
           </div>
         )}
 
         {/* Game Board */}
         {game.status === 'active' && game.state && (
-          <div className="flex justify-center">
-            <TicTacToeBoard
-              state={game.state as TicTacToeState}
-              currentUserId={user!.id}
-              onMove={handleMove}
-              disabled={!wsConnected}
-            />
+          <div className="flex justify-center mb-8">
+            {game.type === 'tictactoe' && (
+              <TicTacToeBoard
+                state={game.state as TicTacToeState}
+                currentUserId={user!.id}
+                onMove={handleMove}
+                disabled={!wsConnected}
+              />
+            )}
+            {game.type === 'connect4' && (
+              <Connect4Board
+                state={game.state as Connect4State}
+                currentUserId={user!.id}
+                onMove={handleMove}
+                disabled={!wsConnected}
+              />
+            )}
+            {game.type === 'rps' && (
+              <RPSBoard
+                state={game.state as RPSState}
+                currentUserId={user!.id}
+                onMove={handleMove}
+                disabled={!wsConnected}
+              />
+            )}
+            {game.type === 'dotsandboxes' && (
+              <DotsAndBoxesBoard
+                state={game.state as DotsAndBoxesState}
+                currentUserId={user!.id}
+                onMove={handleMove}
+                disabled={!wsConnected}
+              />
+            )}
           </div>
         )}
 
         {/* Actions */}
-        <div className="mt-8 flex justify-center gap-4">
+        <div className="flex justify-center gap-4">
           <button
             onClick={() => navigate('/dashboard')}
-            className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+            className="px-8 py-3 bg-gray-600 text-white rounded-xl font-semibold hover:bg-gray-700 transition-all shadow-lg hover:shadow-xl hover:scale-105"
           >
-            Back to Dashboard
+            ← Back to Dashboard
           </button>
           {game.status === 'completed' && (
             <button
               onClick={() => navigate('/dashboard')}
-              className="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl hover:scale-105"
             >
-              Play Again
+              🎮 Play Again
             </button>
           )}
         </div>

@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth'
 import { gameApi, statsApi, PlayerStats } from '../lib/api'
 
 export default function Dashboard() {
-  const { user } = useAuth()
+  const { user, refreshUser } = useAuth()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -12,6 +12,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadStats()
+    refreshUser() // Refresh user data to get latest ELO
   }, [])
 
   const loadStats = async () => {
@@ -70,29 +71,29 @@ export default function Dashboard() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <button 
+            onClick={() => navigate('/matchmaking')}
+            className="bg-primary-600 text-white px-6 py-4 rounded-lg hover:bg-primary-700 transition-colors font-medium"
+          >
+            🎯 Find Match (Matchmaking)
+          </button>
+          <button 
+            onClick={() => navigate('/rooms')}
+            className="bg-purple-600 text-white px-6 py-4 rounded-lg hover:bg-purple-700 transition-colors font-medium"
+          >
+            🎮 Create/Join Room
+          </button>
+          <button 
             onClick={handleQuickPlay}
             disabled={loading}
-            className="bg-primary-600 text-white px-6 py-4 rounded-lg hover:bg-primary-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Creating...' : 'Quick Play - Tic-Tac-Toe'}
-          </button>
-          <button 
-            className="bg-purple-600 text-white px-6 py-4 rounded-lg hover:bg-purple-700 transition-colors font-medium opacity-50 cursor-not-allowed"
-            disabled
-          >
-            Create Room (Coming Soon)
-          </button>
-          <button 
-            className="bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 transition-colors font-medium opacity-50 cursor-not-allowed"
-            disabled
-          >
-            Join Room (Coming Soon)
+            {loading ? 'Creating...' : '⚡ Quick Play (Direct)'}
           </button>
           <button 
             className="bg-orange-600 text-white px-6 py-4 rounded-lg hover:bg-orange-700 transition-colors font-medium opacity-50 cursor-not-allowed"
             disabled
           >
-            Tournaments (Coming Soon)
+            🏆 Tournaments (Coming Soon)
           </button>
         </div>
       </div>

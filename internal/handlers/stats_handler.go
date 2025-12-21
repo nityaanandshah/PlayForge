@@ -27,14 +27,13 @@ func (h *StatsHandler) GetMyStats(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid user ID")
 	}
 
-	// For now, just get tictactoe stats
-	// In the future, we can loop through all game types
-	stats, err := h.statsService.GetPlayerStats(c.Context(), playerID, "tictactoe")
+	// Get aggregated stats across all game types
+	aggregatedStats, err := h.statsService.GetAggregatedStats(c.Context(), playerID)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Failed to get stats")
 	}
 
-	return c.JSON(stats)
+	return c.JSON(aggregatedStats)
 }
 
 // GetStatsByGameType returns user's stats for a specific game type

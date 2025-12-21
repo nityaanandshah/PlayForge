@@ -1,5 +1,16 @@
 import axios, { AxiosError } from 'axios'
 import type { AuthResponse, LoginRequest, SignupRequest } from '../types'
+import type { 
+  CreateRoomRequest, 
+  JoinRoomRequest, 
+  Room, 
+  RoomResponse 
+} from '../types/room'
+import type { 
+  MatchmakingRequest, 
+  MatchmakingResponse, 
+  QueueStatusResponse 
+} from '../types/matchmaking'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1'
 
@@ -82,6 +93,11 @@ export const authApi = {
     })
     return response.data
   },
+
+  getMe: async () => {
+    const response = await api.get('/auth/me')
+    return response.data
+  },
 }
 
 export const gameApi = {
@@ -123,6 +139,60 @@ export const statsApi = {
 
   getStatsByGameType: async (gameType: string) => {
     const response = await api.get(`/stats/${gameType}`)
+    return response.data
+  },
+}
+
+export const matchmakingApi = {
+  joinQueue: async (data: MatchmakingRequest): Promise<MatchmakingResponse> => {
+    const response = await api.post<MatchmakingResponse>('/matchmaking/queue', data)
+    return response.data
+  },
+
+  leaveQueue: async (): Promise<void> => {
+    await api.delete('/matchmaking/queue')
+  },
+
+  getQueueStatus: async (): Promise<QueueStatusResponse> => {
+    const response = await api.get<QueueStatusResponse>('/matchmaking/status')
+    return response.data
+  },
+}
+
+export const roomApi = {
+  createRoom: async (data: CreateRoomRequest): Promise<RoomResponse> => {
+    const response = await api.post<RoomResponse>('/rooms/create', data)
+    return response.data
+  },
+
+  getRoom: async (roomId: string): Promise<Room> => {
+    const response = await api.get<Room>(`/rooms/${roomId}`)
+    return response.data
+  },
+
+  joinRoom: async (roomId: string): Promise<RoomResponse> => {
+    const response = await api.post<RoomResponse>(`/rooms/${roomId}/join`)
+    return response.data
+  },
+
+  joinRoomByCode: async (data: JoinRoomRequest): Promise<RoomResponse> => {
+    const response = await api.post<RoomResponse>('/rooms/join', data)
+    return response.data
+  },
+
+  leaveRoom: async (roomId: string): Promise<void> => {
+    await api.post(`/rooms/${roomId}/leave`)
+  },
+
+  setReady: async (roomId: string, isReady: boolean): Promise<RoomResponse> => {
+    const response = await api.post<RoomResponse>(`/rooms/${roomId}/ready`, {
+      is_ready: isReady,
+    })
+    return response.data
+  },
+
+  startGame: async (roomId: string): Promise<RoomResponse> => {
+    const response = await api.post<RoomResponse>(`/rooms/${roomId}/start`)
     return response.data
   },
 }

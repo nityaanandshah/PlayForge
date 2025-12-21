@@ -171,6 +171,15 @@ func (s *AuthService) Logout(ctx context.Context, userID string) error {
 	return s.redisClient.Del(ctx, fmt.Sprintf("refresh_token:%s", userID)).Err()
 }
 
+func (s *AuthService) GetUserByID(ctx context.Context, userID string) (*domain.User, error) {
+	id, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, fmt.Errorf("invalid user ID: %w", err)
+	}
+	
+	return s.userRepo.GetByID(ctx, id)
+}
+
 func (s *AuthService) ValidateToken(tokenString string) (*Claims, error) {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {

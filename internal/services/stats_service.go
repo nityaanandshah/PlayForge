@@ -80,13 +80,19 @@ func (s *StatsService) UpdateGameStats(ctx context.Context, gameType string, pla
 	}
 
 	// Update player stats
+	fmt.Printf("Updating player1 stats: won=%v, draw=%v, gameType=%s\n", player1Won, isDraw, gameType)
 	if err := s.statsRepo.UpdateStats(ctx, player1ID, gameType, player1Won, isDraw); err != nil {
+		fmt.Printf("ERROR updating player1 stats: %v\n", err)
 		return fmt.Errorf("failed to update player1 stats: %w", err)
 	}
+	fmt.Printf("Player1 stats updated successfully\n")
 
+	fmt.Printf("Updating player2 stats: won=%v, draw=%v, gameType=%s\n", player2Won, isDraw, gameType)
 	if err := s.statsRepo.UpdateStats(ctx, player2ID, gameType, player2Won, isDraw); err != nil {
+		fmt.Printf("ERROR updating player2 stats: %v\n", err)
 		return fmt.Errorf("failed to update player2 stats: %w", err)
 	}
+	fmt.Printf("Player2 stats updated successfully\n")
 
 	fmt.Printf("Stats updated - Player1: %d->%d ELO, Player2: %d->%d ELO\n",
 		player1.EloRating, player1NewElo, player2.EloRating, player2NewElo)
@@ -131,5 +137,45 @@ func (s *StatsService) calculateEloChange(player1Elo, player2Elo int, player1Won
 // GetPlayerStats retrieves player statistics for a specific game type
 func (s *StatsService) GetPlayerStats(ctx context.Context, userID uuid.UUID, gameType string) (*repository.PlayerStats, error) {
 	return s.statsRepo.GetOrCreateStats(ctx, userID, gameType)
+}
+
+// GetAggregatedStats retrieves aggregated player statistics across all game types
+func (s *StatsService) GetAggregatedStats(ctx context.Context, userID uuid.UUID) (*repository.PlayerStats, error) {
+	// Get stats for all game types
+	gameTypes := []string{"tictactoe", "connect4", "rps", "dotsandboxes"}
+	
+	aggregated := &repository.PlayerStats{
+		ID:            uuid.New(),
+		UserID:        userID,
+		GameType:      "all",
+		Wins:          0,
+		Losses:        0,
+		Draws:         0,
+		CurrentStreak: 0,
+		BestStreak:    0,
+		TotalGames:    0,
+	}
+	
+	for _, gameType := range gameTypes {
+		stats, err := s.statsRepo.GetOrCreateStats(ctx, userID, gameType)
+		if err != nil {
+			continue // Skip if stats don't exist yet
+		}
+		
+		aggregated.Wins += stats.Wins
+		aggregated.Losses += stats.Losses
+		aggregated.Draws += stats.Draws
+		aggregated.TotalGames += stats.TotalGames
+		
+		// Take the highest streak values
+		if stats.CurrentStreak > aggregated.CurrentStreak {
+			aggregated.CurrentStreak = stats.CurrentStreak
+		}
+		if stats.BestStreak > aggregated.BestStreak {
+			aggregated.BestStreak = stats.BestStreak
+		}
+	}
+	
+	return aggregated, nil
 }
 

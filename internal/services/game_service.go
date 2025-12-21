@@ -28,10 +28,27 @@ func (s *GameService) CreateGame(ctx context.Context, gameType game.GameType, pl
 	gameID := uuid.New()
 	now := time.Now()
 
+	// Debug logging
+	fmt.Printf("CreateGame called with gameType: '%s' (length: %d)\n", gameType, len(gameType))
+	fmt.Printf("Expected GameTypeConnect4: '%s' (length: %d)\n", game.GameTypeConnect4, len(game.GameTypeConnect4))
+	fmt.Printf("Match: %v\n", gameType == game.GameTypeConnect4)
+	// Print byte values
+	fmt.Printf("Received bytes: ")
+	for _, b := range []byte(gameType) {
+		fmt.Printf("%d ", b)
+	}
+	fmt.Printf("\n")
+
 	var gameState game.GameState
 	switch gameType {
 	case game.GameTypeTicTacToe:
 		gameState = game.NewTicTacToeState(player1ID, uuid.Nil) // Player 2 will join later
+	case game.GameTypeConnect4:
+		gameState = game.NewConnect4State(player1ID, uuid.Nil) // Player 2 will join later
+	case game.GameTypeRockPaperScissors:
+		gameState = game.NewRPSState(player1ID, uuid.Nil) // Player 2 will join later
+	case game.GameTypeDotsAndBoxes:
+		gameState = game.NewDotsAndBoxesState(player1ID, uuid.Nil) // Player 2 will join later
 	default:
 		return nil, fmt.Errorf("unsupported game type: %s", gameType)
 	}
@@ -81,6 +98,12 @@ func (s *GameService) JoinGame(ctx context.Context, gameID, player2ID uuid.UUID,
 	// Update game state with player 2
 	switch state := g.State.(type) {
 	case *game.TicTacToeState:
+		state.Player2ID = player2ID
+	case *game.Connect4State:
+		state.Player2ID = player2ID
+	case *game.RPSState:
+		state.Player2ID = player2ID
+	case *game.DotsAndBoxesState:
 		state.Player2ID = player2ID
 	}
 
@@ -176,6 +199,33 @@ func (s *GameService) GetGame(ctx context.Context, gameID uuid.UUID) (*game.Game
 		}
 		g.State = &state
 		fmt.Printf("TicTacToe state deserialized successfully\n")
+	case game.GameTypeConnect4:
+		fmt.Printf("Deserializing Connect4 state from %d bytes...\n", len(g.StateData))
+		var state game.Connect4State
+		if err := json.Unmarshal(g.StateData, &state); err != nil {
+			fmt.Printf("Error unmarshaling Connect4 state: %v\n", err)
+			return nil, fmt.Errorf("failed to unmarshal game state: %w", err)
+		}
+		g.State = &state
+		fmt.Printf("Connect4 state deserialized successfully\n")
+	case game.GameTypeRockPaperScissors:
+		fmt.Printf("Deserializing RPS state from %d bytes...\n", len(g.StateData))
+		var state game.RPSState
+		if err := json.Unmarshal(g.StateData, &state); err != nil {
+			fmt.Printf("Error unmarshaling RPS state: %v\n", err)
+			return nil, fmt.Errorf("failed to unmarshal game state: %w", err)
+		}
+		g.State = &state
+		fmt.Printf("RPS state deserialized successfully\n")
+	case game.GameTypeDotsAndBoxes:
+		fmt.Printf("Deserializing DotsAndBoxes state from %d bytes...\n", len(g.StateData))
+		var state game.DotsAndBoxesState
+		if err := json.Unmarshal(g.StateData, &state); err != nil {
+			fmt.Printf("Error unmarshaling DotsAndBoxes state: %v\n", err)
+			return nil, fmt.Errorf("failed to unmarshal game state: %w", err)
+		}
+		g.State = &state
+		fmt.Printf("DotsAndBoxes state deserialized successfully\n")
 	}
 
 	fmt.Printf("Returning game %s\n", g.ID.String())

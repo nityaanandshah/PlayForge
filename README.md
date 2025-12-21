@@ -17,6 +17,7 @@ A scalable, authoritative multiplayer game platform for real-time turn-based mat
 ## Tech Stack
 
 **Backend:**
+
 - Go 1.21+ with Fiber framework
 - PostgreSQL 15+ for persistent data
 - Redis 7+ for ephemeral state
@@ -24,6 +25,7 @@ A scalable, authoritative multiplayer game platform for real-time turn-based mat
 - WebSockets (gorilla/websocket)
 
 **Frontend:**
+
 - React 18 + TypeScript
 - Vite build tool
 - TailwindCSS
@@ -81,20 +83,40 @@ The frontend will be available at `http://localhost:5173`
 ### API Endpoints
 
 **Health Check:**
+
 - `GET /health` - Server health status
 
 **Authentication:**
+
 - `POST /api/v1/auth/signup` - Create new account
 - `POST /api/v1/auth/login` - Login
 - `POST /api/v1/auth/refresh` - Refresh access token
 - `POST /api/v1/auth/logout` - Logout
 
 **Games (Protected):**
+
 - `POST /api/v1/games/create` - Create new game
 - `POST /api/v1/games/join` - Join existing game
 - `GET /api/v1/games/:id` - Get game state
 
+**Matchmaking (Protected):**
+
+- `POST /api/v1/matchmaking/queue` - Join matchmaking queue
+- `DELETE /api/v1/matchmaking/queue` - Leave queue
+- `GET /api/v1/matchmaking/status` - Get queue status
+
+**Rooms (Protected):**
+
+- `POST /api/v1/rooms/create` - Create new room
+- `POST /api/v1/rooms/join` - Join room by code
+- `GET /api/v1/rooms/:id` - Get room details
+- `POST /api/v1/rooms/:id/join` - Join room by ID
+- `POST /api/v1/rooms/:id/leave` - Leave room
+- `POST /api/v1/rooms/:id/ready` - Set ready status
+- `POST /api/v1/rooms/:id/start` - Start game
+
 **WebSocket:**
+
 - `GET /ws` - WebSocket connection for real-time gameplay
 
 ## Project Structure
@@ -122,6 +144,7 @@ The frontend will be available at `http://localhost:5173`
 ## Project Status
 
 ### Week 1 ✅ Complete
+
 - Go project structure with clean architecture
 - PostgreSQL schema (users, stats, matches, rooms, tournaments)
 - Redis client setup
@@ -131,6 +154,7 @@ The frontend will be available at `http://localhost:5173`
 - React frontend with auth pages and dashboard
 
 ### Week 2 ✅ Complete
+
 - WebSocket infrastructure with gorilla/websocket
 - Connection manager for tracking clients
 - Tic-Tac-Toe game engine with validation
@@ -140,11 +164,15 @@ The frontend will be available at `http://localhost:5173`
 - Win/draw detection
 - WebSocket reconnection support
 
-### Week 3 🔄 Next
-- Matchmaking queue system
-- Private room creation
-- Room join by code
+### Week 3 ✅ Complete
+
+- Matchmaking queue system with rating-based pairing
+- Private room creation with unique join codes
+- Room join by code functionality
+- Room lobby with participant list and ready system
 - Multiple participants per room
+- Host controls and game start validation
+- Real-time room updates
 
 ## Environment Variables
 
@@ -162,5 +190,3 @@ ENVIRONMENT=development
 ## License
 
 MIT
-
-

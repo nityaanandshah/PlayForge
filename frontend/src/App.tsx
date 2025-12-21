@@ -5,6 +5,9 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Dashboard from './pages/Dashboard'
 import Game from './pages/Game'
+import Matchmaking from './pages/Matchmaking'
+import CreateRoom from './pages/CreateRoom'
+import RoomLobby from './pages/RoomLobby'
 import Layout from './components/Layout'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -72,6 +75,36 @@ function App() {
               <PrivateRoute>
                 <Layout>
                   <Game />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/matchmaking"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <Matchmaking />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/rooms"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <CreateRoom />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/room/:roomId"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <RoomLobby />
                 </Layout>
               </PrivateRoute>
             }

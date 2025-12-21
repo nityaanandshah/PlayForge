@@ -82,4 +82,18 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "Logged out successfully"})
 }
 
+func (h *AuthHandler) GetMe(c *fiber.Ctx) error {
+	userID := c.Locals("userID")
+	if userID == nil {
+		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized")
+	}
+
+	user, err := h.authService.GetUserByID(c.Context(), userID.(string))
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to get user")
+	}
+
+	return c.JSON(user)
+}
+
 

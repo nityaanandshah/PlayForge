@@ -117,7 +117,17 @@ func (r *StatsRepository) UpdateStats(ctx context.Context, userID uuid.UUID, gam
 		lossInc = 1
 	}
 
-	_, err := r.db.Exec(ctx, query, userID, gameType, winInc, lossInc, drawInc, time.Now())
-	return err
+	println("Executing UpdateStats SQL for userID:", userID.String(), "gameType:", gameType, "winInc:", winInc, "lossInc:", lossInc, "drawInc:", drawInc)
+	
+	result, err := r.db.Exec(ctx, query, userID, gameType, winInc, lossInc, drawInc, time.Now())
+	if err != nil {
+		println("ERROR executing UpdateStats SQL:", err.Error())
+		return err
+	}
+	
+	rowsAffected := result.RowsAffected()
+	println("UpdateStats SQL executed successfully, rows affected:", rowsAffected)
+	
+	return nil
 }
 

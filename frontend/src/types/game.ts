@@ -31,3 +31,77 @@ export interface TicTacToeMove {
   col: number
 }
 
+export interface Connect4State {
+  board: string[][]
+  player1_id: string
+  player2_id: string
+  current_player: string
+  move_count: number
+}
+
+export interface Connect4Move {
+  column: number
+}
+
+export type RPSChoice = 'rock' | 'paper' | 'scissors' | ''
+
+export interface RPSRound {
+  round_number: number
+  player1_choice: RPSChoice
+  player2_choice: RPSChoice
+  winner_id?: string
+  player1_revealed: boolean
+  player2_revealed: boolean
+}
+
+export interface RPSState {
+  player1_id: string
+  player2_id: string
+  current_round: number
+  player1_score: number
+  player2_score: number
+  rounds: RPSRound[]
+  player1_choice: RPSChoice
+  player2_choice: RPSChoice
+  both_revealed: boolean
+  max_rounds: number
+  wins_needed: number
+}
+
+export interface RPSMove {
+  choice: RPSChoice
+}
+
+export type LineOrientation = 'horizontal' | 'vertical'
+
+export interface Line {
+  row: number
+  col: number
+  orientation: LineOrientation
+  owner_id: string
+}
+
+export interface Box {
+  row: number
+  col: number
+  owner_id: string
+}
+
+export interface DotsAndBoxesState {
+  player1_id: string
+  player2_id: string
+  current_player: string
+  lines: Line[]
+  boxes: Box[]
+  player1_score: number
+  player2_score: number
+  total_boxes: number
+  last_move_boxed: boolean
+}
+
+export interface DotsAndBoxesMove {
+  row: number
+  col: number
+  orientation: LineOrientation
+}
+

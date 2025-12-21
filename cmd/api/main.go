@@ -45,13 +45,20 @@ func main() {
 	authService := services.NewAuthService(userRepo, redisClient, cfg.JWTSecret)
 	statsService := services.NewStatsService(statsRepo, userRepo)
 	gameService := services.NewGameService(redisClient, statsService)
+	roomService := services.NewRoomService(redisClient)
+	matchmakingService := services.NewMatchmakingService(redisClient, roomService)
+
+	// Start matchmaking worker
+	matchmakingCtx, cancelMatchmaking := context.WithCancel(ctx)
+	defer cancelMatchmaking()
+	go matchmakingService.StartMatchmakingWorker(matchmakingCtx)
 
 	// Initialize WebSocket hub
 	hub := ws.NewHub()
 	go hub.Run()
 
 	// Initialize WebSocket handler
-	wsHandler := ws.NewHandler(hub, authService, gameService)
+	wsHandler := ws.NewHandler(hub, authService, gameService, roomService, matchmakingService)
 
 	// Initialize Fiber app
 	app := fiber.New(fiber.Config{
@@ -74,6 +81,8 @@ func main() {
 	authHandler := handlers.NewAuthHandler(authService)
 	gameHandler := handlers.NewGameHandler(gameService, hub)
 	statsHandler := handlers.NewStatsHandler(statsService, authService)
+	roomHandler := handlers.NewRoomHandler(roomService, gameService)
+	matchmakingHandler := handlers.NewMatchmakingHandler(matchmakingService)
 
 	// Health check
 	app.Get("/health", func(c *fiber.Ctx) error {
@@ -92,6 +101,7 @@ func main() {
 	auth.Post("/login", authHandler.Login)
 	auth.Post("/refresh", authHandler.RefreshToken)
 	auth.Post("/logout", authHandler.Logout)
+	auth.Get("/me", middleware.AuthRequired(authService), authHandler.GetMe)
 
 	// Game routes (protected)
 	games := api.Group("/games", middleware.AuthRequired(authService))
@@ -103,6 +113,22 @@ func main() {
 	stats := api.Group("/stats", middleware.AuthRequired(authService))
 	stats.Get("/", statsHandler.GetMyStats)
 	stats.Get("/:game_type", statsHandler.GetStatsByGameType)
+
+	// Matchmaking routes (protected)
+	matchmaking := api.Group("/matchmaking", middleware.AuthRequired(authService))
+	matchmaking.Post("/queue", matchmakingHandler.JoinQueue)
+	matchmaking.Delete("/queue", matchmakingHandler.LeaveQueue)
+	matchmaking.Get("/status", matchmakingHandler.GetQueueStatus)
+
+	// Room routes (protected)
+	rooms := api.Group("/rooms", middleware.AuthRequired(authService))
+	rooms.Post("/create", roomHandler.CreateRoom)
+	rooms.Post("/join", roomHandler.JoinRoomByCode)
+	rooms.Get("/:id", roomHandler.GetRoom)
+	rooms.Post("/:id/join", roomHandler.JoinRoom)
+	rooms.Post("/:id/leave", roomHandler.LeaveRoom)
+	rooms.Post("/:id/ready", roomHandler.SetReady)
+	rooms.Post("/:id/start", roomHandler.StartGame)
 
 	// WebSocket route
 	app.Get("/ws", wsHandler.HandleConnection)
