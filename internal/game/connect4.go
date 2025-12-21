@@ -221,3 +221,4 @@ func parseConnect4Move(move interface{}) (*Connect4Move, error) {
 	return &connect4Move, nil
 }
 
+

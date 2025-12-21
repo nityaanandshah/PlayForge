@@ -80,19 +80,13 @@ func (s *StatsService) UpdateGameStats(ctx context.Context, gameType string, pla
 	}
 
 	// Update player stats
-	fmt.Printf("Updating player1 stats: won=%v, draw=%v, gameType=%s\n", player1Won, isDraw, gameType)
 	if err := s.statsRepo.UpdateStats(ctx, player1ID, gameType, player1Won, isDraw); err != nil {
-		fmt.Printf("ERROR updating player1 stats: %v\n", err)
 		return fmt.Errorf("failed to update player1 stats: %w", err)
 	}
-	fmt.Printf("Player1 stats updated successfully\n")
 
-	fmt.Printf("Updating player2 stats: won=%v, draw=%v, gameType=%s\n", player2Won, isDraw, gameType)
 	if err := s.statsRepo.UpdateStats(ctx, player2ID, gameType, player2Won, isDraw); err != nil {
-		fmt.Printf("ERROR updating player2 stats: %v\n", err)
 		return fmt.Errorf("failed to update player2 stats: %w", err)
 	}
-	fmt.Printf("Player2 stats updated successfully\n")
 
 	fmt.Printf("Stats updated - Player1: %d->%d ELO, Player2: %d->%d ELO\n",
 		player1.EloRating, player1NewElo, player2.EloRating, player2NewElo)

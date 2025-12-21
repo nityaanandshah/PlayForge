@@ -186,7 +186,3 @@ JWT_SECRET=your-secret-key-change-in-production
 CORS_ORIGINS=http://localhost:5173
 ENVIRONMENT=development
 ```
-
-## License
-
-MIT

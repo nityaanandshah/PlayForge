@@ -287,13 +287,6 @@ func (s *RoomService) StartGame(ctx context.Context, roomID uuid.UUID, hostID uu
 	player1 := room.Participants[0]
 	player2 := room.Participants[1]
 	
-	fmt.Printf("Room GameType: '%s' (length: %d)\n", room.GameType, len(room.GameType))
-	// Print byte values to check for hidden characters
-	for i, b := range []byte(room.GameType) {
-		fmt.Printf("Byte %d: %d (%c)\n", i, b, b)
-	}
-	fmt.Printf("Converting to game.GameType: '%s'\n", game.GameType(room.GameType))
-	
 	game, err := gameService.CreateGame(ctx, game.GameType(room.GameType), player1.UserID, player1.Username)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create game: %w", err)

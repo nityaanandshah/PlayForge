@@ -313,3 +313,4 @@ func parseDotsAndBoxesMove(move interface{}) (*DotsAndBoxesMove, error) {
 	return &dotsMove, nil
 }
 
+

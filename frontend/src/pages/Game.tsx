@@ -265,7 +265,7 @@ export default function Game() {
         )}
 
         {game.status === 'completed' && (
-          <div className={`mb-8 p-8 rounded-2xl text-center shadow-2xl border-4 ${
+          <div className={`mb-6 p-6 rounded-2xl text-center shadow-2xl border-4 ${
             game.winner_id === user?.id 
               ? 'bg-gradient-to-r from-green-400 to-emerald-500 border-green-300' 
               : game.winner_id 
@@ -294,14 +294,14 @@ export default function Game() {
         )}
 
         {/* Game Board */}
-        {game.status === 'active' && game.state && (
+        {(game.status === 'active' || game.status === 'completed') && game.state && (
           <div className="flex justify-center mb-8">
             {game.type === 'tictactoe' && (
               <TicTacToeBoard
                 state={game.state as TicTacToeState}
                 currentUserId={user!.id}
                 onMove={handleMove}
-                disabled={!wsConnected}
+                disabled={!wsConnected || game.status === 'completed'}
               />
             )}
             {game.type === 'connect4' && (
@@ -309,7 +309,7 @@ export default function Game() {
                 state={game.state as Connect4State}
                 currentUserId={user!.id}
                 onMove={handleMove}
-                disabled={!wsConnected}
+                disabled={!wsConnected || game.status === 'completed'}
               />
             )}
             {game.type === 'rps' && (
@@ -317,7 +317,7 @@ export default function Game() {
                 state={game.state as RPSState}
                 currentUserId={user!.id}
                 onMove={handleMove}
-                disabled={!wsConnected}
+                disabled={!wsConnected || game.status === 'completed'}
               />
             )}
             {game.type === 'dotsandboxes' && (
@@ -325,7 +325,7 @@ export default function Game() {
                 state={game.state as DotsAndBoxesState}
                 currentUserId={user!.id}
                 onMove={handleMove}
-                disabled={!wsConnected}
+                disabled={!wsConnected || game.status === 'completed'}
               />
             )}
           </div>

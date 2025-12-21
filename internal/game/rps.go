@@ -232,3 +232,4 @@ func parseRPSMove(move interface{}) (*RPSMove, error) {
 	return &rpsMove, nil
 }
 
+

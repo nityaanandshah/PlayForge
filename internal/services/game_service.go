@@ -28,17 +28,6 @@ func (s *GameService) CreateGame(ctx context.Context, gameType game.GameType, pl
 	gameID := uuid.New()
 	now := time.Now()
 
-	// Debug logging
-	fmt.Printf("CreateGame called with gameType: '%s' (length: %d)\n", gameType, len(gameType))
-	fmt.Printf("Expected GameTypeConnect4: '%s' (length: %d)\n", game.GameTypeConnect4, len(game.GameTypeConnect4))
-	fmt.Printf("Match: %v\n", gameType == game.GameTypeConnect4)
-	// Print byte values
-	fmt.Printf("Received bytes: ")
-	for _, b := range []byte(gameType) {
-		fmt.Printf("%d ", b)
-	}
-	fmt.Printf("\n")
-
 	var gameState game.GameState
 	switch gameType {
 	case game.GameTypeTicTacToe:
