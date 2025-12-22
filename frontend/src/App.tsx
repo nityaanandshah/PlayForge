@@ -8,6 +8,9 @@ import Game from './pages/Game'
 import Matchmaking from './pages/Matchmaking'
 import CreateRoom from './pages/CreateRoom'
 import RoomLobby from './pages/RoomLobby'
+import Leaderboard from './pages/Leaderboard'
+import MatchHistory from './pages/MatchHistory'
+import Statistics from './pages/Statistics'
 import Layout from './components/Layout'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -106,6 +109,30 @@ function App() {
                 <Layout>
                   <RoomLobby />
                 </Layout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/leaderboard"
+            element={
+              <PrivateRoute>
+                <Leaderboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/history"
+            element={
+              <PrivateRoute>
+                <MatchHistory />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/statistics"
+            element={
+              <PrivateRoute>
+                <Statistics />
               </PrivateRoute>
             }
           />

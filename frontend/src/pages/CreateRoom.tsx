@@ -176,25 +176,6 @@ export default function CreateRoom() {
             </div>
           </div>
 
-          {/* Max Players */}
-          <div>
-            <label className="block text-sm font-semibold mb-2">
-              Maximum Players: {maxPlayers}
-            </label>
-            <input
-              type="range"
-              min="2"
-              max="4"
-              value={maxPlayers}
-              onChange={(e) => setMaxPlayers(parseInt(e.target.value))}
-              className="w-full"
-              disabled={true}
-            />
-            <p className="text-sm text-gray-500 mt-1">
-              Currently all games support 2 players
-            </p>
-          </div>
-
           {/* Game-Specific Settings */}
           {gameType === 'rps' && (
             <div className="bg-purple-50 p-4 rounded-lg border-2 border-purple-200">

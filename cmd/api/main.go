@@ -112,6 +112,8 @@ func main() {
 	// Stats routes (protected)
 	stats := api.Group("/stats", middleware.AuthRequired(authService))
 	stats.Get("/", statsHandler.GetMyStats)
+	stats.Get("/leaderboard", statsHandler.GetLeaderboard)
+	stats.Get("/history", statsHandler.GetMyMatchHistory)
 	stats.Get("/:game_type", statsHandler.GetStatsByGameType)
 
 	// Matchmaking routes (protected)

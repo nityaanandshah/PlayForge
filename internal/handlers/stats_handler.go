@@ -54,3 +54,41 @@ func (h *StatsHandler) GetStatsByGameType(c *fiber.Ctx) error {
 	return c.JSON(stats)
 }
 
+// GetLeaderboard returns the leaderboard for a game type or globally
+func (h *StatsHandler) GetLeaderboard(c *fiber.Ctx) error {
+	gameType := c.Query("game_type", "all")
+	limit := c.QueryInt("limit", 50)
+
+	leaderboard, err := h.statsService.GetLeaderboard(c.Context(), gameType, limit)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to get leaderboard")
+	}
+
+	return c.JSON(fiber.Map{
+		"game_type": gameType,
+		"entries":   leaderboard,
+	})
+}
+
+// GetMyMatchHistory returns current user's match history
+func (h *StatsHandler) GetMyMatchHistory(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(string)
+	gameType := c.Query("game_type", "all")
+	limit := c.QueryInt("limit", 50)
+
+	playerID, err := uuid.Parse(userID)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid user ID")
+	}
+
+	history, err := h.statsService.GetMatchHistory(c.Context(), playerID, gameType, limit)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to get match history")
+	}
+
+	return c.JSON(fiber.Map{
+		"game_type": gameType,
+		"matches":   history,
+	})
+}
+

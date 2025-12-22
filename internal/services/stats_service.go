@@ -173,3 +173,19 @@ func (s *StatsService) GetAggregatedStats(ctx context.Context, userID uuid.UUID)
 	return aggregated, nil
 }
 
+// GetLeaderboard retrieves the leaderboard for a specific game type or globally
+func (s *StatsService) GetLeaderboard(ctx context.Context, gameType string, limit int) ([]repository.LeaderboardEntry, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 50 // Default to 50, max 100
+	}
+	return s.statsRepo.GetLeaderboard(ctx, gameType, limit)
+}
+
+// GetMatchHistory retrieves match history for a user
+func (s *StatsService) GetMatchHistory(ctx context.Context, userID uuid.UUID, gameType string, limit int) ([]repository.MatchHistoryEntry, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 50 // Default to 50, max 100
+	}
+	return s.statsRepo.GetMatchHistory(ctx, userID, gameType, limit)
+}
+

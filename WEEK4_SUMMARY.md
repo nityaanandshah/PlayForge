@@ -135,6 +135,38 @@ Week 4 focused on expanding the game library from a single game (Tic-Tac-Toe) to
 - Removed disabled states
 - All games available for private rooms
 
+### 7. Player Statistics & Leaderboards
+
+**Backend Implementation:**
+
+- Added leaderboard endpoints to `stats_handler.go`
+- Created `GetLeaderboard()` method in `stats_service.go`
+- Added `GetLeaderboard()` repository method for database queries
+- Global leaderboard showing top players by ELO across all games
+- Game-specific leaderboards for each of the 4 games
+- Match history endpoint to retrieve past games
+- Created `GetMatchHistory()` methods in service and repository layers
+
+**Frontend Implementation:**
+
+- Created `Leaderboard.tsx` page with tabs for each game type
+- Displays top 50 players with ranking, ELO, W/L/D records, and win rates
+- Medal indicators (🥇🥈🥉) for top 3 players
+- Created `MatchHistory.tsx` page showing user's past games
+- Displays opponent name, game type, result (Won/Lost/Draw), and timestamp
+- Filter by game type (All, Tic-Tac-Toe, Connect-4, RPS, Dots & Boxes)
+- Created `Statistics.tsx` dashboard with detailed stats breakdown
+- Overall performance summary with total games, ELO, streaks
+- Per-game statistics cards with win rates and streaks
+- Color-coded performance indicators
+
+**Navigation:**
+
+- Added navigation links to Layout component for easy access
+- Desktop navigation bar with Home, Leaderboard, Stats, and History
+- Mobile-friendly bottom navigation with icons
+- Active page highlighting
+
 ## Technical Highlights
 
 ### Architecture Patterns
@@ -193,23 +225,34 @@ Week 4 focused on expanding the game library from a single game (Tic-Tac-Toe) to
 - `frontend/src/components/Connect4Board.tsx` (130 lines)
 - `frontend/src/components/RPSBoard.tsx` (180 lines)
 - `frontend/src/components/DotsAndBoxesBoard.tsx` (220 lines)
+- `frontend/src/pages/Leaderboard.tsx` (200 lines)
+- `frontend/src/pages/MatchHistory.tsx` (180 lines)
+- `frontend/src/pages/Statistics.tsx` (250 lines)
 
 ### Modified Files:
 
 - `internal/services/game_service.go` - Added support for 3 new games
+- `internal/services/stats_service.go` - Added leaderboard and match history methods
+- `internal/repository/stats_repository.go` - Added database queries for leaderboards and history
+- `internal/handlers/stats_handler.go` - Added new endpoints
+- `cmd/api/main.go` - Added routes for leaderboard and history
 - `frontend/src/pages/Game.tsx` - Dynamic game rendering
 - `frontend/src/pages/Matchmaking.tsx` - All games enabled
 - `frontend/src/pages/CreateRoom.tsx` - All games enabled
 - `frontend/src/types/game.ts` - Added types for all games
+- `frontend/src/App.tsx` - Added routes for new pages
+- `frontend/src/components/Layout.tsx` - Added navigation menu
 
 ## Stats & Metrics
 
 - **Total Games**: 4 (Tic-Tac-Toe, Connect-4, RPS, Dots & Boxes)
-- **Lines of Code Added**: ~2,500+ lines (including customization)
+- **Lines of Code Added**: ~3,500+ lines (including customization, stats, and leaderboards)
 - **New Components**: 3 game board components (all support dynamic sizing)
+- **New Pages**: 3 statistics/leaderboard pages
 - **Game Types Supported**: All 4 integrated with matchmaking and rooms
 - **Unique Game Mechanics**: Turn-based, simultaneous moves, bonus turns, gravity
 - **Customization Options**: 15+ different configurations across all games
+- **Backend Endpoints Added**: 2 (leaderboard, match history)
 - **Grid Sizes Supported**:
   - Tic-Tac-Toe: 3×3, 4×4, 5×5
   - Connect-4: 4-10 rows × 4-10 columns
@@ -231,15 +274,19 @@ Week 4 focused on expanding the game library from a single game (Tic-Tac-Toe) to
 ✅ **Dynamic board sizes (Tic-Tac-Toe: 3x3 to 5x5)**  
 ✅ **Dynamic board sizes (Connect-4: 4-10 rows/cols)**  
 ✅ **Configurable rounds (RPS: 3, 5, 7, 9)**  
-✅ **Configurable grid (Dots & Boxes: 4x4 to 8x8)**
+✅ **Configurable grid (Dots & Boxes: 4x4 to 8x8)**  
+✅ **Leaderboards (Global & Per-Game)**  
+✅ **Match History with filtering**  
+✅ **Statistics Dashboard with detailed breakdown**  
+✅ **Navigation menu for easy access to all pages**
 
 ## Known Limitations
 
-- Leaderboards and match history pages not yet implemented (would require additional backend endpoints)
 - All games currently limited to 2 players
 - No AI opponents
 - No spectator mode yet (planned for Week 6)
 - Custom settings only available for private rooms (matchmaking uses defaults)
+- Tournament system not yet implemented (planned for Week 5)
 
 ## Next Steps (Week 5)
 
