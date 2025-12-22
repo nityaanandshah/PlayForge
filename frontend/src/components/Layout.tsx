@@ -18,7 +18,8 @@ export default function Layout({ children }: LayoutProps) {
 
   const navLinks = [
     { path: '/dashboard', label: '🏠 Home', icon: '🏠' },
-    { path: '/leaderboard', label: '🏆 Leaderboard', icon: '🏆' },
+    { path: '/tournaments', label: '🏆 Tournaments', icon: '🏆' },
+    { path: '/leaderboard', label: '👑 Leaderboard', icon: '👑' },
     { path: '/statistics', label: '📊 Stats', icon: '📊' },
     { path: '/history', label: '📜 History', icon: '📜' },
   ]
@@ -86,7 +87,7 @@ export default function Layout({ children }: LayoutProps) {
                 }`}
               >
                 <span className="text-xl mb-1">{link.icon}</span>
-                <span>{link.label.replace(/[🏠🏆📊📜]\s/, '')}</span>
+                <span>{link.label.replace(/[🏠🏆👑📊📜]\s/, '')}</span>
               </button>
             ))}
           </div>

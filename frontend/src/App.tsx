@@ -11,6 +11,8 @@ import RoomLobby from './pages/RoomLobby'
 import Leaderboard from './pages/Leaderboard'
 import MatchHistory from './pages/MatchHistory'
 import Statistics from './pages/Statistics'
+import Tournaments from './pages/Tournaments'
+import TournamentLobby from './pages/TournamentLobby'
 import Layout from './components/Layout'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -133,6 +135,26 @@ function App() {
             element={
               <PrivateRoute>
                 <Statistics />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/tournaments"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <Tournaments />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/tournament/:id"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <TournamentLobby />
+                </Layout>
               </PrivateRoute>
             }
           />

@@ -48,18 +48,35 @@ api.interceptors.response.use(
           throw new Error('No refresh token')
         }
 
+        console.log('Token expired, refreshing...')
         const response = await axios.post<AuthResponse>(
           `${API_URL}/auth/refresh`,
-          { refresh_token: refreshToken }
+          { refresh_token: refreshToken },
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
         )
 
-        const { access_token, refresh_token } = response.data
+        const { access_token, refresh_token: new_refresh_token, user } = response.data
         localStorage.setItem('access_token', access_token)
-        localStorage.setItem('refresh_token', refresh_token)
+        localStorage.setItem('refresh_token', new_refresh_token)
+        if (user) {
+          localStorage.setItem('user', JSON.stringify(user))
+        }
 
+        console.log('Token refreshed successfully, retrying original request...')
+        // Update the original request with new token
+        if (!originalRequest.headers) {
+          originalRequest.headers = {}
+        }
         originalRequest.headers.Authorization = `Bearer ${access_token}`
+        
+        // Retry the original request
         return api(originalRequest)
       } catch (refreshError) {
+        console.error('Token refresh failed:', refreshError)
         localStorage.removeItem('access_token')
         localStorage.removeItem('refresh_token')
         localStorage.removeItem('user')

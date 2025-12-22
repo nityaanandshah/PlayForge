@@ -78,12 +78,12 @@ export default function Dashboard() {
             <div className="text-xs opacity-90">Create room with your rules</div>
           </button>
           <button 
-            className="bg-orange-600 text-white px-6 py-4 rounded-lg hover:bg-orange-700 transition-colors font-medium opacity-50 cursor-not-allowed text-center"
-            disabled
+            onClick={() => navigate('/tournaments')}
+            className="bg-orange-600 text-white px-6 py-4 rounded-lg hover:bg-orange-700 transition-colors font-medium text-center"
           >
             <div className="text-2xl mb-1">🏆</div>
             <div className="font-bold">Tournaments</div>
-            <div className="text-xs opacity-90">Coming Soon</div>
+            <div className="text-xs opacity-90">Compete in brackets</div>
           </button>
         </div>
       </div>

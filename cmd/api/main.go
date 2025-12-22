@@ -41,13 +41,16 @@ func main() {
 	userRepo := repository.NewUserRepository(pgPool)
 	statsRepo := repository.NewStatsRepository(pgPool)
 	gameRepo := repository.NewGameRepository(pgPool)
+	tournamentRepo := repository.NewTournamentRepository(pgPool)
+	roomRepo := repository.NewRoomRepository(pgPool)
 
 	// Initialize services
 	authService := services.NewAuthService(userRepo, redisClient, cfg.JWTSecret)
 	statsService := services.NewStatsService(statsRepo, userRepo)
 	gameService := services.NewGameService(redisClient, statsService, gameRepo)
-	roomService := services.NewRoomService(redisClient)
+	roomService := services.NewRoomService(redisClient, roomRepo)
 	matchmakingService := services.NewMatchmakingService(redisClient, roomService)
+	tournamentService := services.NewTournamentService(tournamentRepo, userRepo, roomService, gameService, redisClient)
 
 	// Start matchmaking worker
 	matchmakingCtx, cancelMatchmaking := context.WithCancel(ctx)
@@ -84,6 +87,7 @@ func main() {
 	statsHandler := handlers.NewStatsHandler(statsService, authService)
 	roomHandler := handlers.NewRoomHandler(roomService, gameService)
 	matchmakingHandler := handlers.NewMatchmakingHandler(matchmakingService)
+	tournamentHandler := handlers.NewTournamentHandler(tournamentService)
 
 	// Health check
 	app.Get("/health", func(c *fiber.Ctx) error {
@@ -132,6 +136,14 @@ func main() {
 	rooms.Post("/:id/leave", roomHandler.LeaveRoom)
 	rooms.Post("/:id/ready", roomHandler.SetReady)
 	rooms.Post("/:id/start", roomHandler.StartGame)
+
+	// Tournament routes (protected)
+	tournaments := api.Group("/tournaments", middleware.AuthRequired(authService))
+	tournaments.Post("/create", tournamentHandler.CreateTournament)
+	tournaments.Get("/", tournamentHandler.ListTournaments)
+	tournaments.Get("/:id", tournamentHandler.GetTournament)
+	tournaments.Post("/:id/join", tournamentHandler.JoinTournament)
+	tournaments.Post("/:id/start", tournamentHandler.StartTournament)
 
 	// WebSocket route
 	app.Get("/ws", wsHandler.HandleConnection)

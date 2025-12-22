@@ -46,6 +46,15 @@ const (
 	MessageTypeRoomUpdated       MessageType = "room_updated"
 	MessageTypeRoomClosed        MessageType = "room_closed"
 	MessageTypeRoomParticipantReady MessageType = "room_participant_ready"
+
+	// Tournament events
+	MessageTypeTournamentCreated       MessageType = "tournament_created"
+	MessageTypeTournamentJoined        MessageType = "tournament_joined"
+	MessageTypeTournamentStarted       MessageType = "tournament_started"
+	MessageTypeTournamentUpdated       MessageType = "tournament_updated"
+	MessageTypeTournamentMatchReady    MessageType = "tournament_match_ready"
+	MessageTypeTournamentMatchComplete MessageType = "tournament_match_complete"
+	MessageTypeTournamentComplete      MessageType = "tournament_complete"
 )
 
 // Client represents a connected WebSocket client
@@ -122,5 +131,22 @@ type RoomLeaveMessage struct {
 type RoomReadyMessage struct {
 	RoomID  string `json:"room_id"`
 	IsReady bool   `json:"is_ready"`
+}
+
+// TournamentJoinMessage represents a tournament join request
+type TournamentJoinMessage struct {
+	TournamentID string `json:"tournament_id"`
+}
+
+// TournamentStartMessage represents a tournament start request
+type TournamentStartMessage struct {
+	TournamentID string `json:"tournament_id"`
+}
+
+// TournamentMatchStartMessage represents a tournament match start
+type TournamentMatchStartMessage struct {
+	TournamentID string `json:"tournament_id"`
+	MatchID      string `json:"match_id"`
+	GameID       string `json:"game_id"`
 }
 

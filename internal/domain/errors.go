@@ -9,6 +9,15 @@ var (
 	ErrInvalidToken      = errors.New("invalid token")
 	ErrTokenExpired      = errors.New("token expired")
 	ErrUnauthorized      = errors.New("unauthorized")
+	
+	// Tournament errors
+	ErrTournamentNotFound      = errors.New("tournament not found")
+	ErrTournamentFull          = errors.New("tournament is full")
+	ErrTournamentAlreadyStarted = errors.New("tournament has already started")
+	ErrTournamentNotReady      = errors.New("tournament is not ready to start")
+	ErrNotTournamentHost       = errors.New("only the tournament host can perform this action")
+	ErrTournamentMatchNotFound = errors.New("tournament match not found")
+	ErrInvalidBracket          = errors.New("invalid tournament bracket")
 )
 
 

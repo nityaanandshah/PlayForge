@@ -5,6 +5,7 @@ import (
 
 	"github.com/arenamatch/playforge/internal/services"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 func AuthRequired(authService *services.AuthService) fiber.Handler {
@@ -26,8 +27,14 @@ func AuthRequired(authService *services.AuthService) fiber.Handler {
 			return fiber.NewError(fiber.StatusUnauthorized, "Invalid token")
 		}
 
+		// Parse userID string to UUID
+		userID, err := uuid.Parse(claims.UserID)
+		if err != nil {
+			return fiber.NewError(fiber.StatusUnauthorized, "Invalid user ID in token")
+		}
+
 		// Set user info in context
-		c.Locals("userID", claims.UserID)
+		c.Locals("userID", userID)
 		c.Locals("username", claims.Username)
 		c.Locals("email", claims.Email)
 

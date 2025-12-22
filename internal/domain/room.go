@@ -84,7 +84,7 @@ type Participant struct {
 type CreateRoomRequest struct {
 	GameType     string        `json:"game_type" validate:"required,oneof=tictactoe connect4 rps dotsandboxes"`
 	Type         RoomType      `json:"type" validate:"required,oneof=quickplay private ranked"`
-	MaxPlayers   int           `json:"max_players" validate:"required,min=2,max=4"`
+	MaxPlayers   int           `json:"max_players" validate:"required,min=2,max=32"`
 	GameSettings *GameSettings `json:"game_settings,omitempty"`
 }
 

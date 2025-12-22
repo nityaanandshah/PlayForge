@@ -8,6 +8,7 @@ import (
 
 	"github.com/arenamatch/playforge/internal/domain"
 	"github.com/arenamatch/playforge/internal/game"
+	"github.com/arenamatch/playforge/internal/repository"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 )
@@ -20,11 +21,21 @@ const (
 
 type RoomService struct {
 	redisClient *redis.Client
+	roomRepo    RoomRepository
 }
 
-func NewRoomService(redisClient *redis.Client) *RoomService {
+// RoomRepository interface for database operations
+type RoomRepository interface {
+	Create(ctx context.Context, room *repository.RoomDB) error
+	GetByID(ctx context.Context, id uuid.UUID) (*repository.RoomDB, error)
+	Update(ctx context.Context, room *repository.RoomDB) error
+	Delete(ctx context.Context, id uuid.UUID) error
+}
+
+func NewRoomService(redisClient *redis.Client, roomRepo RoomRepository) *RoomService {
 	return &RoomService{
 		redisClient: redisClient,
+		roomRepo:    roomRepo,
 	}
 }
 
@@ -74,6 +85,26 @@ func (s *RoomService) CreateRoom(ctx context.Context, hostID uuid.UUID, hostUser
 		return nil, err
 	}
 
+	// Save to database if this is a tournament room (has room repository)
+	if s.roomRepo != nil {
+		roomDB := &repository.RoomDB{
+			ID:           room.ID,
+			Code:         room.JoinCode,
+			HostID:       room.HostID,
+			GameType:     room.GameType,
+			MaxPlayers:   room.MaxPlayers,
+			Status:       string(room.Status),
+			IsTournament: true, // Rooms with DB persistence are tournament rooms
+		}
+		
+		err = s.roomRepo.Create(ctx, roomDB)
+		if err != nil {
+			fmt.Printf("Failed to save room to database: %v\n", err)
+			return nil, fmt.Errorf("failed to save room to database: %w", err)
+		}
+		fmt.Printf("Room saved to database: %s\n", room.ID)
+	}
+
 	// Publish room created event
 	s.publishRoomEvent(ctx, "room_created", room)
 
@@ -116,6 +147,7 @@ func (s *RoomService) GetRoomByCode(ctx context.Context, joinCode string) (*doma
 func (s *RoomService) JoinRoom(ctx context.Context, roomID uuid.UUID, userID uuid.UUID, username string) error {
 	room, err := s.GetRoom(ctx, roomID)
 	if err != nil {
+		fmt.Printf("JoinRoom: failed to get room %s: %v\n", roomID, err)
 		return err
 	}
 
@@ -127,7 +159,8 @@ func (s *RoomService) JoinRoom(ctx context.Context, roomID uuid.UUID, userID uui
 	// Check if user is already in room
 	for _, p := range room.Participants {
 		if p.UserID == userID {
-			return fmt.Errorf("user already in room")
+			fmt.Printf("JoinRoom: user %s already in room %s, returning success\n", userID, roomID)
+			return nil // Already joined - idempotent operation
 		}
 	}
 
@@ -144,6 +177,7 @@ func (s *RoomService) JoinRoom(ctx context.Context, roomID uuid.UUID, userID uui
 		IsReady:  false,
 		JoinedAt: time.Now(),
 	}
+	fmt.Printf("JoinRoom: adding user %s to room %s\n", username, roomID)
 	room.Participants = append(room.Participants, participant)
 	room.UpdatedAt = time.Now()
 
