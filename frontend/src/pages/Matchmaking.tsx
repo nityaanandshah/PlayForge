@@ -13,10 +13,10 @@ export default function Matchmaking() {
   const [queueTime, setQueueTime] = useState(0);
 
   const games = [
-    { id: 'tictactoe', name: 'Tic-Tac-Toe', description: '2 players', emoji: '❌⭕' },
-    { id: 'connect4', name: 'Connect 4', description: '2 players', emoji: '🔴🟡' },
-    { id: 'rps', name: 'Rock Paper Scissors', description: 'Best of 5', emoji: '✊✋✌️' },
-    { id: 'dotsandboxes', name: 'Dots & Boxes', description: '2 players', emoji: '⚫📦' },
+    { id: 'tictactoe', name: 'Tic-Tac-Toe', description: 'Classic 3×3 grid', emoji: '❌⭕' },
+    { id: 'connect4', name: 'Connect 4', description: 'Standard 6×7 board', emoji: '🔴🟡' },
+    { id: 'rps', name: 'Rock Paper Scissors', description: 'Best of 5 rounds', emoji: '✊✋✌️' },
+    { id: 'dotsandboxes', name: 'Dots & Boxes', description: 'Classic 5×5 grid', emoji: '⚫📦' },
   ];
 
   // Check queue status on mount
@@ -131,7 +131,14 @@ export default function Matchmaking() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">Matchmaking</h1>
+      <h1 className="text-3xl font-bold mb-8">Quick Play Matchmaking</h1>
+      
+      <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
+        <p className="text-sm text-blue-800">
+          <strong>ℹ️ Standard Rules:</strong> All games use default settings (3×3 for Tic-Tac-Toe, 6×7 for Connect 4, Best of 5 for RPS, etc.). 
+          Want custom settings? Use <button onClick={() => navigate('/rooms')} className="underline font-semibold">Custom Game Rooms</button> instead.
+        </p>
+      </div>
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">

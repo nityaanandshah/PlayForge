@@ -24,18 +24,9 @@ export default function Dashboard() {
     }
   }
 
-  const handleQuickPlay = async () => {
-    setLoading(true)
-    setError('')
-    
-    try {
-      const game = await gameApi.createGame('tictactoe')
-      navigate(`/game/${game.id}`)
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create game')
-    } finally {
-      setLoading(false)
-    }
+  const handleQuickPlay = () => {
+    // Redirect to matchmaking for game selection
+    navigate('/matchmaking')
   }
 
   return (
@@ -69,31 +60,30 @@ export default function Dashboard() {
           </div>
         )}
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button 
-            onClick={() => navigate('/matchmaking')}
-            className="bg-primary-600 text-white px-6 py-4 rounded-lg hover:bg-primary-700 transition-colors font-medium"
+            onClick={handleQuickPlay}
+            className="bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 transition-colors font-medium text-center"
           >
-            🎯 Find Match (Matchmaking)
+            <div className="text-2xl mb-1">⚡</div>
+            <div className="font-bold">Quick Play</div>
+            <div className="text-xs opacity-90">Find match with standard rules</div>
           </button>
           <button 
             onClick={() => navigate('/rooms')}
-            className="bg-purple-600 text-white px-6 py-4 rounded-lg hover:bg-purple-700 transition-colors font-medium"
+            className="bg-purple-600 text-white px-6 py-4 rounded-lg hover:bg-purple-700 transition-colors font-medium text-center"
           >
-            🎮 Create/Join Room
+            <div className="text-2xl mb-1">🎮</div>
+            <div className="font-bold">Custom Game</div>
+            <div className="text-xs opacity-90">Create room with your rules</div>
           </button>
           <button 
-            onClick={handleQuickPlay}
-            disabled={loading}
-            className="bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Creating...' : '⚡ Quick Play (Direct)'}
-          </button>
-          <button 
-            className="bg-orange-600 text-white px-6 py-4 rounded-lg hover:bg-orange-700 transition-colors font-medium opacity-50 cursor-not-allowed"
+            className="bg-orange-600 text-white px-6 py-4 rounded-lg hover:bg-orange-700 transition-colors font-medium opacity-50 cursor-not-allowed text-center"
             disabled
           >
-            🏆 Tournaments (Coming Soon)
+            <div className="text-2xl mb-1">🏆</div>
+            <div className="font-bold">Tournaments</div>
+            <div className="text-xs opacity-90">Coming Soon</div>
           </button>
         </div>
       </div>
@@ -101,21 +91,29 @@ export default function Dashboard() {
       <div className="bg-white shadow rounded-lg p-6">
         <h3 className="text-xl font-bold text-gray-900 mb-4">Available Games</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-500 cursor-pointer transition-colors">
+          <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-500 transition-colors">
+            <div className="text-2xl mb-2">❌⭕</div>
             <h4 className="font-bold text-lg mb-2">Tic-Tac-Toe</h4>
-            <p className="text-sm text-gray-600">Classic 3x3 grid game</p>
+            <p className="text-sm text-gray-600">Classic 3×3 grid</p>
+            <p className="text-xs text-gray-500 mt-1">Custom: up to 5×5</p>
           </div>
-          <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-500 cursor-pointer transition-colors">
-            <h4 className="font-bold text-lg mb-2">Connect-4</h4>
-            <p className="text-sm text-gray-600">Connect four in a row</p>
+          <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-500 transition-colors">
+            <div className="text-2xl mb-2">🔴🟡</div>
+            <h4 className="font-bold text-lg mb-2">Connect 4</h4>
+            <p className="text-sm text-gray-600">Standard 6×7 board</p>
+            <p className="text-xs text-gray-500 mt-1">Custom: up to 10×10</p>
           </div>
-          <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-500 cursor-pointer transition-colors">
+          <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-500 transition-colors">
+            <div className="text-2xl mb-2">✊✋✌️</div>
             <h4 className="font-bold text-lg mb-2">Rock-Paper-Scissors</h4>
             <p className="text-sm text-gray-600">Best of 5 rounds</p>
+            <p className="text-xs text-gray-500 mt-1">Custom: 3, 5, 7, or 9</p>
           </div>
-          <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-500 cursor-pointer transition-colors">
+          <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-500 transition-colors">
+            <div className="text-2xl mb-2">⚫📦</div>
             <h4 className="font-bold text-lg mb-2">Dots & Boxes</h4>
-            <p className="text-sm text-gray-600">Strategic line game</p>
+            <p className="text-sm text-gray-600">Classic 5×5 grid</p>
+            <p className="text-xs text-gray-500 mt-1">Custom: 4×4 to 8×8</p>
           </div>
         </div>
       </div>
