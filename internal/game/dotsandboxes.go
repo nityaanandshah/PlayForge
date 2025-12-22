@@ -8,9 +8,10 @@ import (
 	"github.com/google/uuid"
 )
 
+// Default grid size (can be overridden with custom settings)
 const (
-	DotsRows = 5 // 5x5 dots creates a 4x4 grid of boxes
-	DotsCols = 5
+	DefaultDotsRows = 5 // 5x5 dots creates a 4x4 grid of boxes
+	DefaultDotsCols = 5
 )
 
 // LineOrientation represents whether a line is horizontal or vertical
@@ -47,6 +48,8 @@ type DotsAndBoxesState struct {
 	Player2Score  int             `json:"player2_score"`   // Number of boxes owned by player 2
 	TotalBoxes    int             `json:"total_boxes"`     // Total possible boxes (4x4 = 16)
 	LastMoveBoxed bool            `json:"last_move_boxed"` // Did last move complete a box?
+	GridRows      int             `json:"grid_rows"`       // Number of rows of dots
+	GridCols      int             `json:"grid_cols"`       // Number of columns of dots
 }
 
 // DotsAndBoxesMove represents a move in Dots & Boxes
@@ -56,8 +59,42 @@ type DotsAndBoxesMove struct {
 	Orientation LineOrientation `json:"orientation"`
 }
 
-// NewDotsAndBoxesState creates a new Dots & Boxes game state
+// NewDotsAndBoxesState creates a new Dots & Boxes game state with default 5x5 grid
 func NewDotsAndBoxesState(player1ID, player2ID uuid.UUID) *DotsAndBoxesState {
+	return NewDotsAndBoxesStateWithGridSize(player1ID, player2ID, DefaultDotsRows, DefaultDotsCols)
+}
+
+// NewDotsAndBoxesStateWithSettings creates a new Dots & Boxes game state with custom settings
+func NewDotsAndBoxesStateWithSettings(player1ID, player2ID uuid.UUID, settings interface{}) *DotsAndBoxesState {
+	gridSize := DefaultDotsRows // default
+	
+	if settingsMap, ok := settings.(map[string]interface{}); ok {
+		if val, exists := settingsMap["dots_grid_size"]; exists {
+			if sizeFloat, ok := val.(float64); ok {
+				gridSize = int(sizeFloat)
+			}
+		}
+	}
+	
+	return NewDotsAndBoxesStateWithGridSize(player1ID, player2ID, gridSize, gridSize)
+}
+
+// NewDotsAndBoxesStateWithGridSize creates a new Dots & Boxes game state with specified grid size
+func NewDotsAndBoxesStateWithGridSize(player1ID, player2ID uuid.UUID, rows, cols int) *DotsAndBoxesState {
+	// Validate grid size
+	if rows < 4 {
+		rows = 4
+	}
+	if rows > 8 {
+		rows = 8
+	}
+	if cols < 4 {
+		cols = 4
+	}
+	if cols > 8 {
+		cols = 8
+	}
+	
 	return &DotsAndBoxesState{
 		Player1ID:     player1ID,
 		Player2ID:     player2ID,
@@ -66,8 +103,10 @@ func NewDotsAndBoxesState(player1ID, player2ID uuid.UUID) *DotsAndBoxesState {
 		Boxes:         []Box{},
 		Player1Score:  0,
 		Player2Score:  0,
-		TotalBoxes:    (DotsRows - 1) * (DotsCols - 1), // 4x4 = 16 boxes
+		TotalBoxes:    (rows - 1) * (cols - 1),
 		LastMoveBoxed: false,
+		GridRows:      rows,
+		GridCols:      cols,
 	}
 }
 
@@ -86,13 +125,13 @@ func (s *DotsAndBoxesState) ValidateMove(playerID uuid.UUID, move interface{}) e
 
 	// Validate line position
 	if dotsMove.Orientation == LineHorizontal {
-		// Horizontal line: row can be 0 to DotsRows-1, col can be 0 to DotsCols-2
-		if dotsMove.Row < 0 || dotsMove.Row >= DotsRows || dotsMove.Col < 0 || dotsMove.Col >= DotsCols-1 {
+		// Horizontal line: row can be 0 to GridRows-1, col can be 0 to GridCols-2
+		if dotsMove.Row < 0 || dotsMove.Row >= s.GridRows || dotsMove.Col < 0 || dotsMove.Col >= s.GridCols-1 {
 			return errors.New("line position out of bounds")
 		}
 	} else if dotsMove.Orientation == LineVertical {
-		// Vertical line: row can be 0 to DotsRows-2, col can be 0 to DotsCols-1
-		if dotsMove.Row < 0 || dotsMove.Row >= DotsRows-1 || dotsMove.Col < 0 || dotsMove.Col >= DotsCols {
+		// Vertical line: row can be 0 to GridRows-2, col can be 0 to GridCols-1
+		if dotsMove.Row < 0 || dotsMove.Row >= s.GridRows-1 || dotsMove.Col < 0 || dotsMove.Col >= s.GridCols {
 			return errors.New("line position out of bounds")
 		}
 	} else {
@@ -175,7 +214,7 @@ func (s *DotsAndBoxesState) checkCompletedBoxes(row, col int, orientation LineOr
 			}
 		}
 		// Check box below (if exists)
-		if row < DotsRows-1 {
+		if row < s.GridRows-1 {
 			if s.isBoxComplete(row, col) {
 				completedBoxes = append(completedBoxes, Box{
 					Row:     row,
@@ -196,7 +235,7 @@ func (s *DotsAndBoxesState) checkCompletedBoxes(row, col int, orientation LineOr
 			}
 		}
 		// Check box to the right (if exists)
-		if col < DotsCols-1 {
+		if col < s.GridCols-1 {
 			if s.isBoxComplete(row, col) {
 				completedBoxes = append(completedBoxes, Box{
 					Row:     row,

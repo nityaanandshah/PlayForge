@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { roomApi } from '../lib/api';
-import type { RoomType } from '../types/room';
+import type { RoomType, GameSettings } from '../types/room';
 
 export default function CreateRoom() {
   const navigate = useNavigate();
@@ -12,6 +12,14 @@ export default function CreateRoom() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<'create' | 'join'>('create');
+  
+  // Game-specific settings
+  const [rpsBestOf, setRpsBestOf] = useState<number>(5);
+  const [dotsGridSize, setDotsGridSize] = useState<number>(5);
+  const [tictactoeGridSize, setTictactoeGridSize] = useState<number>(3);
+  const [connect4Rows, setConnect4Rows] = useState<number>(6);
+  const [connect4Cols, setConnect4Cols] = useState<number>(7);
+  const [connect4WinLength, setConnect4WinLength] = useState<number>(4);
 
   const games = [
     { id: 'tictactoe', name: 'Tic-Tac-Toe', players: 2, emoji: '❌⭕' },
@@ -25,10 +33,27 @@ export default function CreateRoom() {
     setError(null);
 
     try {
+      // Build game settings based on selected game type
+      const gameSettings: GameSettings = {};
+      
+      if (gameType === 'rps') {
+        gameSettings.rps_best_of = rpsBestOf;
+      } else if (gameType === 'dotsandboxes') {
+        gameSettings.dots_grid_size = dotsGridSize;
+      } else if (gameType === 'tictactoe') {
+        gameSettings.tictactoe_grid_size = tictactoeGridSize;
+        gameSettings.tictactoe_win_length = tictactoeGridSize; // Same as grid size for standard rules
+      } else if (gameType === 'connect4') {
+        gameSettings.connect4_rows = connect4Rows;
+        gameSettings.connect4_cols = connect4Cols;
+        gameSettings.connect4_win_length = connect4WinLength;
+      }
+      
       const response = await roomApi.createRoom({
         game_type: gameType,
         type: roomType,
         max_players: maxPlayers,
+        game_settings: Object.keys(gameSettings).length > 0 ? gameSettings : undefined,
       });
 
       // Navigate to room lobby
@@ -169,6 +194,145 @@ export default function CreateRoom() {
               Currently all games support 2 players
             </p>
           </div>
+
+          {/* Game-Specific Settings */}
+          {gameType === 'rps' && (
+            <div className="bg-purple-50 p-4 rounded-lg border-2 border-purple-200">
+              <label className="block text-sm font-semibold mb-2">
+                ✊✋✌️ Best of: {rpsBestOf} rounds
+              </label>
+              <div className="flex gap-2">
+                {[3, 5, 7, 9].map((value) => (
+                  <button
+                    key={value}
+                    onClick={() => setRpsBestOf(value)}
+                    className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all ${
+                      rpsBestOf === value
+                        ? 'bg-purple-600 text-white shadow-lg'
+                        : 'bg-white text-gray-700 hover:bg-purple-100 border-2 border-purple-300'
+                    }`}
+                  >
+                    {value}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-600 mt-2">
+                First to win {Math.ceil(rpsBestOf / 2)} rounds wins the game
+              </p>
+            </div>
+          )}
+
+          {gameType === 'dotsandboxes' && (
+            <div className="bg-green-50 p-4 rounded-lg border-2 border-green-200">
+              <label className="block text-sm font-semibold mb-2">
+                ⚫📦 Grid Size: {dotsGridSize}x{dotsGridSize} ({(dotsGridSize-1) * (dotsGridSize-1)} boxes)
+              </label>
+              <input
+                type="range"
+                min="4"
+                max="8"
+                value={dotsGridSize}
+                onChange={(e) => setDotsGridSize(parseInt(e.target.value))}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-gray-600 mt-1">
+                <span>4x4 (9 boxes)</span>
+                <span>5x5 (16 boxes)</span>
+                <span>6x6 (25 boxes)</span>
+                <span>7x7 (36 boxes)</span>
+                <span>8x8 (49 boxes)</span>
+              </div>
+            </div>
+          )}
+
+          {gameType === 'tictactoe' && (
+            <div className="bg-indigo-50 p-4 rounded-lg border-2 border-indigo-200">
+              <label className="block text-sm font-semibold mb-2">
+                ❌⭕ Grid Size: {tictactoeGridSize}x{tictactoeGridSize}
+              </label>
+              <div className="flex gap-2">
+                {[3, 4, 5].map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setTictactoeGridSize(size)}
+                    className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all ${
+                      tictactoeGridSize === size
+                        ? 'bg-indigo-600 text-white shadow-lg'
+                        : 'bg-white text-gray-700 hover:bg-indigo-100 border-2 border-indigo-300'
+                    }`}
+                  >
+                    {size}x{size}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-600 mt-2">
+                Win by getting {tictactoeGridSize} in a row
+              </p>
+            </div>
+          )}
+
+          {gameType === 'connect4' && (
+            <div className="bg-orange-50 p-4 rounded-lg border-2 border-orange-200">
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-semibold mb-2">
+                    🔴🟡 Rows: {connect4Rows}
+                  </label>
+                  <input
+                    type="range"
+                    min="4"
+                    max="10"
+                    value={connect4Rows}
+                    onChange={(e) => {
+                      const newRows = parseInt(e.target.value);
+                      setConnect4Rows(newRows);
+                      // Adjust win length if needed
+                      if (connect4WinLength > Math.min(newRows, connect4Cols)) {
+                        setConnect4WinLength(Math.min(newRows, connect4Cols));
+                      }
+                    }}
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2">
+                    🔴🟡 Columns: {connect4Cols}
+                  </label>
+                  <input
+                    type="range"
+                    min="4"
+                    max="10"
+                    value={connect4Cols}
+                    onChange={(e) => {
+                      const newCols = parseInt(e.target.value);
+                      setConnect4Cols(newCols);
+                      // Adjust win length if needed
+                      if (connect4WinLength > Math.min(connect4Rows, newCols)) {
+                        setConnect4WinLength(Math.min(connect4Rows, newCols));
+                      }
+                    }}
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2">
+                    🎯 Win Length: {connect4WinLength} in a row
+                  </label>
+                  <input
+                    type="range"
+                    min="4"
+                    max={Math.min(6, Math.min(connect4Rows, connect4Cols))}
+                    value={connect4WinLength}
+                    onChange={(e) => setConnect4WinLength(parseInt(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-gray-600 mt-2">
+                Board: {connect4Rows}x{connect4Cols}, Win: {connect4WinLength} in a row
+              </p>
+            </div>
+          )}
 
           <button
             onClick={createRoom}

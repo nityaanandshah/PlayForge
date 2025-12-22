@@ -8,13 +8,15 @@ interface DotsAndBoxesBoardProps {
   disabled?: boolean
 }
 
-const ROWS = 5
-const COLS = 5
 const DOT_SIZE = 12
 const CELL_SIZE = 80
 
 export default function DotsAndBoxesBoard({ state, currentUserId, onMove, disabled }: DotsAndBoxesBoardProps) {
   const [hoveredLine, setHoveredLine] = useState<{row: number, col: number, orientation: LineOrientation} | null>(null)
+  
+  // Use grid size from state (defaults to 5 if not provided for backward compatibility)
+  const ROWS = state.grid_rows || 5
+  const COLS = state.grid_cols || 5
   
   const isMyTurn = state.current_player === currentUserId
   const isPlayer1 = state.player1_id === currentUserId

@@ -47,20 +47,53 @@ type RPSMove struct {
 	Choice RPSChoice `json:"choice"`
 }
 
-// NewRPSState creates a new Rock-Paper-Scissors game state
+// NewRPSState creates a new Rock-Paper-Scissors game state with default settings (best of 5)
 func NewRPSState(player1ID, player2ID uuid.UUID) *RPSState {
+	return NewRPSStateWithBestOf(player1ID, player2ID, 5)
+}
+
+// NewRPSStateWithSettings creates a new RPS game state with custom settings
+func NewRPSStateWithSettings(player1ID, player2ID uuid.UUID, settings interface{}) *RPSState {
+	bestOf := 5 // default
+	
+	if settingsMap, ok := settings.(map[string]interface{}); ok {
+		if val, exists := settingsMap["rps_best_of"]; exists {
+			if bestOfFloat, ok := val.(float64); ok {
+				bestOf = int(bestOfFloat)
+			}
+		}
+	}
+	
+	return NewRPSStateWithBestOf(player1ID, player2ID, bestOf)
+}
+
+// NewRPSStateWithBestOf creates a new RPS game state with specified best-of rounds
+func NewRPSStateWithBestOf(player1ID, player2ID uuid.UUID, bestOf int) *RPSState {
+	// Ensure bestOf is odd and within valid range
+	if bestOf < 3 {
+		bestOf = 3
+	}
+	if bestOf > 9 {
+		bestOf = 9
+	}
+	if bestOf%2 == 0 {
+		bestOf++ // Make it odd
+	}
+	
+	winsNeeded := (bestOf / 2) + 1
+	
 	return &RPSState{
-		Player1ID:    player1ID,
-		Player2ID:    player2ID,
-		CurrentRound: 1,
-		Player1Score: 0,
-		Player2Score: 0,
-		Rounds:       []RPSRound{},
+		Player1ID:     player1ID,
+		Player2ID:     player2ID,
+		CurrentRound:  1,
+		Player1Score:  0,
+		Player2Score:  0,
+		Rounds:        []RPSRound{},
 		Player1Choice: RPSChoiceNone,
 		Player2Choice: RPSChoiceNone,
-		BothRevealed: false,
-		MaxRounds:    5,
-		WinsNeeded:   3,
+		BothRevealed:  false,
+		MaxRounds:     bestOf,
+		WinsNeeded:    winsNeeded,
 	}
 }
 

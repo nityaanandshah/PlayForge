@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"fmt"
+	
 	"github.com/arenamatch/playforge/internal/domain"
 	"github.com/arenamatch/playforge/internal/services"
 	"github.com/gofiber/fiber/v2"
@@ -41,6 +43,8 @@ func (h *RoomHandler) CreateRoom(c *fiber.Ctx) error {
 			"error": "Invalid request body",
 		})
 	}
+	
+	fmt.Printf("CreateRoom request received: GameType=%s, GameSettings=%+v\n", req.GameType, req.GameSettings)
 
 	// Validate game type
 	validGameTypes := map[string]bool{

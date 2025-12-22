@@ -35,12 +35,31 @@ const (
 	ParticipantRoleSpectator ParticipantRole = "spectator"
 )
 
+// GameSettings represents customizable game settings
+type GameSettings struct {
+	// Tic-Tac-Toe settings
+	TicTacToeGridSize int `json:"tictactoe_grid_size,omitempty"` // 3, 4, or 5
+	TicTacToeWinLength int `json:"tictactoe_win_length,omitempty"` // How many in a row to win
+	
+	// Connect-4 settings
+	Connect4Rows int `json:"connect4_rows,omitempty"` // 4-10
+	Connect4Cols int `json:"connect4_cols,omitempty"` // 4-10
+	Connect4WinLength int `json:"connect4_win_length,omitempty"` // 4, 5, etc.
+	
+	// RPS settings
+	RPSBestOf int `json:"rps_best_of,omitempty"` // 3, 5, 7, 9
+	
+	// Dots & Boxes settings
+	DotsGridSize int `json:"dots_grid_size,omitempty"` // 4, 5, 6 (creates (n-1)x(n-1) boxes)
+}
+
 // Room represents a game room
 type Room struct {
 	ID           uuid.UUID         `json:"id"`
 	Type         RoomType          `json:"type"`
 	Status       RoomStatus        `json:"status"`
 	GameType     string            `json:"game_type"`
+	GameSettings *GameSettings     `json:"game_settings,omitempty"`
 	JoinCode     string            `json:"join_code"`
 	HostID       uuid.UUID         `json:"host_id"`
 	GameID       *uuid.UUID        `json:"game_id,omitempty"`
@@ -63,9 +82,10 @@ type Participant struct {
 
 // CreateRoomRequest represents a room creation request
 type CreateRoomRequest struct {
-	GameType   string   `json:"game_type" validate:"required,oneof=tictactoe connect4 rps dotsandboxes"`
-	Type       RoomType `json:"type" validate:"required,oneof=quickplay private ranked"`
-	MaxPlayers int      `json:"max_players" validate:"required,min=2,max=4"`
+	GameType     string        `json:"game_type" validate:"required,oneof=tictactoe connect4 rps dotsandboxes"`
+	Type         RoomType      `json:"type" validate:"required,oneof=quickplay private ranked"`
+	MaxPlayers   int           `json:"max_players" validate:"required,min=2,max=4"`
+	GameSettings *GameSettings `json:"game_settings,omitempty"`
 }
 
 // JoinRoomRequest represents a room join request

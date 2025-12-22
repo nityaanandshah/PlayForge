@@ -9,6 +9,12 @@ interface TicTacToeBoardProps {
 
 export default function TicTacToeBoard({ state, currentUserId, onMove, disabled }: TicTacToeBoardProps) {
   const isMyTurn = state.current_player === currentUserId
+  const gridSize = state.grid_size || 3 // Default to 3 for backward compatibility
+  
+  // Debug logging
+  console.log('TicTacToe State:', state)
+  console.log('Grid Size:', gridSize)
+  console.log('Board dimensions:', state.board?.length, state.board?.[0]?.length)
 
   const handleCellClick = (row: number, col: number) => {
     if (disabled || !isMyTurn || state.board[row][col] !== '') {
@@ -21,7 +27,7 @@ export default function TicTacToeBoard({ state, currentUserId, onMove, disabled 
     if (value === 'X') {
       return (
         <div className="relative w-full h-full flex items-center justify-center animate-[scale-in_0.3s_ease-out]">
-          <svg viewBox="0 0 100 100" className="w-16 h-16">
+          <svg viewBox="0 0 100 100" className={iconSizeClass}>
             <line x1="20" y1="20" x2="80" y2="80" stroke="#3B82F6" strokeWidth="8" strokeLinecap="round" />
             <line x1="80" y1="20" x2="20" y2="80" stroke="#3B82F6" strokeWidth="8" strokeLinecap="round" />
           </svg>
@@ -31,7 +37,7 @@ export default function TicTacToeBoard({ state, currentUserId, onMove, disabled 
     if (value === 'O') {
       return (
         <div className="relative w-full h-full flex items-center justify-center animate-[scale-in_0.3s_ease-out]">
-          <svg viewBox="0 0 100 100" className="w-16 h-16">
+          <svg viewBox="0 0 100 100" className={iconSizeClass}>
             <circle cx="50" cy="50" r="30" stroke="#EF4444" strokeWidth="8" fill="none" />
           </svg>
         </div>
@@ -43,7 +49,7 @@ export default function TicTacToeBoard({ state, currentUserId, onMove, disabled 
   const getCellClass = (row: number, col: number) => {
     const value = state.board[row][col]
     
-    let baseClass = 'w-28 h-28 bg-white border-4 border-gray-300 flex items-center justify-center transition-all duration-200 rounded-xl shadow-md'
+    let baseClass = 'bg-white border-4 border-gray-300 flex items-center justify-center transition-all duration-200 rounded-xl shadow-md'
     
     if (value === '') {
       if (isMyTurn && !disabled) {
@@ -60,16 +66,33 @@ export default function TicTacToeBoard({ state, currentUserId, onMove, disabled 
     return baseClass
   }
 
+  const getCellSize = () => {
+    // Adjust cell size based on grid size
+    if (gridSize === 3) return 'w-28 h-28'
+    if (gridSize === 4) return 'w-24 h-24'
+    return 'w-20 h-20' // 5x5
+  }
+
+  const getIconSize = () => {
+    // Adjust icon size based on grid size
+    if (gridSize === 3) return 'w-16 h-16'
+    if (gridSize === 4) return 'w-14 h-14'
+    return 'w-12 h-12' // 5x5
+  }
+
+  const cellSizeClass = getCellSize()
+  const iconSizeClass = getIconSize()
+
   return (
     <div className="flex flex-col items-center space-y-6">
       {/* Game Board */}
       <div className="bg-gradient-to-br from-gray-100 to-gray-200 p-4 rounded-2xl shadow-2xl">
-        <div className="grid grid-cols-3 gap-3">
-          {[0, 1, 2].map((row) => (
-            [0, 1, 2].map((col) => (
+        <div className={`grid gap-3`} style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}>
+          {Array.from({ length: gridSize }).map((_, row) => (
+            Array.from({ length: gridSize }).map((_, col) => (
               <button
                 key={`${row}-${col}`}
-                className={getCellClass(row, col)}
+                className={`${cellSizeClass} ${getCellClass(row, col)}`}
                 onClick={() => handleCellClick(row, col)}
                 disabled={disabled || !isMyTurn || state.board[row][col] !== ''}
               >

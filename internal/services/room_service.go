@@ -30,14 +30,30 @@ func NewRoomService(redisClient *redis.Client) *RoomService {
 
 // CreateRoom creates a new game room
 func (s *RoomService) CreateRoom(ctx context.Context, hostID uuid.UUID, hostUsername string, req domain.CreateRoomRequest) (*domain.Room, error) {
+	fmt.Printf("RoomService.CreateRoom: GameType=%s, GameSettings=%+v\n", req.GameType, req.GameSettings)
+	
+	// Apply default settings if not provided
+	gameSettings := req.GameSettings
+	if gameSettings == nil {
+		fmt.Printf("No game settings provided, using defaults\n")
+		gameSettings = getDefaultGameSettings(req.GameType)
+	} else {
+		fmt.Printf("Game settings provided: %+v\n", gameSettings)
+		// Validate and apply defaults for missing fields
+		gameSettings = validateAndFillGameSettings(req.GameType, gameSettings)
+	}
+	
+	fmt.Printf("Final game settings after validation: %+v\n", gameSettings)
+	
 	room := &domain.Room{
-		ID:         uuid.New(),
-		Type:       req.Type,
-		Status:     domain.RoomStatusWaiting,
-		GameType:   req.GameType,
-		JoinCode:   GenerateJoinCode(),
-		HostID:     hostID,
-		MaxPlayers: req.MaxPlayers,
+		ID:           uuid.New(),
+		Type:         req.Type,
+		Status:       domain.RoomStatusWaiting,
+		GameType:     req.GameType,
+		GameSettings: gameSettings,
+		JoinCode:     GenerateJoinCode(),
+		HostID:       hostID,
+		MaxPlayers:   req.MaxPlayers,
 		Participants: []domain.Participant{
 			{
 				UserID:   hostID,
@@ -283,11 +299,12 @@ func (s *RoomService) StartGame(ctx context.Context, roomID uuid.UUID, hostID uu
 		return nil, fmt.Errorf("not all participants are ready")
 	}
 
-	// Create the actual game
+	// Create the actual game with custom settings
 	player1 := room.Participants[0]
 	player2 := room.Participants[1]
 	
-	game, err := gameService.CreateGame(ctx, game.GameType(room.GameType), player1.UserID, player1.Username)
+	fmt.Printf("StartGame: Creating game with settings: %+v\n", room.GameSettings)
+	game, err := gameService.CreateGameWithSettings(ctx, game.GameType(room.GameType), player1.UserID, player1.Username, room.GameSettings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create game: %w", err)
 	}
@@ -378,5 +395,61 @@ func roomKey(roomID uuid.UUID) string {
 
 func roomCodeKey(joinCode string) string {
 	return fmt.Sprintf("%s%s", roomCodeKeyPrefix, joinCode)
+}
+
+// getDefaultGameSettings returns default settings for each game type
+func getDefaultGameSettings(gameType string) *domain.GameSettings {
+	settings := &domain.GameSettings{}
+	
+	switch gameType {
+	case "tictactoe":
+		settings.TicTacToeGridSize = 3
+		settings.TicTacToeWinLength = 3
+	case "connect4":
+		settings.Connect4Rows = 6
+		settings.Connect4Cols = 7
+		settings.Connect4WinLength = 4
+	case "rps":
+		settings.RPSBestOf = 5
+	case "dotsandboxes":
+		settings.DotsGridSize = 5
+	}
+	
+	return settings
+}
+
+// validateAndFillGameSettings validates settings and fills in defaults for missing values
+func validateAndFillGameSettings(gameType string, settings *domain.GameSettings) *domain.GameSettings {
+	defaults := getDefaultGameSettings(gameType)
+	
+	switch gameType {
+	case "tictactoe":
+		if settings.TicTacToeGridSize < 3 || settings.TicTacToeGridSize > 5 {
+			settings.TicTacToeGridSize = defaults.TicTacToeGridSize
+		}
+		if settings.TicTacToeWinLength == 0 || settings.TicTacToeWinLength > settings.TicTacToeGridSize {
+			settings.TicTacToeWinLength = settings.TicTacToeGridSize
+		}
+	case "connect4":
+		if settings.Connect4Rows < 4 || settings.Connect4Rows > 10 {
+			settings.Connect4Rows = defaults.Connect4Rows
+		}
+		if settings.Connect4Cols < 4 || settings.Connect4Cols > 10 {
+			settings.Connect4Cols = defaults.Connect4Cols
+		}
+		if settings.Connect4WinLength < 4 || settings.Connect4WinLength > 6 {
+			settings.Connect4WinLength = defaults.Connect4WinLength
+		}
+	case "rps":
+		if settings.RPSBestOf < 3 || settings.RPSBestOf > 9 || settings.RPSBestOf%2 == 0 {
+			settings.RPSBestOf = defaults.RPSBestOf
+		}
+	case "dotsandboxes":
+		if settings.DotsGridSize < 4 || settings.DotsGridSize > 8 {
+			settings.DotsGridSize = defaults.DotsGridSize
+		}
+	}
+	
+	return settings
 }
 

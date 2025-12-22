@@ -176,6 +176,47 @@ export default function RoomLobby() {
         </div>
       )}
 
+      {/* Game Settings */}
+      {room.game_settings && (
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
+          <p className="text-sm font-semibold text-gray-700 mb-2">🎮 Game Settings</p>
+          <div className="space-y-1">
+            {room.game_type === 'tictactoe' && room.game_settings.tictactoe_grid_size && (
+              <p className="text-gray-700">
+                <span className="font-semibold">Grid Size:</span> {room.game_settings.tictactoe_grid_size}x{room.game_settings.tictactoe_grid_size}
+                <span className="text-sm text-gray-600 ml-2">
+                  (Get {room.game_settings.tictactoe_win_length || room.game_settings.tictactoe_grid_size} in a row to win)
+                </span>
+              </p>
+            )}
+            {room.game_type === 'connect4' && (room.game_settings.connect4_rows || room.game_settings.connect4_cols) && (
+              <p className="text-gray-700">
+                <span className="font-semibold">Board:</span> {room.game_settings.connect4_rows || 6}x{room.game_settings.connect4_cols || 7}
+                <span className="text-sm text-gray-600 ml-2">
+                  (Get {room.game_settings.connect4_win_length || 4} in a row to win)
+                </span>
+              </p>
+            )}
+            {room.game_type === 'rps' && room.game_settings.rps_best_of && (
+              <p className="text-gray-700">
+                <span className="font-semibold">Best of:</span> {room.game_settings.rps_best_of} rounds
+                <span className="text-sm text-gray-600 ml-2">
+                  (First to {Math.ceil(room.game_settings.rps_best_of / 2)} wins)
+                </span>
+              </p>
+            )}
+            {room.game_type === 'dotsandboxes' && room.game_settings.dots_grid_size && (
+              <p className="text-gray-700">
+                <span className="font-semibold">Grid Size:</span> {room.game_settings.dots_grid_size}x{room.game_settings.dots_grid_size}
+                <span className="text-sm text-gray-600 ml-2">
+                  ({(room.game_settings.dots_grid_size - 1) * (room.game_settings.dots_grid_size - 1)} boxes)
+                </span>
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Participants */}
       <div className="bg-white border-2 border-gray-200 rounded-lg p-6 mb-6">
         <h2 className="text-xl font-semibold mb-4">

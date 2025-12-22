@@ -23,21 +23,53 @@ func NewGameService(redisClient *redis.Client, statsService *StatsService) *Game
 	}
 }
 
-// CreateGame creates a new game
+// CreateGame creates a new game with default settings
 func (s *GameService) CreateGame(ctx context.Context, gameType game.GameType, player1ID uuid.UUID, player1Name string) (*game.Game, error) {
+	return s.CreateGameWithSettings(ctx, gameType, player1ID, player1Name, nil)
+}
+
+// CreateGameWithSettings creates a new game with custom settings
+func (s *GameService) CreateGameWithSettings(ctx context.Context, gameType game.GameType, player1ID uuid.UUID, player1Name string, settings interface{}) (*game.Game, error) {
 	gameID := uuid.New()
 	now := time.Now()
+
+	// Convert settings to map for easier access in game constructors
+	var settingsMap map[string]interface{}
+	if settings != nil {
+		// Marshal and unmarshal to convert struct to map
+		settingsJSON, err := json.Marshal(settings)
+		if err == nil {
+			json.Unmarshal(settingsJSON, &settingsMap)
+			fmt.Printf("Game settings received: %+v\n", settingsMap)
+		}
+	}
 
 	var gameState game.GameState
 	switch gameType {
 	case game.GameTypeTicTacToe:
-		gameState = game.NewTicTacToeState(player1ID, uuid.Nil) // Player 2 will join later
+		if settingsMap != nil {
+			gameState = game.NewTicTacToeStateWithSettings(player1ID, uuid.Nil, settingsMap)
+		} else {
+			gameState = game.NewTicTacToeState(player1ID, uuid.Nil)
+		}
 	case game.GameTypeConnect4:
-		gameState = game.NewConnect4State(player1ID, uuid.Nil) // Player 2 will join later
+		if settingsMap != nil {
+			gameState = game.NewConnect4StateWithSettings(player1ID, uuid.Nil, settingsMap)
+		} else {
+			gameState = game.NewConnect4State(player1ID, uuid.Nil)
+		}
 	case game.GameTypeRockPaperScissors:
-		gameState = game.NewRPSState(player1ID, uuid.Nil) // Player 2 will join later
+		if settingsMap != nil {
+			gameState = game.NewRPSStateWithSettings(player1ID, uuid.Nil, settingsMap)
+		} else {
+			gameState = game.NewRPSState(player1ID, uuid.Nil)
+		}
 	case game.GameTypeDotsAndBoxes:
-		gameState = game.NewDotsAndBoxesState(player1ID, uuid.Nil) // Player 2 will join later
+		if settingsMap != nil {
+			gameState = game.NewDotsAndBoxesStateWithSettings(player1ID, uuid.Nil, settingsMap)
+		} else {
+			gameState = game.NewDotsAndBoxesState(player1ID, uuid.Nil)
+		}
 	default:
 		return nil, fmt.Errorf("unsupported game type: %s", gameType)
 	}

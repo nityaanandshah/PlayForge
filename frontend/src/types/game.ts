@@ -24,6 +24,8 @@ export interface TicTacToeState {
   player2_id: string
   current_player: string
   move_count: number
+  grid_size: number
+  win_length: number
 }
 
 export interface TicTacToeMove {
@@ -37,6 +39,9 @@ export interface Connect4State {
   player2_id: string
   current_player: string
   move_count: number
+  rows: number
+  cols: number
+  win_length: number
 }
 
 export interface Connect4Move {
@@ -97,6 +102,8 @@ export interface DotsAndBoxesState {
   player2_score: number
   total_boxes: number
   last_move_boxed: boolean
+  grid_rows: number
+  grid_cols: number
 }
 
 export interface DotsAndBoxesMove {

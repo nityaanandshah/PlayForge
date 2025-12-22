@@ -8,11 +8,13 @@ interface Connect4BoardProps {
   disabled?: boolean
 }
 
-const ROWS = 6
-const COLS = 7
-
 export default function Connect4Board({ state, currentUserId, onMove, disabled }: Connect4BoardProps) {
   const [hoveredCol, setHoveredCol] = useState<number | null>(null)
+  
+  // Use dynamic grid size from state (defaults for backward compatibility)
+  const ROWS = state.rows || 6
+  const COLS = state.cols || 7
+  
   const isMyTurn = state.current_player === currentUserId
   const mySymbol = state.player1_id === currentUserId ? 'R' : 'Y'
 
@@ -51,11 +53,21 @@ export default function Connect4Board({ state, currentUserId, onMove, disabled }
     return state.board[0][col] !== ''
   }
 
+  // Calculate cell size based on grid dimensions
+  const getCellSize = () => {
+    // Smaller cells for larger grids
+    if (ROWS > 8 || COLS > 8) return 'w-12 h-12'
+    if (ROWS > 6 || COLS > 7) return 'w-14 h-14'
+    return 'w-16 h-16' // Default size
+  }
+  
+  const cellSize = getCellSize()
+
   return (
     <div className="flex flex-col items-center space-y-6">
       {/* Game Board */}
       <div className="bg-gradient-to-br from-blue-600 to-blue-800 p-6 rounded-3xl shadow-2xl">
-        <div className="grid grid-cols-7 gap-3">
+        <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))` }}>
           {Array.from({ length: COLS }).map((_, col) => (
             <div key={col} className="flex flex-col gap-3">
               {/* Column hover indicator */}
@@ -78,7 +90,7 @@ export default function Connect4Board({ state, currentUserId, onMove, disabled }
                 return (
                   <button
                     key={`${row}-${col}`}
-                    className={`w-16 h-16 rounded-full transition-all duration-200 ${
+                    className={`${cellSize} rounded-full transition-all duration-200 ${
                       value === ''
                         ? 'bg-white'
                         : `${getPieceColor(value)} shadow-lg ${getPieceShadow(value)} animate-[scale-in_0.3s_ease-out]`
