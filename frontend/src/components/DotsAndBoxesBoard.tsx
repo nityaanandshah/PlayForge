@@ -41,8 +41,42 @@ export default function DotsAndBoxesBoard({ state, currentUserId, onMove, disabl
     return box ? box.owner_id : null
   }
 
+  // Check if a line would only border already-claimed boxes (making it useless)
+  const isLineUseless = (row: number, col: number, orientation: LineOrientation): boolean => {
+    if (isLineDrawn(row, col, orientation)) return false
+    
+    const adjacentBoxes: Array<{row: number, col: number}> = []
+    
+    if (orientation === 'horizontal') {
+      // Box above
+      if (row > 0 && row - 1 < ROWS - 1 && col < COLS - 1) {
+        adjacentBoxes.push({ row: row - 1, col })
+      }
+      // Box below
+      if (row < ROWS - 1 && col < COLS - 1) {
+        adjacentBoxes.push({ row, col })
+      }
+    } else { // vertical
+      // Box to left
+      if (col > 0 && row < ROWS - 1 && col - 1 < COLS - 1) {
+        adjacentBoxes.push({ row, col: col - 1 })
+      }
+      // Box to right
+      if (col < COLS - 1 && row < ROWS - 1) {
+        adjacentBoxes.push({ row, col })
+      }
+    }
+    
+    // If no adjacent boxes (edge line), it's not useless
+    if (adjacentBoxes.length === 0) return false
+    
+    // Check if ALL adjacent boxes are claimed
+    const allClaimed = adjacentBoxes.every(box => getBoxOwner(box.row, box.col) !== null)
+    return allClaimed
+  }
+
   const handleLineClick = (row: number, col: number, orientation: LineOrientation) => {
-    if (disabled || !isMyTurn || isLineDrawn(row, col, orientation)) {
+    if (disabled || !isMyTurn || isLineDrawn(row, col, orientation) || isLineUseless(row, col, orientation)) {
       return
     }
     onMove({ row, col, orientation })
@@ -53,9 +87,14 @@ export default function DotsAndBoxesBoard({ state, currentUserId, onMove, disabl
     return ownerId === state.player1_id ? 'bg-blue-500' : 'bg-red-500'
   }
 
-  const getBoxColor = (ownerId: string | null) => {
-    if (!ownerId) return ''
-    return ownerId === state.player1_id ? 'bg-blue-100 border-blue-400' : 'bg-red-100 border-red-400'
+  const getBoxFillColor = (ownerId: string | null) => {
+    if (!ownerId) return 'transparent'
+    return ownerId === state.player1_id ? '#DBEAFE' : '#FEE2E2' // blue-100 : red-100
+  }
+  
+  const getBoxStrokeColor = (ownerId: string | null) => {
+    if (!ownerId) return 'transparent'
+    return ownerId === state.player1_id ? '#60A5FA' : '#F87171' // blue-400 : red-400
   }
 
   return (
@@ -64,16 +103,22 @@ export default function DotsAndBoxesBoard({ state, currentUserId, onMove, disabl
       <div className="w-full max-w-2xl bg-gradient-to-r from-blue-100 to-red-100 rounded-2xl p-6 shadow-xl">
         <div className="flex justify-between items-center">
           <div className="text-center">
-            <div className="text-sm text-gray-600 mb-1">Your Score</div>
-            <div className="text-5xl font-bold text-blue-600">{myScore}</div>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <div className={`w-6 h-6 rounded ${isPlayer1 ? 'bg-blue-500' : 'bg-red-500'} border-2 border-white shadow-md`}></div>
+              <div className="text-sm text-gray-600">Your Score</div>
+            </div>
+            <div className={`text-5xl font-bold ${isPlayer1 ? 'text-blue-600' : 'text-red-600'}`}>{myScore}</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-gray-700">Dots & Boxes</div>
             <div className="text-sm text-gray-600 mt-1">{state.boxes.length} / {state.total_boxes} boxes</div>
           </div>
           <div className="text-center">
-            <div className="text-sm text-gray-600 mb-1">Opponent</div>
-            <div className="text-5xl font-bold text-red-600">{opponentScore}</div>
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <div className={`w-6 h-6 rounded ${isPlayer1 ? 'bg-red-500' : 'bg-blue-500'} border-2 border-white shadow-md`}></div>
+              <div className="text-sm text-gray-600">Opponent</div>
+            </div>
+            <div className={`text-5xl font-bold ${isPlayer1 ? 'text-red-600' : 'text-blue-600'}`}>{opponentScore}</div>
           </div>
         </div>
       </div>
@@ -111,8 +156,11 @@ export default function DotsAndBoxesBoard({ state, currentUserId, onMove, disabl
                     y={DOT_SIZE / 2 + row * CELL_SIZE}
                     width={CELL_SIZE}
                     height={CELL_SIZE}
-                    className={`${getBoxColor(owner)} animate-[scale-in_0.3s_ease-out]`}
-                    opacity="0.5"
+                    fill={getBoxFillColor(owner)}
+                    stroke={getBoxStrokeColor(owner)}
+                    strokeWidth="2"
+                    opacity="0.7"
+                    className="animate-[scale-in_0.3s_ease-out]"
                   />
                 )
               }
@@ -125,7 +173,9 @@ export default function DotsAndBoxesBoard({ state, currentUserId, onMove, disabl
             Array.from({ length: COLS - 1 }).map((_, col) => {
               const drawn = isLineDrawn(row, col, 'horizontal')
               const owner = getLineOwner(row, col, 'horizontal')
+              const useless = isLineUseless(row, col, 'horizontal')
               const isHovered = hoveredLine?.row === row && hoveredLine?.col === col && hoveredLine?.orientation === 'horizontal'
+              const canClick = !drawn && !useless && isMyTurn && !disabled
               
               return (
                 <g key={`h-${row}-${col}`}>
@@ -136,9 +186,9 @@ export default function DotsAndBoxesBoard({ state, currentUserId, onMove, disabl
                     width={CELL_SIZE}
                     height={16}
                     fill="transparent"
-                    className={`${!drawn && isMyTurn && !disabled ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                    className={`${canClick ? 'cursor-pointer' : 'cursor-not-allowed'}`}
                     onClick={() => handleLineClick(row, col, 'horizontal')}
-                    onMouseEnter={() => !drawn && setHoveredLine({row, col, orientation: 'horizontal'})}
+                    onMouseEnter={() => canClick && setHoveredLine({row, col, orientation: 'horizontal'})}
                     onMouseLeave={() => setHoveredLine(null)}
                   />
                   {/* Line */}
@@ -147,9 +197,11 @@ export default function DotsAndBoxesBoard({ state, currentUserId, onMove, disabl
                     y1={DOT_SIZE / 2 + row * CELL_SIZE}
                     x2={DOT_SIZE / 2 + (col + 1) * CELL_SIZE}
                     y2={DOT_SIZE / 2 + row * CELL_SIZE}
-                    stroke={drawn ? (owner === state.player1_id ? '#3B82F6' : '#EF4444') : (isHovered && isMyTurn && !disabled ? '#10B981' : '#D1D5DB')}
-                    strokeWidth={drawn ? 4 : (isHovered && isMyTurn && !disabled ? 3 : 2)}
+                    stroke={drawn ? (owner === state.player1_id ? '#3B82F6' : '#EF4444') : (useless ? '#F3F4F6' : (isHovered && canClick ? '#10B981' : '#D1D5DB'))}
+                    strokeWidth={drawn ? 4 : (isHovered && canClick ? 3 : 2)}
                     strokeLinecap="round"
+                    strokeDasharray={useless ? '5,5' : undefined}
+                    opacity={useless ? 0.3 : 1}
                     className={drawn ? 'animate-[scale-in_0.2s_ease-out]' : ''}
                   />
                 </g>
@@ -162,7 +214,9 @@ export default function DotsAndBoxesBoard({ state, currentUserId, onMove, disabl
             Array.from({ length: COLS }).map((_, col) => {
               const drawn = isLineDrawn(row, col, 'vertical')
               const owner = getLineOwner(row, col, 'vertical')
+              const useless = isLineUseless(row, col, 'vertical')
               const isHovered = hoveredLine?.row === row && hoveredLine?.col === col && hoveredLine?.orientation === 'vertical'
+              const canClick = !drawn && !useless && isMyTurn && !disabled
               
               return (
                 <g key={`v-${row}-${col}`}>
@@ -173,9 +227,9 @@ export default function DotsAndBoxesBoard({ state, currentUserId, onMove, disabl
                     width={16}
                     height={CELL_SIZE}
                     fill="transparent"
-                    className={`${!drawn && isMyTurn && !disabled ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                    className={`${canClick ? 'cursor-pointer' : 'cursor-not-allowed'}`}
                     onClick={() => handleLineClick(row, col, 'vertical')}
-                    onMouseEnter={() => !drawn && setHoveredLine({row, col, orientation: 'vertical'})}
+                    onMouseEnter={() => canClick && setHoveredLine({row, col, orientation: 'vertical'})}
                     onMouseLeave={() => setHoveredLine(null)}
                   />
                   {/* Line */}
@@ -184,9 +238,11 @@ export default function DotsAndBoxesBoard({ state, currentUserId, onMove, disabl
                     y1={DOT_SIZE / 2 + row * CELL_SIZE}
                     x2={DOT_SIZE / 2 + col * CELL_SIZE}
                     y2={DOT_SIZE / 2 + (row + 1) * CELL_SIZE}
-                    stroke={drawn ? (owner === state.player1_id ? '#3B82F6' : '#EF4444') : (isHovered && isMyTurn && !disabled ? '#10B981' : '#D1D5DB')}
-                    strokeWidth={drawn ? 4 : (isHovered && isMyTurn && !disabled ? 3 : 2)}
+                    stroke={drawn ? (owner === state.player1_id ? '#3B82F6' : '#EF4444') : (useless ? '#F3F4F6' : (isHovered && canClick ? '#10B981' : '#D1D5DB'))}
+                    strokeWidth={drawn ? 4 : (isHovered && canClick ? 3 : 2)}
                     strokeLinecap="round"
+                    strokeDasharray={useless ? '5,5' : undefined}
+                    opacity={useless ? 0.3 : 1}
                     className={drawn ? 'animate-[scale-in_0.2s_ease-out]' : ''}
                   />
                 </g>

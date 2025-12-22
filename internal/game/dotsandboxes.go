@@ -144,6 +144,11 @@ func (s *DotsAndBoxesState) ValidateMove(playerID uuid.UUID, move interface{}) e
 			return errors.New("line already drawn")
 		}
 	}
+	
+	// Check if this line would only border already-claimed boxes (useless move)
+	if s.isLineUseless(dotsMove.Row, dotsMove.Col, dotsMove.Orientation) {
+		return errors.New("this line only borders already-claimed boxes")
+	}
 
 	return nil
 }
@@ -170,21 +175,23 @@ func (s *DotsAndBoxesState) ApplyMove(playerID uuid.UUID, move interface{}) erro
 	}
 	s.Lines = append(s.Lines, newLine)
 
-	// Check if this line completes any boxes
-	completedBoxes := s.checkCompletedBoxes(dotsMove.Row, dotsMove.Col, dotsMove.Orientation)
+	// Check if this line completes any squares of any size
+	pointsScored, completedBoxes := s.checkCompletedSquares()
 	
-	if len(completedBoxes) > 0 {
-		// Add completed boxes
-		for _, box := range completedBoxes {
-			s.Boxes = append(s.Boxes, box)
-			if playerID == s.Player1ID {
-				s.Player1Score++
-			} else {
-				s.Player2Score++
-			}
+	if pointsScored > 0 {
+		// Award points and claim boxes
+		if playerID == s.Player1ID {
+			s.Player1Score += pointsScored
+		} else {
+			s.Player2Score += pointsScored
 		}
+		
+		// Add all newly claimed 1×1 boxes
+		s.Boxes = append(s.Boxes, completedBoxes...)
 		s.LastMoveBoxed = true
-		// Player gets another turn if they completed a box
+		
+		fmt.Printf("Player %s completed square(s) and scored %d points!\n", playerID, pointsScored)
+		// Player gets another turn if they completed a square
 	} else {
 		s.LastMoveBoxed = false
 		// Switch turn
@@ -198,96 +205,177 @@ func (s *DotsAndBoxesState) ApplyMove(playerID uuid.UUID, move interface{}) erro
 	return nil
 }
 
-// checkCompletedBoxes checks if the newly drawn line completes any boxes
-func (s *DotsAndBoxesState) checkCompletedBoxes(row, col int, orientation LineOrientation) []Box {
-	var completedBoxes []Box
-
-	if orientation == LineHorizontal {
-		// Check box above (if exists)
-		if row > 0 {
-			if s.isBoxComplete(row-1, col) {
-				completedBoxes = append(completedBoxes, Box{
-					Row:     row - 1,
-					Col:     col,
-					OwnerID: s.CurrentPlayer,
-				})
+// checkCompletedSquares checks if any squares of any size are now complete
+// Returns total points scored and all 1×1 boxes that should be claimed
+// Awards points for ALL squares of the LARGEST size completed in this move
+func (s *DotsAndBoxesState) checkCompletedSquares() (int, []Box) {
+	maxSquareSize := s.GridRows - 1
+	if s.GridCols-1 < maxSquareSize {
+		maxSquareSize = s.GridCols - 1
+	}
+	
+	// Check from largest squares to smallest
+	// Find the largest size that has completed squares
+	for size := maxSquareSize; size >= 1; size-- {
+		var foundSquares []struct {
+			row, col int
+		}
+		
+		// Find ALL complete squares of this size
+		for row := 0; row <= s.GridRows-1-size; row++ {
+			for col := 0; col <= s.GridCols-1-size; col++ {
+				if s.isSquareComplete(row, col, size) {
+					foundSquares = append(foundSquares, struct{ row, col int }{row, col})
+				}
 			}
 		}
-		// Check box below (if exists)
-		if row < s.GridRows-1 {
-			if s.isBoxComplete(row, col) {
-				completedBoxes = append(completedBoxes, Box{
-					Row:     row,
-					Col:     col,
-					OwnerID: s.CurrentPlayer,
-				})
+		
+		// If we found any squares of this size, award points for ALL of them
+		if len(foundSquares) > 0 {
+			totalPoints := 0
+			var claimedBoxes []Box
+			
+			for _, sq := range foundSquares {
+				points := size * size
+				totalPoints += points
+				
+				fmt.Printf("Found complete %d×%d square at (%d,%d) = %d points\n", size, size, sq.row, sq.col, points)
+				
+				// Claim all 1×1 boxes inside this square
+				for r := sq.row; r < sq.row+size; r++ {
+					for c := sq.col; c < sq.col+size; c++ {
+						claimedBoxes = append(claimedBoxes, Box{
+							Row:     r,
+							Col:     c,
+							OwnerID: s.CurrentPlayer,
+						})
+					}
+				}
 			}
-		}
-	} else { // Vertical
-		// Check box to the left (if exists)
-		if col > 0 {
-			if s.isBoxComplete(row, col-1) {
-				completedBoxes = append(completedBoxes, Box{
-					Row:     row,
-					Col:     col - 1,
-					OwnerID: s.CurrentPlayer,
-				})
-			}
-		}
-		// Check box to the right (if exists)
-		if col < s.GridCols-1 {
-			if s.isBoxComplete(row, col) {
-				completedBoxes = append(completedBoxes, Box{
-					Row:     row,
-					Col:     col,
-					OwnerID: s.CurrentPlayer,
-				})
-			}
+			
+			fmt.Printf("Total points awarded: %d from %d square(s) of size %d×%d\n", totalPoints, len(foundSquares), size, size)
+			return totalPoints, claimedBoxes
 		}
 	}
-
-	return completedBoxes
+	
+	// No squares completed
+	return 0, nil
 }
 
-// isBoxComplete checks if a box at the given position has all 4 sides
-func (s *DotsAndBoxesState) isBoxComplete(boxRow, boxCol int) bool {
-	// Check if box already exists
+// isSquareComplete checks if a square of given size at position (row, col) is complete
+// A square is complete if all its edges are drawn AND all 1×1 boxes inside are unclaimed
+func (s *DotsAndBoxesState) isSquareComplete(startRow, startCol, size int) bool {
+	// First check if all internal 1×1 boxes are unclaimed
+	for r := startRow; r < startRow+size; r++ {
+		for c := startCol; c < startCol+size; c++ {
+			if s.isBoxClaimed(r, c) {
+				return false // At least one internal box is already claimed
+			}
+		}
+	}
+	
+	// Now check if all edges of the square are drawn
+	
+	// Check top edge (horizontal lines)
+	for c := startCol; c < startCol+size; c++ {
+		if !s.hasLine(startRow, c, LineHorizontal) {
+			return false
+		}
+	}
+	
+	// Check bottom edge (horizontal lines)
+	for c := startCol; c < startCol+size; c++ {
+		if !s.hasLine(startRow+size, c, LineHorizontal) {
+			return false
+		}
+	}
+	
+	// Check left edge (vertical lines)
+	for r := startRow; r < startRow+size; r++ {
+		if !s.hasLine(r, startCol, LineVertical) {
+			return false
+		}
+	}
+	
+	// Check right edge (vertical lines)
+	for r := startRow; r < startRow+size; r++ {
+		if !s.hasLine(r, startCol+size, LineVertical) {
+			return false
+		}
+	}
+	
+	return true
+}
+
+// isBoxClaimed checks if a 1×1 box is already owned by a player
+func (s *DotsAndBoxesState) isBoxClaimed(boxRow, boxCol int) bool {
 	for _, box := range s.Boxes {
 		if box.Row == boxRow && box.Col == boxCol {
-			return false // Already counted
+			return true
 		}
 	}
+	return false
+}
 
-	// A box needs 4 lines:
-	// Top: horizontal line at (boxRow, boxCol)
-	// Bottom: horizontal line at (boxRow+1, boxCol)
-	// Left: vertical line at (boxRow, boxCol)
-	// Right: vertical line at (boxRow, boxCol+1)
-
-	hasTop := false
-	hasBottom := false
-	hasLeft := false
-	hasRight := false
-
+// hasLine checks if a line exists at the given position
+func (s *DotsAndBoxesState) hasLine(row, col int, orientation LineOrientation) bool {
 	for _, line := range s.Lines {
-		if line.Orientation == LineHorizontal {
-			if line.Row == boxRow && line.Col == boxCol {
-				hasTop = true
-			}
-			if line.Row == boxRow+1 && line.Col == boxCol {
-				hasBottom = true
-			}
-		} else { // Vertical
-			if line.Row == boxRow && line.Col == boxCol {
-				hasLeft = true
-			}
-			if line.Row == boxRow && line.Col == boxCol+1 {
-				hasRight = true
-			}
+		if line.Row == row && line.Col == col && line.Orientation == orientation {
+			return true
 		}
 	}
+	return false
+}
 
-	return hasTop && hasBottom && hasLeft && hasRight
+// isLineUseless checks if a line would only border already-claimed boxes
+// Returns true if the line touches no unclaimed boxes (making it a useless move)
+func (s *DotsAndBoxesState) isLineUseless(row, col int, orientation LineOrientation) bool {
+	adjacentBoxes := s.getAdjacentBoxes(row, col, orientation)
+	
+	// If there are no adjacent boxes, the line is on the edge (not useless)
+	if len(adjacentBoxes) == 0 {
+		return false
+	}
+	
+	// Check if ALL adjacent boxes are already claimed
+	allClaimed := true
+	for _, box := range adjacentBoxes {
+		if !s.isBoxClaimed(box.Row, box.Col) {
+			allClaimed = false
+			break
+		}
+	}
+	
+	return allClaimed
+}
+
+// getAdjacentBoxes returns the 1×1 boxes that border this line
+func (s *DotsAndBoxesState) getAdjacentBoxes(row, col int, orientation LineOrientation) []struct{ Row, Col int } {
+	var boxes []struct{ Row, Col int }
+	
+	if orientation == LineHorizontal {
+		// Horizontal line can border a box above and/or below
+		// Box above: (row-1, col)
+		if row > 0 && row-1 < s.GridRows-1 && col < s.GridCols-1 {
+			boxes = append(boxes, struct{ Row, Col int }{row - 1, col})
+		}
+		// Box below: (row, col)
+		if row < s.GridRows-1 && col < s.GridCols-1 {
+			boxes = append(boxes, struct{ Row, Col int }{row, col})
+		}
+	} else { // Vertical
+		// Vertical line can border a box to the left and/or right
+		// Box to left: (row, col-1)
+		if col > 0 && row < s.GridRows-1 && col-1 < s.GridCols-1 {
+			boxes = append(boxes, struct{ Row, Col int }{row, col - 1})
+		}
+		// Box to right: (row, col)
+		if col < s.GridCols-1 && row < s.GridRows-1 {
+			boxes = append(boxes, struct{ Row, Col int }{row, col})
+		}
+	}
+	
+	return boxes
 }
 
 // CheckWinner checks if there's a winner (all boxes filled)
