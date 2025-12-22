@@ -40,11 +40,12 @@ func main() {
 	// Initialize repositories
 	userRepo := repository.NewUserRepository(pgPool)
 	statsRepo := repository.NewStatsRepository(pgPool)
+	gameRepo := repository.NewGameRepository(pgPool)
 
 	// Initialize services
 	authService := services.NewAuthService(userRepo, redisClient, cfg.JWTSecret)
 	statsService := services.NewStatsService(statsRepo, userRepo)
-	gameService := services.NewGameService(redisClient, statsService)
+	gameService := services.NewGameService(redisClient, statsService, gameRepo)
 	roomService := services.NewRoomService(redisClient)
 	matchmakingService := services.NewMatchmakingService(redisClient, roomService)
 

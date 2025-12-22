@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/arenamatch/playforge/internal/game"
+	"github.com/arenamatch/playforge/internal/repository"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 )
@@ -14,12 +15,14 @@ import (
 type GameService struct {
 	redisClient  *redis.Client
 	statsService *StatsService
+	gameRepo     *repository.GameRepository
 }
 
-func NewGameService(redisClient *redis.Client, statsService *StatsService) *GameService {
+func NewGameService(redisClient *redis.Client, statsService *StatsService, gameRepo *repository.GameRepository) *GameService {
 	return &GameService{
 		redisClient:  redisClient,
 		statsService: statsService,
+		gameRepo:     gameRepo,
 	}
 }
 
@@ -168,6 +171,14 @@ func (s *GameService) MakeMove(ctx context.Context, gameID, playerID uuid.UUID, 
 			if err := s.statsService.UpdateGameStats(ctx, string(g.Type), g.Player1ID, g.Player2ID, g.WinnerID); err != nil {
 				fmt.Printf("Error updating game stats: %v\n", err)
 				// Don't fail the move if stats update fails
+			}
+		}
+
+		// Save completed game to database for match history
+		if s.gameRepo != nil {
+			if err := s.gameRepo.SaveCompletedGame(ctx, g.ID, string(g.Type), g.Player1ID, g.Player2ID, g.WinnerID, g.CreatedAt, g.EndedAt); err != nil {
+				fmt.Printf("Error saving completed game to database: %v\n", err)
+				// Don't fail the move if database save fails
 			}
 		}
 	}
