@@ -13,10 +13,15 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
   const [showResult, setShowResult] = useState(false)
   
   const isPlayer1 = state.player1_id === currentUserId
-  const myChoice = isPlayer1 ? state.player1_choice : state.player2_choice
-  const opponentChoice = isPlayer1 ? state.player2_choice : state.player1_choice
-  const myScore = isPlayer1 ? state.player1_score : state.player2_score
-  const opponentScore = isPlayer1 ? state.player2_score : state.player1_score
+  const isPlayer2 = state.player2_id === currentUserId
+  const isSpectator = !isPlayer1 && !isPlayer2
+  
+  // For spectators, show from player1's perspective (neutral view)
+  // For participants, show from their perspective
+  const myChoice = isSpectator ? state.player1_choice : (isPlayer1 ? state.player1_choice : state.player2_choice)
+  const opponentChoice = isSpectator ? state.player2_choice : (isPlayer1 ? state.player2_choice : state.player1_choice)
+  const myScore = isSpectator ? state.player1_score : (isPlayer1 ? state.player1_score : state.player2_score)
+  const opponentScore = isSpectator ? state.player2_score : (isPlayer1 ? state.player2_score : state.player1_score)
   
   // Show result when both players have revealed
   useEffect(() => {
@@ -63,6 +68,13 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
     
     if (!lastRound.winner_id) {
       return { text: "It's a Draw!", color: 'text-yellow-600' }
+    } else if (isSpectator) {
+      // For spectators, show neutral message
+      const winnerIsPlayer1 = lastRound.winner_id === state.player1_id
+      return { 
+        text: winnerIsPlayer1 ? 'Player 1 Won!' : 'Player 2 Won!', 
+        color: 'text-green-600' 
+      }
     } else if (lastRound.winner_id === currentUserId) {
       return { text: 'You Won This Round!', color: 'text-green-600' }
     } else {
@@ -169,19 +181,54 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
           <h3 className="text-xl font-bold text-gray-800 mb-4">Round History</h3>
           <div className="space-y-2">
             {state.rounds.map((round) => {
-              const isWinner = round.winner_id === currentUserId
               const isDraw = !round.winner_id
-              const myRoundChoice = isPlayer1 ? round.player1_choice : round.player2_choice
-              const opponentRoundChoice = isPlayer1 ? round.player2_choice : round.player1_choice
+              
+              let isWinner, myRoundChoice, opponentRoundChoice, resultText, bgColor, textColor
+              
+              if (isSpectator) {
+                // For spectators, show player1 vs player2 perspective
+                const player1Won = round.winner_id === state.player1_id
+                myRoundChoice = round.player1_choice
+                opponentRoundChoice = round.player2_choice
+                
+                if (isDraw) {
+                  resultText = 'Draw'
+                  bgColor = 'bg-yellow-50 border-2 border-yellow-300'
+                  textColor = 'text-yellow-600'
+                } else if (player1Won) {
+                  resultText = 'Won'
+                  bgColor = 'bg-green-50 border-2 border-green-300'
+                  textColor = 'text-green-600'
+                } else {
+                  resultText = 'Lost'
+                  bgColor = 'bg-red-50 border-2 border-red-300'
+                  textColor = 'text-red-600'
+                }
+              } else {
+                // For participants, show from their perspective
+                isWinner = round.winner_id === currentUserId
+                myRoundChoice = isPlayer1 ? round.player1_choice : round.player2_choice
+                opponentRoundChoice = isPlayer1 ? round.player2_choice : round.player1_choice
+                
+                if (isDraw) {
+                  resultText = 'Draw'
+                  bgColor = 'bg-yellow-50 border-2 border-yellow-300'
+                  textColor = 'text-yellow-600'
+                } else if (isWinner) {
+                  resultText = 'Won'
+                  bgColor = 'bg-green-50 border-2 border-green-300'
+                  textColor = 'text-green-600'
+                } else {
+                  resultText = 'Lost'
+                  bgColor = 'bg-red-50 border-2 border-red-300'
+                  textColor = 'text-red-600'
+                }
+              }
               
               return (
                 <div
                   key={round.round_number}
-                  className={`flex items-center justify-between p-4 rounded-xl ${
-                    isWinner ? 'bg-green-50 border-2 border-green-300' :
-                    isDraw ? 'bg-yellow-50 border-2 border-yellow-300' :
-                    'bg-red-50 border-2 border-red-300'
-                  }`}
+                  className={`flex items-center justify-between p-4 rounded-xl ${bgColor}`}
                 >
                   <div className="flex items-center gap-4">
                     <div className="text-lg font-bold text-gray-600">R{round.round_number}</div>
@@ -191,12 +238,8 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
                       <span className="text-3xl">{getChoiceEmoji(opponentRoundChoice)}</span>
                     </div>
                   </div>
-                  <div className={`font-bold ${
-                    isWinner ? 'text-green-600' :
-                    isDraw ? 'text-yellow-600' :
-                    'text-red-600'
-                  }`}>
-                    {isWinner ? 'Won' : isDraw ? 'Draw' : 'Lost'}
+                  <div className={`font-bold ${textColor}`}>
+                    {resultText}
                   </div>
                 </div>
               )

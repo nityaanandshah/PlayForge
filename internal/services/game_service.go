@@ -14,9 +14,16 @@ import (
 )
 
 type GameService struct {
-	redisClient  *redis.Client
-	statsService *StatsService
-	gameRepo     *repository.GameRepository
+	redisClient        *redis.Client
+	statsService       *StatsService
+	gameRepo           *repository.GameRepository
+	tournamentService  TournamentServiceInterface // Interface to avoid circular dependency
+}
+
+// TournamentServiceInterface defines the methods game service needs from tournament service
+type TournamentServiceInterface interface {
+	AdvanceWinner(ctx context.Context, tournamentID uuid.UUID, matchID uuid.UUID, winnerID uuid.UUID) error
+	CreateGamesForNextRound(ctx context.Context, tournamentID uuid.UUID) error
 }
 
 func NewGameService(redisClient *redis.Client, statsService *StatsService, gameRepo *repository.GameRepository) *GameService {
@@ -25,6 +32,11 @@ func NewGameService(redisClient *redis.Client, statsService *StatsService, gameR
 		statsService: statsService,
 		gameRepo:     gameRepo,
 	}
+}
+
+// SetTournamentService sets the tournament service (called after initialization to avoid circular dependency)
+func (s *GameService) SetTournamentService(tournamentService TournamentServiceInterface) {
+	s.tournamentService = tournamentService
 }
 
 // CreateGame creates a new game with default settings
@@ -102,7 +114,7 @@ func (s *GameService) CreateGameWithSettings(ctx context.Context, gameType game.
 }
 
 // CreateGameForTournament creates a game with both players already assigned for tournament matches
-func (s *GameService) CreateGameForTournament(ctx context.Context, gameID uuid.UUID, gameType game.GameType, player1ID uuid.UUID, player1Name string, player2ID uuid.UUID, player2Name string, roomID uuid.UUID) (*game.Game, error) {
+func (s *GameService) CreateGameForTournament(ctx context.Context, gameID uuid.UUID, gameType game.GameType, player1ID uuid.UUID, player1Name string, player2ID uuid.UUID, player2Name string, tournamentID uuid.UUID, tournamentRound int) (*game.Game, error) {
 	now := time.Now()
 
 	var gameState game.GameState
@@ -120,17 +132,19 @@ func (s *GameService) CreateGameForTournament(ctx context.Context, gameID uuid.U
 	}
 
 	g := &game.Game{
-		ID:          gameID,
-		Type:        gameType,
-		Status:      game.GameStatusActive, // Both players assigned, ready to play
-		Player1ID:   player1ID,
-		Player1Name: player1Name,
-		Player2ID:   player2ID,
-		Player2Name: player2Name,
-		CurrentTurn: player1ID, // Player 1 goes first
-		State:       gameState,
-		CreatedAt:   now,
-		UpdatedAt:   now,
+		ID:              gameID,
+		Type:            gameType,
+		Status:          game.GameStatusActive, // Both players assigned, ready to play
+		Player1ID:       player1ID,
+		Player1Name:     player1Name,
+		Player2ID:       player2ID,
+		Player2Name:     player2Name,
+		CurrentTurn:     player1ID, // Player 1 goes first
+		State:           gameState,
+		TournamentID:    &tournamentID,
+		TournamentRound: tournamentRound,
+		CreatedAt:       now,
+		UpdatedAt:       now,
 	}
 
 	// Save to Redis
@@ -196,6 +210,11 @@ func (s *GameService) MakeMove(ctx context.Context, gameID, playerID uuid.UUID, 
 		return nil, game.ErrGameNotActive
 	}
 
+	// Validate player is a participant in this game
+	if playerID != g.Player1ID && playerID != g.Player2ID {
+		return nil, fmt.Errorf("you are not a participant in this game - spectators cannot make moves")
+	}
+
 	// Apply move
 	if err := g.State.ApplyMove(playerID, move); err != nil {
 		return nil, err
@@ -211,9 +230,19 @@ func (s *GameService) MakeMove(ctx context.Context, gameID, playerID uuid.UUID, 
 
 		// Update player stats and ELO ratings
 		if s.statsService != nil {
-			if err := s.statsService.UpdateGameStats(ctx, string(g.Type), g.Player1ID, g.Player2ID, g.WinnerID); err != nil {
-				fmt.Printf("Error updating game stats: %v\n", err)
-				// Don't fail the move if stats update fails
+			// Check if this is a tournament game
+			if g.TournamentID != nil && g.TournamentRound > 0 {
+				// Tournament game - use progressive bonuses
+				if err := s.statsService.UpdateTournamentGameStats(ctx, string(g.Type), g.Player1ID, g.Player2ID, g.WinnerID, g.TournamentRound); err != nil {
+					fmt.Printf("Error updating tournament game stats: %v\n", err)
+					// Don't fail the move if stats update fails
+				}
+			} else {
+				// Regular casual game
+				if err := s.statsService.UpdateGameStats(ctx, string(g.Type), g.Player1ID, g.Player2ID, g.WinnerID); err != nil {
+					fmt.Printf("Error updating game stats: %v\n", err)
+					// Don't fail the move if stats update fails
+				}
 			}
 		}
 
@@ -222,6 +251,16 @@ func (s *GameService) MakeMove(ctx context.Context, gameID, playerID uuid.UUID, 
 			if err := s.gameRepo.SaveCompletedGame(ctx, g.ID, string(g.Type), g.Player1ID, g.Player2ID, g.WinnerID, g.CreatedAt, g.EndedAt); err != nil {
 				fmt.Printf("Error saving completed game to database: %v\n", err)
 				// Don't fail the move if database save fails
+			}
+		}
+
+		// Tournament game: Advance winner to next round
+		// AdvanceWinner will automatically create games for the next round if ready
+		if g.TournamentID != nil && g.WinnerID != nil && s.tournamentService != nil {
+			log.Printf("Tournament game completed - advancing winner %s to next round", g.WinnerID.String())
+			if err := s.tournamentService.AdvanceWinner(ctx, *g.TournamentID, g.ID, *g.WinnerID); err != nil {
+				log.Printf("Error advancing tournament winner: %v", err)
+				// Don't fail the move if advancement fails
 			}
 		}
 	}

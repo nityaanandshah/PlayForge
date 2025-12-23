@@ -264,7 +264,8 @@ export default function Game() {
           </div>
         )}
 
-        {game.status === 'completed' && (
+        {/* Victory/Defeat Banner - Only for Participants */}
+        {game.status === 'completed' && (user!.id === game.player1_id || user!.id === game.player2_id) && (
           <div className={`mb-6 p-6 rounded-2xl text-center shadow-2xl border-4 ${
             game.winner_id === user?.id 
               ? 'bg-gradient-to-r from-green-400 to-emerald-500 border-green-300' 
@@ -293,6 +294,32 @@ export default function Game() {
           </div>
         )}
 
+        {/* Game Result Banner - For Spectators */}
+        {game.status === 'completed' && (user!.id !== game.player1_id && user!.id !== game.player2_id) && (
+          <div className="mb-6 p-6 rounded-2xl text-center shadow-2xl border-4 bg-gradient-to-r from-purple-400 to-indigo-500 border-purple-300">
+            <div className="text-white">
+              <p className="text-4xl font-extrabold mb-2">🏁 Game Completed</p>
+              {game.winner_id === game.player1_id && (
+                <p className="text-xl">Winner: {game.player1_name} 🏆</p>
+              )}
+              {game.winner_id === game.player2_id && (
+                <p className="text-xl">Winner: {game.player2_name} 🏆</p>
+              )}
+              {!game.winner_id && (
+                <p className="text-xl">Result: Draw 🤝</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Spectator Notice */}
+        {(user!.id !== game.player1_id && user!.id !== game.player2_id) && (
+          <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg text-center">
+            <p className="text-lg font-semibold text-blue-800">👁️ Spectator Mode</p>
+            <p className="text-sm text-blue-600">You are watching this game. Only participants can make moves.</p>
+          </div>
+        )}
+
         {/* Game Board */}
         {(game.status === 'active' || game.status === 'completed') && game.state && (
           <div className="flex justify-center mb-8">
@@ -301,7 +328,7 @@ export default function Game() {
                 state={game.state as TicTacToeState}
                 currentUserId={user!.id}
                 onMove={handleMove}
-                disabled={!wsConnected || game.status === 'completed'}
+                disabled={!wsConnected || game.status === 'completed' || (user!.id !== game.player1_id && user!.id !== game.player2_id)}
               />
             )}
             {game.type === 'connect4' && (
@@ -309,7 +336,7 @@ export default function Game() {
                 state={game.state as Connect4State}
                 currentUserId={user!.id}
                 onMove={handleMove}
-                disabled={!wsConnected || game.status === 'completed'}
+                disabled={!wsConnected || game.status === 'completed' || (user!.id !== game.player1_id && user!.id !== game.player2_id)}
               />
             )}
             {game.type === 'rps' && (
@@ -317,7 +344,7 @@ export default function Game() {
                 state={game.state as RPSState}
                 currentUserId={user!.id}
                 onMove={handleMove}
-                disabled={!wsConnected || game.status === 'completed'}
+                disabled={!wsConnected || game.status === 'completed' || (user!.id !== game.player1_id && user!.id !== game.player2_id)}
               />
             )}
             {game.type === 'dotsandboxes' && (
@@ -325,7 +352,7 @@ export default function Game() {
                 state={game.state as DotsAndBoxesState}
                 currentUserId={user!.id}
                 onMove={handleMove}
-                disabled={!wsConnected || game.status === 'completed'}
+                disabled={!wsConnected || game.status === 'completed' || (user!.id !== game.player1_id && user!.id !== game.player2_id)}
               />
             )}
           </div>
@@ -333,19 +360,31 @@ export default function Game() {
 
         {/* Actions */}
         <div className="flex justify-center gap-4">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="px-8 py-3 bg-gray-600 text-white rounded-xl font-semibold hover:bg-gray-700 transition-all shadow-lg hover:shadow-xl hover:scale-105"
-          >
-            ← Back to Dashboard
-          </button>
-          {game.status === 'completed' && (
+          {/* Show "Back to Tournament" for tournament games, otherwise "Back to Dashboard" */}
+          {game.tournament_id ? (
             <button
-              onClick={() => navigate('/dashboard')}
-              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl hover:scale-105"
+              onClick={() => navigate(`/tournament/${game.tournament_id}`)}
+              className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl hover:scale-105"
             >
-              🎮 Play Again
+              ← Back to Tournament
             </button>
+          ) : (
+            <>
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="px-8 py-3 bg-gray-600 text-white rounded-xl font-semibold hover:bg-gray-700 transition-all shadow-lg hover:shadow-xl hover:scale-105"
+              >
+                ← Back to Dashboard
+              </button>
+              {game.status === 'completed' && (
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl hover:scale-105"
+                >
+                  🎮 Play Again
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>

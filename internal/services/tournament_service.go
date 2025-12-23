@@ -277,10 +277,22 @@ func (s *TournamentService) generateSingleEliminationBracket(tournament *domain.
 	participants := tournament.Participants
 	numParticipants := len(participants)
 	
-	// Sort participants by seed (already assigned in order of joining, but can be reseeded by ELO)
+	// Reseed participants based on ELO rating (highest ELO gets seed 1)
 	sort.Slice(participants, func(i, j int) bool {
-		return participants[i].Seed < participants[j].Seed
+		// Sort by ELO descending (higher ELO = better seed)
+		return participants[i].EloRating > participants[j].EloRating
 	})
+	
+	// Assign new seeds based on ELO ranking
+	for i := range participants {
+		participants[i].Seed = i + 1
+		tournament.Participants[i].Seed = i + 1 // Update in tournament as well
+	}
+	
+	log.Printf("Tournament %s seeded by ELO:", tournament.Name)
+	for i, p := range participants {
+		log.Printf("  Seed %d: %s (ELO: %d)", i+1, p.Username, p.EloRating)
+	}
 
 	totalRounds := int(math.Log2(float64(numParticipants)))
 	bracket := &domain.BracketData{
@@ -306,16 +318,18 @@ func (s *TournamentService) generateSingleEliminationBracket(tournament *domain.
 				Status:      domain.TournamentMatchStatusPending,
 			}
 
-			// First round: assign participants
+			// First round: assign participants using standard tournament seeding
 			if round == 0 {
-				player1Idx := matchIdx * 2
-				player2Idx := matchIdx*2 + 1
+				// Standard bracket pairing: 1v8, 4v5, 2v7, 3v6 for 8 players
+				// General formula: match i pairs seed (i+1) with seed (n-i)
+				player1Idx := matchIdx
+				player2Idx := numParticipants - matchIdx - 1
 
 				if player1Idx < numParticipants {
 					match.Player1ID = &participants[player1Idx].UserID
 					match.Player1Name = participants[player1Idx].Username
 				}
-				if player2Idx < numParticipants {
+				if player2Idx < numParticipants && player2Idx >= 0 {
 					match.Player2ID = &participants[player2Idx].UserID
 					match.Player2Name = participants[player2Idx].Username
 				}
@@ -323,6 +337,10 @@ func (s *TournamentService) generateSingleEliminationBracket(tournament *domain.
 				// If both players assigned, match is ready
 				if match.Player1ID != nil && match.Player2ID != nil {
 					match.Status = domain.TournamentMatchStatusReady
+					log.Printf("  Match %d: Seed %d (%s) vs Seed %d (%s)", 
+						matchIdx+1, 
+						participants[player1Idx].Seed, participants[player1Idx].Username,
+						participants[player2Idx].Seed, participants[player2Idx].Username)
 				}
 			}
 
@@ -372,6 +390,8 @@ func (s *TournamentService) createGamesForReadyMatches(ctx context.Context, tour
 		return nil
 	}
 
+	gamesCreated := 0
+	
 	// Iterate through all rounds and matches
 	for roundIdx, round := range tournament.BracketData.Rounds {
 		for matchIdx, match := range round.Matches {
@@ -394,7 +414,8 @@ func (s *TournamentService) createGamesForReadyMatches(ctx context.Context, tour
 					match.Player1Name,
 					*match.Player2ID,
 					match.Player2Name,
-					tournament.RoomID,
+					tournament.ID,           // Tournament ID
+					round.RoundNumber,       // Tournament round
 				)
 				if err != nil {
 					log.Printf("Failed to create game for match %d in round %d: %v", match.MatchNumber, round.RoundNumber, err)
@@ -405,23 +426,40 @@ func (s *TournamentService) createGamesForReadyMatches(ctx context.Context, tour
 				tournament.BracketData.Rounds[roundIdx].Matches[matchIdx].MatchID = &gameInstance.ID
 				tournament.BracketData.Rounds[roundIdx].Matches[matchIdx].Status = domain.TournamentMatchStatusReady
 
-				log.Printf("Created game %s for tournament %s, round %d, match %d", gameInstance.ID, tournament.ID, round.RoundNumber, match.MatchNumber)
+				gamesCreated++
+				log.Printf("Created game %s for tournament %s, round %d (%s), match %d", 
+					gameInstance.ID, tournament.ID, round.RoundNumber, round.RoundName, match.MatchNumber)
 			}
 		}
 	}
 
-	// Update tournament in database and cache with the new match IDs
-	err := s.tournamentRepo.Update(ctx, tournament)
-	if err != nil {
-		return fmt.Errorf("failed to update tournament with game IDs: %w", err)
-	}
+	// Only update database if we created new games
+	if gamesCreated > 0 {
+		// Update tournament in database and cache with the new match IDs
+		err := s.tournamentRepo.Update(ctx, tournament)
+		if err != nil {
+			return fmt.Errorf("failed to update tournament with game IDs: %w", err)
+		}
 
-	err = s.saveTournamentToCache(ctx, tournament)
-	if err != nil {
-		return fmt.Errorf("failed to cache tournament: %w", err)
+		err = s.saveTournamentToCache(ctx, tournament)
+		if err != nil {
+			return fmt.Errorf("failed to cache tournament: %w", err)
+		}
+
+		log.Printf("Created %d new game(s) for tournament %s", gamesCreated, tournament.ID)
 	}
 
 	return nil
+}
+
+// CreateGamesForNextRound creates games for any ready matches in the tournament
+func (s *TournamentService) CreateGamesForNextRound(ctx context.Context, tournamentID uuid.UUID) error {
+	tournament, err := s.GetTournament(ctx, tournamentID)
+	if err != nil {
+		return err
+	}
+
+	return s.createGamesForReadyMatches(ctx, tournament)
 }
 
 // AdvanceWinner advances the winner to the next round
@@ -479,13 +517,27 @@ func (s *TournamentService) AdvanceWinner(ctx context.Context, tournamentID uuid
 			}
 		} else {
 			// Even match number -> player 2 of next match
+			log.Printf("Advancing winner to Player2 of next match - Round %d, Match %d", nextRoundIdx+1, nextMatchIdx+1)
 			tournament.BracketData.Rounds[nextRoundIdx].Matches[nextMatchIdx].Player2ID = &winnerID
+			
+			var winnerName string
 			for _, p := range tournament.Participants {
 				if p.UserID == winnerID {
+					winnerName = p.Username
 					tournament.BracketData.Rounds[nextRoundIdx].Matches[nextMatchIdx].Player2Name = p.Username
+					log.Printf("Set Player2Name to: %s", p.Username)
 					break
 				}
 			}
+			
+			if winnerName == "" {
+				log.Printf("WARNING: Could not find winner %s in participants list!", winnerID)
+			}
+			
+			// Verify it was set
+			log.Printf("After setting - Player2ID: %v, Player2Name: %s", 
+				tournament.BracketData.Rounds[nextRoundIdx].Matches[nextMatchIdx].Player2ID,
+				tournament.BracketData.Rounds[nextRoundIdx].Matches[nextMatchIdx].Player2Name)
 		}
 
 		// Check if next match is now ready
@@ -502,15 +554,40 @@ func (s *TournamentService) AdvanceWinner(ctx context.Context, tournamentID uuid
 	}
 
 	// Update in database
+	log.Printf("Saving tournament to database after advancing winner...")
+	if tournament.BracketData != nil && len(tournament.BracketData.Rounds) > 1 {
+		finalsMatch := tournament.BracketData.Rounds[1].Matches[0]
+		log.Printf("Finals match before save - Player1: %s (%v), Player2: %s (%v)", 
+			finalsMatch.Player1Name, finalsMatch.Player1ID,
+			finalsMatch.Player2Name, finalsMatch.Player2ID)
+	}
+	
 	err = s.tournamentRepo.Update(ctx, tournament)
 	if err != nil {
 		return err
 	}
+	log.Printf("Tournament saved to database successfully")
 
 	// Update cache
 	err = s.saveTournamentToCache(ctx, tournament)
 	if err != nil {
 		return err
+	}
+
+	// If a next match is now ready (both players assigned), create games immediately
+	// Use the tournament object we just updated instead of fetching from cache
+	if advancesToMatch != nil && currentRound < len(tournament.BracketData.Rounds) {
+		nextRoundIdx := currentRound // 0-indexed
+		nextMatchIdx := *advancesToMatch - 1
+		nextMatch := tournament.BracketData.Rounds[nextRoundIdx].Matches[nextMatchIdx]
+		
+		if nextMatch.Status == domain.TournamentMatchStatusReady && nextMatch.Player1ID != nil && nextMatch.Player2ID != nil {
+			log.Printf("Next match is ready, creating game immediately...")
+			if err := s.createGamesForReadyMatches(ctx, tournament); err != nil {
+				log.Printf("Error creating games for ready matches: %v", err)
+				// Don't fail the advancement if game creation fails
+			}
+		}
 	}
 
 	return nil

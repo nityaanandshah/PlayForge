@@ -16,6 +16,10 @@ export interface Game {
   updated_at: string
   started_at?: string
   ended_at?: string
+  // Tournament context
+  tournament_id?: string
+  tournament_round?: number
+  tournament_match_id?: string
 }
 
 export interface TicTacToeState {

@@ -51,6 +51,9 @@ func main() {
 	roomService := services.NewRoomService(redisClient, roomRepo)
 	matchmakingService := services.NewMatchmakingService(redisClient, roomService)
 	tournamentService := services.NewTournamentService(tournamentRepo, userRepo, roomService, gameService, redisClient)
+	
+	// Wire up tournament service to game service (breaks circular dependency)
+	gameService.SetTournamentService(tournamentService)
 
 	// Start matchmaking worker
 	matchmakingCtx, cancelMatchmaking := context.WithCancel(ctx)

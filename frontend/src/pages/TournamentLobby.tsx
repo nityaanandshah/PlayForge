@@ -351,9 +351,19 @@ export default function TournamentLobby() {
                           {match.status === 'ready' && match.match_id && (
                             <button
                               onClick={() => navigate(`/game/${match.match_id}`)}
-                              className="w-full mt-2 px-3 py-1 bg-indigo-500 text-white rounded text-xs hover:bg-indigo-600 transition"
+                              className="w-full mt-3 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition shadow-md"
                             >
-                              ▶️ Watch/Play
+                              ▶️ Play Game
+                            </button>
+                          )}
+                          
+                          {/* View Completed Game */}
+                          {match.status === 'complete' && match.match_id && (
+                            <button
+                              onClick={() => navigate(`/game/${match.match_id}`)}
+                              className="w-full mt-3 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition shadow-md"
+                            >
+                              👁️ View Game
                             </button>
                           )}
                         </div>

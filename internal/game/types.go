@@ -30,21 +30,25 @@ const (
 
 // Game represents a game instance
 type Game struct {
-	ID          uuid.UUID       `json:"id"`
-	Type        GameType        `json:"type"`
-	Status      GameStatus      `json:"status"`
-	Player1ID   uuid.UUID       `json:"player1_id"`
-	Player2ID   uuid.UUID       `json:"player2_id"`
-	Player1Name string          `json:"player1_name"`
-	Player2Name string          `json:"player2_name"`
-	CurrentTurn uuid.UUID       `json:"current_turn"`
-	WinnerID    *uuid.UUID      `json:"winner_id,omitempty"`
-	State       GameState       `json:"-"` // Excluded from JSON
-	StateData   json.RawMessage `json:"state"` // Raw JSON for serialization
-	CreatedAt   time.Time       `json:"created_at"`
-	UpdatedAt   time.Time       `json:"updated_at"`
-	StartedAt   *time.Time      `json:"started_at,omitempty"`
-	EndedAt     *time.Time      `json:"ended_at,omitempty"`
+	ID              uuid.UUID       `json:"id"`
+	Type            GameType        `json:"type"`
+	Status          GameStatus      `json:"status"`
+	Player1ID       uuid.UUID       `json:"player1_id"`
+	Player2ID       uuid.UUID       `json:"player2_id"`
+	Player1Name     string          `json:"player1_name"`
+	Player2Name     string          `json:"player2_name"`
+	CurrentTurn     uuid.UUID       `json:"current_turn"`
+	WinnerID        *uuid.UUID      `json:"winner_id,omitempty"`
+	State           GameState       `json:"-"` // Excluded from JSON
+	StateData       json.RawMessage `json:"state"` // Raw JSON for serialization
+	CreatedAt       time.Time       `json:"created_at"`
+	UpdatedAt       time.Time       `json:"updated_at"`
+	StartedAt       *time.Time      `json:"started_at,omitempty"`
+	EndedAt         *time.Time      `json:"ended_at,omitempty"`
+	// Tournament context (optional, only for tournament games)
+	TournamentID    *uuid.UUID      `json:"tournament_id,omitempty"`
+	TournamentRound int             `json:"tournament_round,omitempty"`
+	TournamentMatch *uuid.UUID      `json:"tournament_match_id,omitempty"` // Bracket match ID
 }
 
 // GameState is an interface that all game implementations must satisfy

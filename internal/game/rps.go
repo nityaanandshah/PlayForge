@@ -104,6 +104,11 @@ func (s *RPSState) ValidateMove(playerID uuid.UUID, move interface{}) error {
 		return ErrInvalidPlayer
 	}
 
+	// SAFETY CHECK: Game should already be over if someone reached WinsNeeded
+	if s.Player1Score >= s.WinsNeeded || s.Player2Score >= s.WinsNeeded {
+		return ErrGameAlreadyEnded
+	}
+
 	// Parse move
 	rpsMove, err := parseRPSMove(move)
 	if err != nil {
@@ -186,6 +191,10 @@ func (s *RPSState) resolveRound() {
 	}
 	s.Rounds = append(s.Rounds, round)
 
+	// Log round result (helpful for debugging early termination)
+	// fmt.Printf("RPS Round %d complete: Score now %d-%d (need %d to win)\n", 
+	//	s.CurrentRound, s.Player1Score, s.Player2Score, s.WinsNeeded)
+
 	// Reset for next round
 	s.Player1Choice = RPSChoiceNone
 	s.Player2Choice = RPSChoiceNone
@@ -193,9 +202,11 @@ func (s *RPSState) resolveRound() {
 	s.CurrentRound++
 }
 
-// CheckWinner checks if there's a winner (first to 3 rounds)
+// CheckWinner checks if there's a winner
+// Game ends immediately when a player reaches the required wins (e.g., 3 in Best of 5)
 func (s *RPSState) CheckWinner() (winner *uuid.UUID, gameOver bool) {
-	// Check if someone has won 3 rounds
+	// EARLY TERMINATION: Check if someone has won enough rounds (majority)
+	// Best of 5 = need 3 wins, Best of 7 = need 4 wins, etc.
 	if s.Player1Score >= s.WinsNeeded {
 		return &s.Player1ID, true
 	}
@@ -203,7 +214,7 @@ func (s *RPSState) CheckWinner() (winner *uuid.UUID, gameOver bool) {
 		return &s.Player2ID, true
 	}
 
-	// Check if max rounds reached
+	// Check if max rounds reached (shouldn't happen with early termination, but safety check)
 	if s.CurrentRound > s.MaxRounds {
 		// Determine winner by score
 		if s.Player1Score > s.Player2Score {
@@ -211,7 +222,7 @@ func (s *RPSState) CheckWinner() (winner *uuid.UUID, gameOver bool) {
 		} else if s.Player2Score > s.Player1Score {
 			return &s.Player2ID, true
 		}
-		// Draw (unlikely in best of 5, but possible if we change rules)
+		// Draw (unlikely in best of odd number, but possible)
 		return nil, true
 	}
 
