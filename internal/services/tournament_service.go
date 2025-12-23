@@ -544,6 +544,13 @@ func (s *TournamentService) AdvanceWinner(ctx context.Context, tournamentID uuid
 		nextMatch := &tournament.BracketData.Rounds[nextRoundIdx].Matches[nextMatchIdx]
 		if nextMatch.Player1ID != nil && nextMatch.Player2ID != nil {
 			nextMatch.Status = domain.TournamentMatchStatusReady
+			
+			// Check if we've advanced to a new round - update CurrentRound
+			// (All matches in current round complete, moving to next round)
+			if nextRoundIdx+1 > tournament.CurrentRound {
+				tournament.CurrentRound = nextRoundIdx + 1
+				log.Printf("Advanced to round %d", tournament.CurrentRound)
+			}
 		}
 	} else if advancesToMatch == nil {
 		// This was the final match

@@ -54,7 +54,7 @@ func (r *TournamentRepository) Create(ctx context.Context, tournament *domain.To
 func (r *TournamentRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Tournament, error) {
 	query := `
 		SELECT id, room_id, name, game_type, tournament_type, status, max_participants, is_private, join_code,
-		       total_rounds, bracket_data, winner_id, created_by, started_at, ended_at, created_at, updated_at
+		       total_rounds, current_round, bracket_data, winner_id, created_by, started_at, ended_at, created_at, updated_at
 		FROM tournaments
 		WHERE id = $1
 	`
@@ -76,6 +76,7 @@ func (r *TournamentRepository) GetByID(ctx context.Context, id uuid.UUID) (*doma
 		&tournament.IsPrivate,
 		&joinCode,
 		&tournament.TotalRounds,
+		&tournament.CurrentRound,
 		&bracketDataJSON,
 		&winnerID,
 		&tournament.CreatedBy,
@@ -178,7 +179,7 @@ func (r *TournamentRepository) GetByRoomID(ctx context.Context, roomID uuid.UUID
 func (r *TournamentRepository) List(ctx context.Context, status *domain.TournamentStatus, limit int) ([]domain.Tournament, error) {
 	query := `
 		SELECT id, room_id, name, game_type, tournament_type, status, max_participants, is_private, join_code,
-		       total_rounds, bracket_data, winner_id, created_by, started_at, ended_at, created_at, updated_at
+		       total_rounds, current_round, bracket_data, winner_id, created_by, started_at, ended_at, created_at, updated_at
 		FROM tournaments
 	`
 
@@ -218,6 +219,7 @@ func (r *TournamentRepository) List(ctx context.Context, status *domain.Tourname
 			&tournament.IsPrivate,
 			&joinCode,
 			&tournament.TotalRounds,
+			&tournament.CurrentRound,
 			&bracketDataJSON,
 			&winnerID,
 			&tournament.CreatedBy,
@@ -267,8 +269,8 @@ func (r *TournamentRepository) Update(ctx context.Context, tournament *domain.To
 
 	query := `
 		UPDATE tournaments
-		SET status = $1, bracket_data = $2, winner_id = $3, started_at = $4, ended_at = $5, updated_at = $6
-		WHERE id = $7
+		SET status = $1, bracket_data = $2, winner_id = $3, started_at = $4, ended_at = $5, current_round = $6, updated_at = $7
+		WHERE id = $8
 	`
 
 	tournament.UpdatedAt = time.Now()
@@ -279,6 +281,7 @@ func (r *TournamentRepository) Update(ctx context.Context, tournament *domain.To
 		tournament.WinnerID,
 		tournament.StartedAt,
 		tournament.EndedAt,
+		tournament.CurrentRound,
 		tournament.UpdatedAt,
 		tournament.ID,
 	)
