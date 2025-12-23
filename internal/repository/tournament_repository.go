@@ -22,8 +22,8 @@ func NewTournamentRepository(db *pgxpool.Pool) *TournamentRepository {
 // Create creates a new tournament
 func (r *TournamentRepository) Create(ctx context.Context, tournament *domain.Tournament) error {
 	query := `
-		INSERT INTO tournaments (id, room_id, name, game_type, tournament_type, status, max_participants, is_private, join_code, created_by, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+		INSERT INTO tournaments (id, room_id, name, game_type, tournament_type, status, max_participants, is_private, join_code, total_rounds, created_by, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 	`
 
 	tournament.ID = uuid.New()
@@ -41,6 +41,7 @@ func (r *TournamentRepository) Create(ctx context.Context, tournament *domain.To
 		tournament.MaxParticipants,
 		tournament.IsPrivate,
 		tournament.JoinCode,
+		tournament.TotalRounds,
 		tournament.CreatedBy,
 		tournament.CreatedAt,
 		tournament.UpdatedAt,
@@ -53,7 +54,7 @@ func (r *TournamentRepository) Create(ctx context.Context, tournament *domain.To
 func (r *TournamentRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Tournament, error) {
 	query := `
 		SELECT id, room_id, name, game_type, tournament_type, status, max_participants, is_private, join_code,
-		       bracket_data, winner_id, created_by, started_at, ended_at, created_at, updated_at
+		       total_rounds, bracket_data, winner_id, created_by, started_at, ended_at, created_at, updated_at
 		FROM tournaments
 		WHERE id = $1
 	`
@@ -74,6 +75,7 @@ func (r *TournamentRepository) GetByID(ctx context.Context, id uuid.UUID) (*doma
 		&tournament.MaxParticipants,
 		&tournament.IsPrivate,
 		&joinCode,
+		&tournament.TotalRounds,
 		&bracketDataJSON,
 		&winnerID,
 		&tournament.CreatedBy,
@@ -114,7 +116,7 @@ func (r *TournamentRepository) GetByID(ctx context.Context, id uuid.UUID) (*doma
 func (r *TournamentRepository) GetByRoomID(ctx context.Context, roomID uuid.UUID) (*domain.Tournament, error) {
 	query := `
 		SELECT id, room_id, name, game_type, tournament_type, status, max_participants, is_private, join_code,
-		       bracket_data, winner_id, created_by, started_at, ended_at, created_at, updated_at
+		       total_rounds, bracket_data, winner_id, created_by, started_at, ended_at, created_at, updated_at
 		FROM tournaments
 		WHERE room_id = $1
 	`
@@ -135,6 +137,7 @@ func (r *TournamentRepository) GetByRoomID(ctx context.Context, roomID uuid.UUID
 		&tournament.MaxParticipants,
 		&tournament.IsPrivate,
 		&joinCode,
+		&tournament.TotalRounds,
 		&bracketDataJSON,
 		&winnerID,
 		&tournament.CreatedBy,
@@ -175,7 +178,7 @@ func (r *TournamentRepository) GetByRoomID(ctx context.Context, roomID uuid.UUID
 func (r *TournamentRepository) List(ctx context.Context, status *domain.TournamentStatus, limit int) ([]domain.Tournament, error) {
 	query := `
 		SELECT id, room_id, name, game_type, tournament_type, status, max_participants, is_private, join_code,
-		       bracket_data, winner_id, created_by, started_at, ended_at, created_at, updated_at
+		       total_rounds, bracket_data, winner_id, created_by, started_at, ended_at, created_at, updated_at
 		FROM tournaments
 	`
 
@@ -214,6 +217,7 @@ func (r *TournamentRepository) List(ctx context.Context, status *domain.Tourname
 			&tournament.MaxParticipants,
 			&tournament.IsPrivate,
 			&joinCode,
+			&tournament.TotalRounds,
 			&bracketDataJSON,
 			&winnerID,
 			&tournament.CreatedBy,

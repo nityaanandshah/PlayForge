@@ -21,13 +21,7 @@ func NewMatchmakingHandler(matchmakingService *services.MatchmakingService) *Mat
 // POST /api/v1/matchmaking/queue
 func (h *MatchmakingHandler) JoinQueue(c *fiber.Ctx) error {
 	// Get user from context (set by auth middleware)
-	userIDStr := c.Locals("userID").(string)
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid user ID",
-		})
-	}
+	userID := c.Locals("userID").(uuid.UUID)
 	
 	username, ok := c.Locals("username").(string)
 	if !ok {
@@ -75,15 +69,9 @@ func (h *MatchmakingHandler) JoinQueue(c *fiber.Ctx) error {
 // LeaveQueue handles leaving the matchmaking queue
 // DELETE /api/v1/matchmaking/queue
 func (h *MatchmakingHandler) LeaveQueue(c *fiber.Ctx) error {
-	userIDStr := c.Locals("userID").(string)
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid user ID",
-		})
-	}
+	userID := c.Locals("userID").(uuid.UUID)
 
-	err = h.matchmakingService.LeaveQueue(c.Context(), userID)
+	err := h.matchmakingService.LeaveQueue(c.Context(), userID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
@@ -98,13 +86,7 @@ func (h *MatchmakingHandler) LeaveQueue(c *fiber.Ctx) error {
 // GetQueueStatus returns the user's current queue status
 // GET /api/v1/matchmaking/status
 func (h *MatchmakingHandler) GetQueueStatus(c *fiber.Ctx) error {
-	userIDStr := c.Locals("userID").(string)
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid user ID",
-		})
-	}
+	userID := c.Locals("userID").(uuid.UUID)
 
 	entry, err := h.matchmakingService.GetUserQueueStatus(c.Context(), userID)
 	if err != nil {

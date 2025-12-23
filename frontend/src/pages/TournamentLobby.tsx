@@ -13,12 +13,14 @@ export default function TournamentLobby() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [starting, setStarting] = useState(false);
+  const [showJoinCodeModal, setShowJoinCodeModal] = useState(false);
+  const [joinCode, setJoinCode] = useState('');
 
   useEffect(() => {
     if (id) {
       loadTournament();
-      // Poll for updates every 3 seconds
-      const interval = setInterval(loadTournament, 3000);
+      // Poll for updates every 5 seconds
+      const interval = setInterval(loadTournament, 5000);
       return () => clearInterval(interval);
     }
   }, [id]);
@@ -28,9 +30,17 @@ export default function TournamentLobby() {
     
     try {
       const response = await api.get<{ tournament: Tournament }>(`/tournaments/${id}`);
-      setTournament(response.data.tournament);
+      
+      // Ensure participants is always an array
+      const tournamentData = {
+        ...response.data.tournament,
+        participants: response.data.tournament.participants || []
+      };
+      
+      setTournament(tournamentData);
       setError('');
     } catch (err: any) {
+      console.error('Failed to load tournament:', err.response?.data?.error || err.message);
       setError(err.response?.data?.error || 'Failed to load tournament');
     } finally {
       setLoading(false);
@@ -54,8 +64,15 @@ export default function TournamentLobby() {
   };
 
   const handleJoinTournament = async () => {
-    if (!id) return;
+    if (!id || !tournament) return;
     
+    // If private, show code modal
+    if (tournament.is_private) {
+      setShowJoinCodeModal(true);
+      return;
+    }
+    
+    // Public tournament - join directly
     try {
       await api.post(`/tournaments/${id}/join`);
       await loadTournament();
@@ -64,8 +81,26 @@ export default function TournamentLobby() {
     }
   };
 
+  const handleJoinWithCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id || !joinCode.trim()) {
+      setError('Please enter a join code');
+      return;
+    }
+
+    try {
+      await api.post(`/tournaments/${id}/join`, { join_code: joinCode });
+      setShowJoinCodeModal(false);
+      setJoinCode('');
+      setError('');
+      await loadTournament();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Invalid join code');
+    }
+  };
+
   const isHost = tournament && user && tournament.created_by === user.id;
-  const isParticipant = tournament && user && tournament.participants.some(p => p.user_id === user.id);
+  const isParticipant = tournament && user && tournament.participants?.some(p => p.user_id === user.id);
 
   const getGameName = (gameType: string) => {
     switch (gameType) {
@@ -132,10 +167,32 @@ export default function TournamentLobby() {
             </span>
           </div>
 
+          {/* Join Code for Private Tournaments */}
+          {tournament.is_private && tournament.join_code && (isHost || isParticipant) && (
+            <div className="mt-4 p-4 bg-amber-50 border-2 border-amber-300 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-amber-800 font-semibold mb-1">🔒 Private Tournament - Join Code:</p>
+                  <p className="text-2xl font-mono font-bold text-amber-900 tracking-wider">{tournament.join_code}</p>
+                  <p className="text-xs text-amber-700 mt-1">Share this code with participants to join</p>
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(tournament.join_code || '');
+                    alert('Join code copied to clipboard!');
+                  }}
+                  className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition text-sm font-semibold"
+                >
+                  📋 Copy Code
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
             <div className="text-center p-3 bg-gray-50 rounded-lg">
               <p className="text-gray-600 text-sm">Participants</p>
-              <p className="text-2xl font-bold text-gray-800">{tournament.participants.length}</p>
+              <p className="text-2xl font-bold text-gray-800">{tournament.participants?.length || 0}</p>
             </div>
             <div className="text-center p-3 bg-gray-50 rounded-lg">
               <p className="text-gray-600 text-sm">Total Rounds</p>
@@ -164,7 +221,7 @@ export default function TournamentLobby() {
           <div className="mt-4 flex gap-3">
             <button
               onClick={() => navigate('/tournaments')}
-              className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+              className="flex-1 px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold"
             >
               ← Back
             </button>
@@ -174,14 +231,14 @@ export default function TournamentLobby() {
                 onClick={handleJoinTournament}
                 className="flex-1 px-6 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition font-semibold"
               >
-                ➕ Join Tournament
+                {tournament.is_private ? '🔒 Join with Code' : '➕ Join Tournament'}
               </button>
             )}
 
             {tournament.status === 'pending' && isHost && (
               <button
                 onClick={handleStartTournament}
-                disabled={starting || tournament.participants.length < 2}
+                disabled={starting || (tournament.participants?.length || 0) < tournament.max_participants}
                 className="flex-1 px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 {starting ? '⏳ Starting...' : '🚀 Start Tournament'}
@@ -189,7 +246,13 @@ export default function TournamentLobby() {
             )}
           </div>
 
-          {tournament.status === 'pending' && tournament.participants.length < 2 && (
+          {tournament.status === 'pending' && isHost && (tournament.participants?.length || 0) < tournament.max_participants && (
+            <p className="text-sm text-gray-600 mt-2 text-center">
+              Need {tournament.max_participants - (tournament.participants?.length || 0)} more participant(s) to start (must be full: {tournament.participants?.length || 0}/{tournament.max_participants})
+            </p>
+          )}
+
+          {tournament.status === 'pending' && (tournament.participants?.length || 0) < 2 && (
             <p className="mt-2 text-sm text-gray-500 text-center">
               Need at least 2 participants to start (must be power of 2: 2, 4, 8, 16, 32)
             </p>
@@ -199,9 +262,9 @@ export default function TournamentLobby() {
         {/* Participants (if pending) */}
         {tournament.status === 'pending' && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Participants ({tournament.participants.length})</h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Participants ({tournament.participants?.length || 0})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {tournament.participants.map((participant, idx) => (
+              {(tournament.participants || []).map((participant, idx) => (
                 <div key={participant.user_id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <div className="w-10 h-10 bg-indigo-500 text-white rounded-full flex items-center justify-center font-bold">
                     {participant.username.charAt(0).toUpperCase()}
@@ -309,11 +372,64 @@ export default function TournamentLobby() {
             <div className="text-6xl mb-4">🏆</div>
             <h2 className="text-3xl font-bold text-white mb-2">Tournament Complete!</h2>
             <p className="text-white text-xl">
-              Winner: {tournament.participants.find(p => p.user_id === tournament.winner_id)?.username || 'Unknown'}
+              Winner: {tournament.participants?.find(p => p.user_id === tournament.winner_id)?.username || 'Unknown'}
             </p>
           </div>
         )}
       </div>
+
+      {/* Join Code Modal */}
+      {showJoinCodeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800">🔒 Enter Join Code</h2>
+            <p className="text-gray-600 mb-4">This is a private tournament. Please enter the join code to participate.</p>
+            
+            <form onSubmit={handleJoinWithCode}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Join Code
+                </label>
+                <input
+                  type="text"
+                  value={joinCode}
+                  onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                  placeholder="Enter code..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-lg tracking-wider uppercase"
+                  required
+                  autoFocus
+                />
+              </div>
+
+              {error && (
+                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowJoinCodeModal(false);
+                    setJoinCode('');
+                    setError('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition font-semibold"
+                >
+                  Join Tournament
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

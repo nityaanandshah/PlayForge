@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"math"
 	"sort"
 	"time"
@@ -123,7 +124,7 @@ func (s *TournamentService) CreateTournament(ctx context.Context, userID uuid.UU
 }
 
 // JoinTournament allows a user to join a tournament
-func (s *TournamentService) JoinTournament(ctx context.Context, tournamentID uuid.UUID, userID uuid.UUID) (*domain.Tournament, error) {
+func (s *TournamentService) JoinTournament(ctx context.Context, tournamentID uuid.UUID, userID uuid.UUID, joinCode string) (*domain.Tournament, error) {
 	tournament, err := s.GetTournament(ctx, tournamentID)
 	if err != nil {
 		return nil, err
@@ -132,6 +133,13 @@ func (s *TournamentService) JoinTournament(ctx context.Context, tournamentID uui
 	// Check if tournament has already started
 	if tournament.Status != domain.TournamentStatusPending {
 		return nil, domain.ErrTournamentAlreadyStarted
+	}
+
+	// Validate join code for private tournaments
+	if tournament.IsPrivate {
+		if joinCode == "" || joinCode != tournament.JoinCode {
+			return nil, fmt.Errorf("invalid join code")
+		}
 	}
 
 	// Get room to check capacity
@@ -202,9 +210,9 @@ func (s *TournamentService) StartTournament(ctx context.Context, tournamentID uu
 		return nil, domain.ErrTournamentAlreadyStarted
 	}
 
-	// Check if we have enough participants
-	if len(tournament.Participants) < 2 {
-		return nil, domain.ErrTournamentNotReady
+	// Check if tournament is full
+	if len(tournament.Participants) < tournament.MaxParticipants {
+		return nil, fmt.Errorf("tournament is not full yet (%d/%d participants)", len(tournament.Participants), tournament.MaxParticipants)
 	}
 
 	// For single elimination, must have power of 2 participants
@@ -454,7 +462,13 @@ func (s *TournamentService) GetTournament(ctx context.Context, tournamentID uuid
 	// Fallback to database
 	tournament, err = s.tournamentRepo.GetByID(ctx, tournamentID)
 	if err != nil {
+		log.Printf("Failed to get tournament from DB: %v", err)
 		return nil, err
+	}
+
+	// Initialize participants to empty slice if nil
+	if tournament.Participants == nil {
+		tournament.Participants = []domain.TournamentParticipant{}
 	}
 
 	// Populate participants from room
@@ -483,6 +497,8 @@ func (s *TournamentService) GetTournament(ctx context.Context, tournamentID uuid
 				}
 			}
 		}
+	} else {
+		log.Printf("Warning: Failed to get room for tournament %s: %v", tournamentID, err)
 	}
 
 	// Cache it
@@ -500,9 +516,14 @@ func (s *TournamentService) ListTournaments(ctx context.Context, status *domain.
 
 	// Load participants for each tournament from cache
 	for i := range tournaments {
+		// Initialize participants to empty slice if nil
+		if tournaments[i].Participants == nil {
+			tournaments[i].Participants = []domain.TournamentParticipant{}
+		}
+		
 		// Try to get from cache first (which has participants)
 		cachedTournament, err := s.getTournamentFromCache(ctx, tournaments[i].ID)
-		if err == nil && cachedTournament != nil {
+		if err == nil && cachedTournament != nil && cachedTournament.Participants != nil {
 			tournaments[i].Participants = cachedTournament.Participants
 		}
 	}

@@ -135,7 +135,7 @@ type MakeMoveRequest struct {
 // CreateGame creates a new game
 func (h *GameHandler) CreateGame(c *fiber.Ctx) error {
 	// Get user from context (set by auth middleware)
-	userID := c.Locals("userID").(string)
+	userID := c.Locals("userID").(uuid.UUID)
 	username := c.Locals("username").(string)
 
 	var req CreateGameRequest
@@ -143,17 +143,11 @@ func (h *GameHandler) CreateGame(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
 	}
 
-	// Parse user ID
-	playerID, err := uuid.Parse(userID)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid user ID")
-	}
-
 	// Parse game type
 	gameType := game.GameType(req.GameType)
 
 	// Create game
-	g, err := h.gameService.CreateGame(c.Context(), gameType, playerID, username)
+	g, err := h.gameService.CreateGame(c.Context(), gameType, userID, username)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
@@ -164,7 +158,7 @@ func (h *GameHandler) CreateGame(c *fiber.Ctx) error {
 // JoinGame allows a player to join a game
 func (h *GameHandler) JoinGame(c *fiber.Ctx) error {
 	// Get user from context
-	userID := c.Locals("userID").(string)
+	userID := c.Locals("userID").(uuid.UUID)
 	username := c.Locals("username").(string)
 
 	var req JoinGameRequest
@@ -172,19 +166,14 @@ func (h *GameHandler) JoinGame(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
 	}
 
-	// Parse IDs
-	playerID, err := uuid.Parse(userID)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Invalid user ID")
-	}
-
+	// Parse game ID
 	gameID, err := uuid.Parse(req.GameID)
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid game ID")
 	}
 
 	// Join game
-	g, err := h.gameService.JoinGame(c.Context(), gameID, playerID, username)
+	g, err := h.gameService.JoinGame(c.Context(), gameID, userID, username)
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}

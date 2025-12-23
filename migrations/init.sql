@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS tournaments (
     max_participants INTEGER NOT NULL DEFAULT 8,
     is_private BOOLEAN NOT NULL DEFAULT FALSE,
     join_code VARCHAR(10),
+    total_rounds INTEGER NOT NULL DEFAULT 0,
     bracket_data JSONB,
     winner_id UUID REFERENCES users(id),
     created_by UUID NOT NULL REFERENCES users(id),

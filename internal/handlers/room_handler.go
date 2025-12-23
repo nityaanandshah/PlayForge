@@ -24,13 +24,7 @@ func NewRoomHandler(roomService *services.RoomService, gameService *services.Gam
 // CreateRoom handles room creation
 // POST /api/v1/rooms/create
 func (h *RoomHandler) CreateRoom(c *fiber.Ctx) error {
-	userIDStr := c.Locals("userID").(string)
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid user ID",
-		})
-	}
+	userID := c.Locals("userID").(uuid.UUID)
 	
 	username, ok := c.Locals("username").(string)
 	if !ok {
@@ -38,7 +32,7 @@ func (h *RoomHandler) CreateRoom(c *fiber.Ctx) error {
 	}
 
 	var req domain.CreateRoomRequest
-	if err = c.BodyParser(&req); err != nil {
+	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid request body",
 		})
@@ -103,13 +97,7 @@ func (h *RoomHandler) GetRoom(c *fiber.Ctx) error {
 // JoinRoom handles joining a room
 // POST /api/v1/rooms/:id/join
 func (h *RoomHandler) JoinRoom(c *fiber.Ctx) error {
-	userIDStr := c.Locals("userID").(string)
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid user ID",
-		})
-	}
+	userID := c.Locals("userID").(uuid.UUID)
 	
 	username, ok := c.Locals("username").(string)
 	if !ok {
@@ -142,13 +130,7 @@ func (h *RoomHandler) JoinRoom(c *fiber.Ctx) error {
 // JoinRoomByCode handles joining a room via join code
 // POST /api/v1/rooms/join
 func (h *RoomHandler) JoinRoomByCode(c *fiber.Ctx) error {
-	userIDStr := c.Locals("userID").(string)
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid user ID",
-		})
-	}
+	userID := c.Locals("userID").(uuid.UUID)
 	
 	username, ok := c.Locals("username").(string)
 	if !ok {
@@ -156,7 +138,7 @@ func (h *RoomHandler) JoinRoomByCode(c *fiber.Ctx) error {
 	}
 
 	var req domain.JoinRoomRequest
-	if err = c.BodyParser(&req); err != nil {
+	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid request body",
 		})
@@ -184,13 +166,7 @@ func (h *RoomHandler) JoinRoomByCode(c *fiber.Ctx) error {
 // LeaveRoom handles leaving a room
 // POST /api/v1/rooms/:id/leave
 func (h *RoomHandler) LeaveRoom(c *fiber.Ctx) error {
-	userIDStr := c.Locals("userID").(string)
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid user ID",
-		})
-	}
+	userID := c.Locals("userID").(uuid.UUID)
 
 	roomIDStr := c.Params("id")
 	roomID, err := uuid.Parse(roomIDStr)
@@ -215,13 +191,7 @@ func (h *RoomHandler) LeaveRoom(c *fiber.Ctx) error {
 // SetReady sets participant ready status
 // POST /api/v1/rooms/:id/ready
 func (h *RoomHandler) SetReady(c *fiber.Ctx) error {
-	userIDStr := c.Locals("userID").(string)
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid user ID",
-		})
-	}
+	userID := c.Locals("userID").(uuid.UUID)
 
 	roomIDStr := c.Params("id")
 	roomID, err := uuid.Parse(roomIDStr)
@@ -258,13 +228,7 @@ func (h *RoomHandler) SetReady(c *fiber.Ctx) error {
 // StartGame starts the game
 // POST /api/v1/rooms/:id/start
 func (h *RoomHandler) StartGame(c *fiber.Ctx) error {
-	userIDStr := c.Locals("userID").(string)
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid user ID",
-		})
-	}
+	userID := c.Locals("userID").(uuid.UUID)
 
 	roomIDStr := c.Params("id")
 	roomID, err := uuid.Parse(roomIDStr)

@@ -7,6 +7,7 @@ import (
 	"github.com/arenamatch/playforge/internal/domain"
 	"github.com/arenamatch/playforge/internal/services"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type AuthHandler struct {
@@ -75,7 +76,12 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized")
 	}
 
-	if err := h.authService.Logout(c.Context(), userID.(string)); err != nil {
+	userUUID, ok := userID.(uuid.UUID)
+	if !ok {
+		return fiber.NewError(fiber.StatusUnauthorized, "Invalid user ID")
+	}
+
+	if err := h.authService.Logout(c.Context(), userUUID.String()); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Logout failed")
 	}
 
@@ -88,7 +94,12 @@ func (h *AuthHandler) GetMe(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized")
 	}
 
-	user, err := h.authService.GetUserByID(c.Context(), userID.(string))
+	userUUID, ok := userID.(uuid.UUID)
+	if !ok {
+		return fiber.NewError(fiber.StatusUnauthorized, "Invalid user ID")
+	}
+
+	user, err := h.authService.GetUserByID(c.Context(), userUUID.String())
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, "Failed to get user")
 	}

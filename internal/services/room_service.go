@@ -113,20 +113,47 @@ func (s *RoomService) CreateRoom(ctx context.Context, hostID uuid.UUID, hostUser
 
 // GetRoom retrieves a room by ID
 func (s *RoomService) GetRoom(ctx context.Context, roomID uuid.UUID) (*domain.Room, error) {
+	// Try Redis first
 	roomJSON, err := s.redisClient.Get(ctx, roomKey(roomID)).Result()
-	if err == redis.Nil {
-		return nil, fmt.Errorf("room not found")
+	if err == nil {
+		var room domain.Room
+		if err := json.Unmarshal([]byte(roomJSON), &room); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal room: %w", err)
+		}
+		return &room, nil
 	}
-	if err != nil {
+	
+	// If not in Redis, try database (for tournament rooms)
+	if err == redis.Nil && s.roomRepo != nil {
+		roomDB, dbErr := s.roomRepo.GetByID(ctx, roomID)
+		if dbErr == nil && roomDB != nil {
+			// Convert DB room to domain room
+			// Tournament rooms are always private
+			room := &domain.Room{
+				ID:           roomDB.ID,
+				Type:         domain.RoomTypePrivate,
+				JoinCode:     roomDB.Code,
+				HostID:       roomDB.HostID,
+				GameType:     roomDB.GameType,
+				MaxPlayers:   roomDB.MaxPlayers,
+				Status:       domain.RoomStatus(roomDB.Status),
+				CreatedAt:    roomDB.CreatedAt,
+				UpdatedAt:    roomDB.UpdatedAt,
+				ExpiresAt:    roomDB.UpdatedAt.Add(roomTTL), // Set expiration
+				Participants: []domain.Participant{}, // Empty initially, will be loaded from room service
+			}
+			
+			// Save back to Redis for faster access next time
+			s.saveRoom(ctx, room)
+			return room, nil
+		}
+	}
+	
+	if err != nil && err != redis.Nil {
 		return nil, fmt.Errorf("failed to get room: %w", err)
 	}
-
-	var room domain.Room
-	if err := json.Unmarshal([]byte(roomJSON), &room); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal room: %w", err)
-	}
-
-	return &room, nil
+	
+	return nil, fmt.Errorf("room not found")
 }
 
 // GetRoomByCode retrieves a room by join code

@@ -121,7 +121,7 @@ type CreateTournamentRequest struct {
 
 // JoinTournamentRequest represents a tournament join request
 type JoinTournamentRequest struct {
-	TournamentID string `json:"tournament_id" validate:"required,uuid"`
+	JoinCode string `json:"join_code"`
 }
 
 // StartTournamentRequest represents a tournament start request

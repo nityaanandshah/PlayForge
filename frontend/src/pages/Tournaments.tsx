@@ -9,6 +9,9 @@ export default function Tournaments() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showJoinCodeModal, setShowJoinCodeModal] = useState(false);
+  const [selectedTournamentId, setSelectedTournamentId] = useState<string>('');
+  const [joinCode, setJoinCode] = useState('');
   
   // Create tournament form state
   const [name, setName] = useState('');
@@ -37,14 +40,28 @@ export default function Tournaments() {
     setError('');
     try {
       const params = new URLSearchParams();
-      if (statusFilter !== 'all') {
+      // Don't pass 'private' to backend - we'll filter client-side
+      if (statusFilter !== 'all' && statusFilter !== 'private') {
         params.append('status', statusFilter);
       }
       params.append('limit', '50');
       
       const response = await api.get<TournamentListResponse>(`/tournaments?${params.toString()}`);
-      setTournaments(response.data.tournaments || []);
+      
+      // Ensure participants is always an array
+      let tournamentsData = (response.data.tournaments || []).map(tournament => ({
+        ...tournament,
+        participants: tournament.participants || []
+      }));
+      
+      // Filter for private tournaments if that filter is selected
+      if (statusFilter === 'private') {
+        tournamentsData = tournamentsData.filter(t => t.is_private);
+      }
+      
+      setTournaments(tournamentsData);
     } catch (err: any) {
+      console.error('Failed to load tournaments:', err.response?.data?.error || err.message);
       setError(err.response?.data?.error || 'Failed to load tournaments');
     } finally {
       setLoading(false);
@@ -62,7 +79,6 @@ export default function Tournaments() {
     setError('');
 
     try {
-      console.log('Creating tournament...');
       // Build game settings based on selected game type
       const gameSettings: any = {};
       
@@ -88,9 +104,7 @@ export default function Tournaments() {
         game_settings: Object.keys(gameSettings).length > 0 ? gameSettings : undefined,
       };
 
-      console.log('Sending request:', request);
       const response = await api.post('/tournaments/create', request);
-      console.log('Tournament created:', response.data);
       const tournament = response.data.tournament;
       
       // Close modal
@@ -100,23 +114,50 @@ export default function Tournaments() {
       // Navigate to tournament lobby
       navigate(`/tournament/${tournament.id}`);
     } catch (err: any) {
-      console.error('Create tournament error:', err);
       const errorMessage = err.response?.data?.error || 
                           err.response?.data?.message || 
                           err.message || 
                           'Failed to create tournament. Please try again.';
+      console.error('Failed to create tournament:', errorMessage);
       setError(errorMessage);
     } finally {
       setCreating(false);
     }
   };
 
-  const handleJoinTournament = async (tournamentId: string) => {
+  const handleJoinTournament = async (tournament: Tournament) => {
+    // If private, show code modal
+    if (tournament.is_private) {
+      setSelectedTournamentId(tournament.id);
+      setShowJoinCodeModal(true);
+      return;
+    }
+    
+    // Public tournament - join directly
     try {
-      await api.post(`/tournaments/${tournamentId}/join`);
-      navigate(`/tournament/${tournamentId}`);
+      await api.post(`/tournaments/${tournament.id}/join`);
+      navigate(`/tournament/${tournament.id}`);
     } catch (err: any) {
+      console.error('Failed to join tournament:', err.response?.data?.error || err.message);
       setError(err.response?.data?.error || 'Failed to join tournament');
+    }
+  };
+
+  const handleJoinWithCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!joinCode.trim()) {
+      setError('Please enter a join code');
+      return;
+    }
+
+    try {
+      await api.post(`/tournaments/${selectedTournamentId}/join`, { join_code: joinCode });
+      setShowJoinCodeModal(false);
+      setJoinCode('');
+      navigate(`/tournament/${selectedTournamentId}`);
+    } catch (err: any) {
+      console.error('Failed to join with code:', err.response?.data?.error || err.message);
+      setError(err.response?.data?.error || 'Invalid join code');
     }
   };
 
@@ -188,6 +229,7 @@ export default function Tournaments() {
               <option value="pending">Open for Join</option>
               <option value="in_progress">In Progress</option>
               <option value="complete">Completed</option>
+              <option value="private">Private</option>
             </select>
             
             <button
@@ -261,7 +303,7 @@ export default function Tournaments() {
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Participants:</span>
                     <span className="font-semibold text-gray-800">
-                      {tournament.participants.length} / {tournament.max_participants}
+                      {tournament.participants?.length || 0} / {tournament.max_participants || 0}
                     </span>
                   </div>
                   
@@ -285,7 +327,7 @@ export default function Tournaments() {
                   onClick={(e) => {
                     e.stopPropagation();
                     if (tournament.status === 'pending') {
-                      handleJoinTournament(tournament.id);
+                      handleJoinTournament(tournament);
                     } else {
                       navigate(`/tournament/${tournament.id}`);
                     }
@@ -296,7 +338,7 @@ export default function Tournaments() {
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
-                  {tournament.status === 'pending' ? '➕ Join' : '👁️ View'}
+                  {tournament.status === 'pending' ? (tournament.is_private ? '🔒 Join with Code' : '➕ Join') : '👁️ View'}
                 </button>
               </div>
             ))}
@@ -513,6 +555,59 @@ export default function Tournaments() {
                   disabled={creating}
                 >
                   {creating ? 'Creating...' : 'Create'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Join Code Modal */}
+      {showJoinCodeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800">🔒 Enter Join Code</h2>
+            <p className="text-gray-600 mb-4">This is a private tournament. Please enter the join code to participate.</p>
+            
+            <form onSubmit={handleJoinWithCode}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Join Code
+                </label>
+                <input
+                  type="text"
+                  value={joinCode}
+                  onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                  placeholder="Enter code..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-lg tracking-wider uppercase"
+                  required
+                  autoFocus
+                />
+              </div>
+
+              {error && (
+                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowJoinCodeModal(false);
+                    setJoinCode('');
+                    setError('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition font-semibold"
+                >
+                  Join Tournament
                 </button>
               </div>
             </form>

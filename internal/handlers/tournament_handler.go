@@ -88,6 +88,7 @@ func (h *TournamentHandler) ListTournaments(c *fiber.Ctx) error {
 
 	tournaments, err := h.tournamentService.ListTournaments(c.Context(), status, limit)
 	if err != nil {
+		log.Printf("Failed to list tournaments: %v", err)
 		return fiber.NewError(fiber.StatusInternalServerError, "Failed to list tournaments")
 	}
 
@@ -111,7 +112,11 @@ func (h *TournamentHandler) JoinTournament(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid tournament ID")
 	}
 
-	tournament, err := h.tournamentService.JoinTournament(c.Context(), tournamentID, userID)
+	// Parse request body for join code (optional for public tournaments)
+	var req domain.JoinTournamentRequest
+	_ = c.BodyParser(&req) // Don't fail if no body provided
+
+	tournament, err := h.tournamentService.JoinTournament(c.Context(), tournamentID, userID, req.JoinCode)
 	if err != nil {
 		log.Printf("Failed to join tournament %s for user %s: %v", tournamentID, userID, err)
 		if errors.Is(err, domain.ErrTournamentNotFound) {
@@ -122,6 +127,9 @@ func (h *TournamentHandler) JoinTournament(c *fiber.Ctx) error {
 		}
 		if errors.Is(err, domain.ErrTournamentAlreadyStarted) {
 			return fiber.NewError(fiber.StatusConflict, "Tournament has already started")
+		}
+		if err.Error() == "invalid join code" {
+			return fiber.NewError(fiber.StatusForbidden, "Invalid join code for private tournament")
 		}
 		return fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("Failed to join tournament: %v", err))
 	}
@@ -156,7 +164,12 @@ func (h *TournamentHandler) StartTournament(c *fiber.Ctx) error {
 		if errors.Is(err, domain.ErrTournamentNotReady) {
 			return fiber.NewError(fiber.StatusConflict, "Tournament is not ready to start")
 		}
-		return fiber.NewError(fiber.StatusInternalServerError, "Failed to start tournament")
+		// Check if it's a "not full" error or power of 2 error
+		errMsg := err.Error()
+		if len(errMsg) > 0 && (errMsg[:10] == "tournament" || errMsg[:4] == "must") {
+			return fiber.NewError(fiber.StatusConflict, errMsg)
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("Failed to start tournament: %v", err))
 	}
 
 	return c.JSON(domain.TournamentResponse{
