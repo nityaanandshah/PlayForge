@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/arenamatch/playforge/internal/domain"
+	"github.com/arenamatch/playforge/internal/game"
 	"github.com/arenamatch/playforge/internal/repository"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
@@ -252,6 +253,12 @@ func (s *TournamentService) StartTournament(ctx context.Context, tournamentID uu
 		return nil, fmt.Errorf("failed to create tournament matches: %w", err)
 	}
 
+	// Create games for first round ready matches
+	err = s.createGamesForReadyMatches(ctx, tournament)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create games for matches: %w", err)
+	}
+
 	return tournament, nil
 }
 
@@ -354,6 +361,64 @@ func (s *TournamentService) createTournamentMatches(ctx context.Context, tournam
 				return err
 			}
 		}
+	}
+
+	return nil
+}
+
+// createGamesForReadyMatches creates actual game instances for matches that are ready to play
+func (s *TournamentService) createGamesForReadyMatches(ctx context.Context, tournament *domain.Tournament) error {
+	if tournament.BracketData == nil {
+		return nil
+	}
+
+	// Iterate through all rounds and matches
+	for roundIdx, round := range tournament.BracketData.Rounds {
+		for matchIdx, match := range round.Matches {
+			// Only create games for matches that are ready and don't have a game yet
+			if match.Status == domain.TournamentMatchStatusReady && match.MatchID == nil {
+				if match.Player1ID == nil || match.Player2ID == nil {
+					continue
+				}
+
+				// Create a game for this match
+				gameType := game.GameType(tournament.GameType)
+				gameID := uuid.New()
+
+				// Initialize the game with both players
+				gameInstance, err := s.gameService.CreateGameForTournament(
+					ctx,
+					gameID,
+					gameType,
+					*match.Player1ID,
+					match.Player1Name,
+					*match.Player2ID,
+					match.Player2Name,
+					tournament.RoomID,
+				)
+				if err != nil {
+					log.Printf("Failed to create game for match %d in round %d: %v", match.MatchNumber, round.RoundNumber, err)
+					continue
+				}
+
+				// Update the bracket match with the game ID
+				tournament.BracketData.Rounds[roundIdx].Matches[matchIdx].MatchID = &gameInstance.ID
+				tournament.BracketData.Rounds[roundIdx].Matches[matchIdx].Status = domain.TournamentMatchStatusReady
+
+				log.Printf("Created game %s for tournament %s, round %d, match %d", gameInstance.ID, tournament.ID, round.RoundNumber, match.MatchNumber)
+			}
+		}
+	}
+
+	// Update tournament in database and cache with the new match IDs
+	err := s.tournamentRepo.Update(ctx, tournament)
+	if err != nil {
+		return fmt.Errorf("failed to update tournament with game IDs: %w", err)
+	}
+
+	err = s.saveTournamentToCache(ctx, tournament)
+	if err != nil {
+		return fmt.Errorf("failed to cache tournament: %w", err)
 	}
 
 	return nil

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/arenamatch/playforge/internal/game"
@@ -96,6 +97,48 @@ func (s *GameService) CreateGameWithSettings(ctx context.Context, gameType game.
 		return nil, err
 	}
 	fmt.Printf("Game %s saved successfully\n", gameID.String())
+
+	return g, nil
+}
+
+// CreateGameForTournament creates a game with both players already assigned for tournament matches
+func (s *GameService) CreateGameForTournament(ctx context.Context, gameID uuid.UUID, gameType game.GameType, player1ID uuid.UUID, player1Name string, player2ID uuid.UUID, player2Name string, roomID uuid.UUID) (*game.Game, error) {
+	now := time.Now()
+
+	var gameState game.GameState
+	switch gameType {
+	case game.GameTypeTicTacToe:
+		gameState = game.NewTicTacToeState(player1ID, player2ID)
+	case game.GameTypeConnect4:
+		gameState = game.NewConnect4State(player1ID, player2ID)
+	case game.GameTypeRockPaperScissors:
+		gameState = game.NewRPSState(player1ID, player2ID)
+	case game.GameTypeDotsAndBoxes:
+		gameState = game.NewDotsAndBoxesState(player1ID, player2ID)
+	default:
+		return nil, fmt.Errorf("unsupported game type: %s", gameType)
+	}
+
+	g := &game.Game{
+		ID:          gameID,
+		Type:        gameType,
+		Status:      game.GameStatusActive, // Both players assigned, ready to play
+		Player1ID:   player1ID,
+		Player1Name: player1Name,
+		Player2ID:   player2ID,
+		Player2Name: player2Name,
+		CurrentTurn: player1ID, // Player 1 goes first
+		State:       gameState,
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
+
+	// Save to Redis
+	if err := s.SaveGame(ctx, g); err != nil {
+		return nil, fmt.Errorf("failed to save tournament game: %w", err)
+	}
+
+	log.Printf("Created tournament game %s: %s vs %s", gameID, player1Name, player2Name)
 
 	return g, nil
 }
