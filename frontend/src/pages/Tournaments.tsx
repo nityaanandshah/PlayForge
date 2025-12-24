@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import { Tournament, TournamentListResponse, CreateTournamentRequest } from '../types/tournament';
+import { Trophy, RefreshCw, Plus, X, Circle, Gamepad2, Lock, Eye } from 'lucide-react';
 
 export default function Tournaments() {
   const navigate = useNavigate();
@@ -176,18 +177,18 @@ export default function Tournaments() {
     }
   };
 
-  const getGameEmoji = (gameType: string) => {
+  const getGameIcon = (gameType: string) => {
     switch (gameType) {
       case 'tictactoe':
-        return '❌';
+        return { Icon: X, color: 'text-blue-500' };
       case 'connect4':
-        return '🔴';
+        return { Icon: Circle, color: 'text-red-500' };
       case 'rps':
-        return '✊';
+        return { Icon: Gamepad2, color: 'text-purple-500' };
       case 'dotsandboxes':
-        return '📦';
+        return { Icon: Circle, color: 'text-indigo-500' };
       default:
-        return '🎮';
+        return { Icon: Gamepad2, color: 'text-gray-500' };
     }
   };
 
@@ -211,7 +212,10 @@ export default function Tournaments() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">🏆 Tournaments</h1>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-2">
+            <Trophy className="w-10 h-10" fill="currentColor" />
+            Tournaments
+          </h1>
           <p className="text-gray-600">
             Join or create competitive tournaments
           </p>
@@ -234,17 +238,19 @@ export default function Tournaments() {
             
             <button
               onClick={loadTournaments}
-              className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+              className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition flex items-center gap-2"
             >
-              🔄 Refresh
+              <RefreshCw className="w-4 h-4" fill="currentColor" />
+              Refresh
             </button>
           </div>
 
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg font-semibold hover:from-indigo-600 hover:to-purple-700 transition shadow-lg"
+            className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg font-semibold hover:from-indigo-600 hover:to-purple-700 transition shadow-lg flex items-center gap-2"
           >
-            ➕ Create Tournament
+            <Plus className="w-5 h-5" fill="currentColor" />
+            Create Tournament
           </button>
         </div>
 
@@ -281,21 +287,32 @@ export default function Tournaments() {
               >
                 {/* Tournament Header */}
                 <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-3xl">{getGameEmoji(tournament.game_type)}</span>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-lg text-gray-800">{tournament.name}</h3>
-                        {tournament.is_private && (
-                          <span className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded">🔒 Private</span>
-                        )}
-                      </div>
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    {(() => {
+                      const { Icon: GameIcon, color } = getGameIcon(tournament.game_type)
+                      return <GameIcon className={`w-8 h-8 flex-shrink-0 ${color}`} fill="currentColor" />
+                    })()}
+                    <div className="flex-1 min-w-0">
+                      <h3 
+                        className="font-bold text-lg text-gray-800 truncate cursor-default" 
+                        title={tournament.name}
+                      >
+                        {tournament.name}
+                      </h3>
                       <p className="text-sm text-gray-500">{getGameName(tournament.game_type)}</p>
                     </div>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeColor(tournament.status)}`}>
-                    {tournament.status.replace('_', ' ').toUpperCase()}
-                  </span>
+                  <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                    {tournament.is_private && (
+                      <span className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded flex items-center gap-1">
+                        <Lock className="w-3 h-3" fill="currentColor" />
+                        Private
+                      </span>
+                    )}
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${getStatusBadgeColor(tournament.status)}`}>
+                      {tournament.status.replace('_', ' ').toUpperCase()}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Tournament Info */}
@@ -306,15 +323,6 @@ export default function Tournaments() {
                       {tournament.participants?.length || 0} / {tournament.max_participants || 0}
                     </span>
                   </div>
-                  
-                  {tournament.status === 'in_progress' && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Round:</span>
-                      <span className="font-semibold text-gray-800">
-                        {tournament.current_round} / {tournament.total_rounds}
-                      </span>
-                    </div>
-                  )}
 
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Format:</span>
@@ -332,13 +340,30 @@ export default function Tournaments() {
                       navigate(`/tournament/${tournament.id}`);
                     }
                   }}
-                  className={`w-full py-2 rounded-lg font-semibold transition ${
+                  className={`w-full py-2 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
                     tournament.status === 'pending'
                       ? 'bg-indigo-500 text-white hover:bg-indigo-600'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
-                  {tournament.status === 'pending' ? (tournament.is_private ? '🔒 Join with Code' : '➕ Join') : '👁️ View'}
+                  {tournament.status === 'pending' ? (
+                    tournament.is_private ? (
+                      <>
+                        <Lock className="w-4 h-4" fill="currentColor" />
+                        Join with Code
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4" fill="currentColor" />
+                        Join
+                      </>
+                    )
+                  ) : (
+                    <>
+                      <Eye className="w-4 h-4" />
+                      View
+                    </>
+                  )}
                 </button>
               </div>
             ))}
@@ -379,10 +404,10 @@ export default function Tournaments() {
                     onChange={(e) => setGameType(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
-                    <option value="tictactoe">❌ Tic-Tac-Toe</option>
-                    <option value="connect4">🔴 Connect-4</option>
-                    <option value="rps">✊ Rock Paper Scissors</option>
-                    <option value="dotsandboxes">📦 Dots & Boxes</option>
+                    <option value="tictactoe">Tic-Tac-Toe</option>
+                    <option value="connect4">Connect-4</option>
+                    <option value="rps">Rock Paper Scissors</option>
+                    <option value="dotsandboxes">Dots & Boxes</option>
                   </select>
                 </div>
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import api from '../lib/api'
 import Layout from '../components/Layout'
+import { Trophy, X, Circle, Gamepad2, Medal } from 'lucide-react'
 
 interface LeaderboardEntry {
   user_id: string
@@ -24,11 +25,11 @@ const Leaderboard = () => {
   const [error, setError] = useState<string>('')
 
   const games = [
-    { id: 'all', name: 'Overall', emoji: '🏆' },
-    { id: 'tictactoe', name: 'Tic-Tac-Toe', emoji: '❌⭕' },
-    { id: 'connect4', name: 'Connect 4', emoji: '🔴🟡' },
-    { id: 'rps', name: 'Rock Paper Scissors', emoji: '✊✋✌️' },
-    { id: 'dotsandboxes', name: 'Dots & Boxes', emoji: '⚫📦' },
+    { id: 'all', name: 'Overall', Icon: Trophy, color: 'text-yellow-500' },
+    { id: 'tictactoe', name: 'Tic-Tac-Toe', Icon: X, color: 'text-blue-500' },
+    { id: 'connect4', name: 'Connect 4', Icon: Circle, color: 'text-red-500' },
+    { id: 'rps', name: 'Rock Paper Scissors', Icon: Gamepad2, color: 'text-purple-500' },
+    { id: 'dotsandboxes', name: 'Dots & Boxes', Icon: Circle, color: 'text-indigo-500' },
   ]
 
   useEffect(() => {
@@ -56,9 +57,9 @@ const Leaderboard = () => {
   }
 
   const getRankMedal = (rank: number) => {
-    if (rank === 1) return '🥇'
-    if (rank === 2) return '🥈'
-    if (rank === 3) return '🥉'
+    if (rank === 1) return <Medal className="w-6 h-6 text-yellow-500 inline" fill="currentColor" />
+    if (rank === 2) return <Medal className="w-6 h-6 text-gray-400 inline" fill="currentColor" />
+    if (rank === 3) return <Medal className="w-6 h-6 text-orange-600 inline" fill="currentColor" />
     return `#${rank}`
   }
 
@@ -66,23 +67,34 @@ const Leaderboard = () => {
     <Layout>
       <div className="max-w-7xl mx-auto">
         <div className="bg-white shadow rounded-lg p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">🏆 Leaderboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <Trophy className="w-8 h-8" fill="currentColor" />
+            Leaderboard
+          </h1>
           
           {/* Game Type Selector */}
           <div className="flex flex-wrap gap-2 mb-6">
-            {games.map((game) => (
-              <button
-                key={game.id}
-                onClick={() => setSelectedGame(game.id)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  selectedGame === game.id
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {game.emoji} {game.name}
-              </button>
-            ))}
+            {games.map((game) => {
+              const IconComponent = game.Icon
+              const isSelected = selectedGame === game.id
+              return (
+                <button
+                  key={game.id}
+                  onClick={() => setSelectedGame(game.id)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                    isSelected
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <IconComponent 
+                    className={`w-5 h-5 ${isSelected ? '' : game.color}`} 
+                    fill="currentColor" 
+                  />
+                  {game.name}
+                </button>
+              )
+            })}
           </div>
 
           {/* Loading/Error States */}

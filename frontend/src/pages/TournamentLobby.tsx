@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import { Tournament, BracketMatch, BracketRound } from '../types/tournament';
 import { useAuth } from '../hooks/useAuth';
+import { Lock, Copy, Mail, Trophy, Rocket, Play, Eye } from 'lucide-react';
 
 export default function TournamentLobby() {
   const { id } = useParams<{ id: string }>();
@@ -199,7 +200,9 @@ export default function TournamentLobby() {
             <div className="mt-4 p-4 bg-amber-50 border-2 border-amber-300 rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <p className="text-sm text-amber-800 font-semibold mb-1">🔒 Private Tournament - Join Code:</p>
+                  <p className="text-sm text-amber-800 font-semibold mb-1 flex items-center gap-1">
+                    <Lock className="w-4 h-4" fill="currentColor" /> Private Tournament - Join Code:
+                  </p>
                   <p className="text-2xl font-mono font-bold text-amber-900 tracking-wider">{tournament.join_code}</p>
                   <p className="text-xs text-amber-700 mt-1">Share this code with participants to join</p>
                 </div>
@@ -209,16 +212,16 @@ export default function TournamentLobby() {
                       navigator.clipboard.writeText(tournament.join_code || '');
                       alert('Join code copied to clipboard!');
                     }}
-                    className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition text-sm font-semibold"
+                    className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition text-sm font-semibold flex items-center gap-1"
                   >
-                    📋 Copy Code
+                    <Copy className="w-4 h-4" fill="currentColor" /> Copy Code
                   </button>
                   {isHost && tournament.status === 'pending' && (
                     <button
                       onClick={() => setShowInviteModal(true)}
-                      className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition text-sm font-semibold"
+                      className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition text-sm font-semibold flex items-center gap-1"
                     >
-                      ✉️ Invite Players
+                      <Mail className="w-4 h-4" fill="currentColor" /> Invite Players
                     </button>
                   )}
                 </div>
@@ -242,7 +245,9 @@ export default function TournamentLobby() {
             <div className="text-center p-3 bg-gray-50 rounded-lg">
               <p className="text-gray-600 text-sm">Status</p>
               <p className="text-2xl font-bold text-gray-800">
-                {tournament.status === 'complete' ? '🏆' : tournament.status === 'in_progress' ? '▶️' : '⏸️'}
+                {tournament.status === 'complete' ? <Trophy className="w-8 h-8 mx-auto" fill="currentColor" /> : 
+                 tournament.status === 'in_progress' ? <Play className="w-8 h-8 mx-auto" fill="currentColor" /> : 
+                 <span>⏸️</span>}
               </p>
             </div>
           </div>
@@ -266,9 +271,9 @@ export default function TournamentLobby() {
             {tournament.status === 'pending' && !isParticipant && (
               <button
                 onClick={handleJoinTournament}
-                className="flex-1 px-6 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition font-semibold"
+                className="flex-1 px-6 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition font-semibold flex items-center justify-center gap-2"
               >
-                {tournament.is_private ? '🔒 Join with Code' : '➕ Join Tournament'}
+                {tournament.is_private ? <><Lock className="w-5 h-5" fill="currentColor" /> Join with Code</> : '➕ Join Tournament'}
               </button>
             )}
 
@@ -276,9 +281,9 @@ export default function TournamentLobby() {
               <button
                 onClick={handleStartTournament}
                 disabled={starting || (tournament.participants?.length || 0) < tournament.max_participants}
-                className="flex-1 px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {starting ? '⏳ Starting...' : '🚀 Start Tournament'}
+                {starting ? '⏳ Starting...' : <><Rocket className="w-5 h-5" fill="currentColor" /> Start Tournament</>}
               </button>
             )}
           </div>
@@ -301,7 +306,7 @@ export default function TournamentLobby() {
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Participants ({tournament.participants?.length || 0})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {(tournament.participants || []).map((participant, idx) => (
+              {(tournament.participants || []).map((participant) => (
                 <div key={participant.user_id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <div className="w-10 h-10 bg-indigo-500 text-white rounded-full flex items-center justify-center font-bold">
                     {participant.username.charAt(0).toUpperCase()}
@@ -391,17 +396,17 @@ export default function TournamentLobby() {
                               {(match.player1_id === user?.id || match.player2_id === user?.id) ? (
                                 <button
                                   onClick={() => navigate(`/game/${match.match_id}`)}
-                                  className="w-full mt-3 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition shadow-md"
+                                  className="w-full mt-3 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition shadow-md flex items-center justify-center gap-2"
                                 >
-                                  ▶️ Play Game
+                                  <Play className="w-4 h-4" fill="currentColor" /> Play Game
                                 </button>
                               ) : (
                                 /* Watch button for spectators */
                                 <button
                                   onClick={() => navigate(`/game/${match.match_id}?spectate=true`)}
-                                  className="w-full mt-3 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition shadow-md"
+                                  className="w-full mt-3 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition shadow-md flex items-center justify-center gap-2"
                                 >
-                                  👁️ Watch Match
+                                  <Eye className="w-4 h-4" /> Watch Match
                                 </button>
                               )}
                             </>
@@ -422,9 +427,9 @@ export default function TournamentLobby() {
                           {match.status === 'complete' && match.match_id && (
                             <button
                               onClick={() => navigate(`/game/${match.match_id}`)}
-                              className="w-full mt-3 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition shadow-md"
+                              className="w-full mt-3 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition shadow-md flex items-center justify-center gap-2"
                             >
-                              👁️ View Replay
+                              <Eye className="w-4 h-4" /> View Replay
                             </button>
                           )}
                         </div>
@@ -440,7 +445,7 @@ export default function TournamentLobby() {
         {/* Winner Announcement */}
         {tournament.status === 'complete' && tournament.winner_id && (
           <div className="mt-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg shadow-lg p-8 text-center">
-            <div className="text-6xl mb-4">🏆</div>
+            <Trophy className="w-24 h-24 mb-4 mx-auto text-white" fill="currentColor" />
             <h2 className="text-3xl font-bold text-white mb-2">Tournament Complete!</h2>
             <p className="text-white text-xl">
               Winner: {tournament.participants?.find(p => p.user_id === tournament.winner_id)?.username || 'Unknown'}
@@ -453,7 +458,9 @@ export default function TournamentLobby() {
       {showJoinCodeModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">🔒 Enter Join Code</h2>
+            <h2 className="text-2xl font-bold mb-4 text-gray-800 flex items-center gap-2">
+              <Lock className="w-7 h-7" fill="currentColor" /> Enter Join Code
+            </h2>
             <p className="text-gray-600 mb-4">This is a private tournament. Please enter the join code to participate.</p>
             
             <form onSubmit={handleJoinWithCode}>
@@ -506,7 +513,9 @@ export default function TournamentLobby() {
       {showInviteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">✉️ Invite Player</h2>
+            <h2 className="text-2xl font-bold mb-4 text-gray-800 flex items-center gap-2">
+              <Mail className="w-7 h-7" fill="currentColor" /> Invite Player
+            </h2>
             <p className="text-gray-600 mb-4">Send a direct invitation to a user by entering their username.</p>
             
             <form onSubmit={handleInviteUser}>

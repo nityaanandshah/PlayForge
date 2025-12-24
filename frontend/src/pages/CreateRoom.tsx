@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { roomApi } from '../lib/api';
 import type { RoomType, GameSettings } from '../types/room';
+import { X, Circle, Gamepad2 } from 'lucide-react';
 
 export default function CreateRoom() {
   const navigate = useNavigate();
@@ -22,10 +23,10 @@ export default function CreateRoom() {
   const [connect4WinLength, setConnect4WinLength] = useState<number>(4);
 
   const games = [
-    { id: 'tictactoe', name: 'Tic-Tac-Toe', players: 2, emoji: '❌⭕' },
-    { id: 'connect4', name: 'Connect 4', players: 2, emoji: '🔴🟡' },
-    { id: 'rps', name: 'Rock Paper Scissors', players: 2, emoji: '✊✋✌️' },
-    { id: 'dotsandboxes', name: 'Dots & Boxes', players: 2, emoji: '⚫📦' },
+    { id: 'tictactoe', name: 'Tic-Tac-Toe', players: 2, Icon: X, iconColor: 'text-blue-500' },
+    { id: 'connect4', name: 'Connect 4', players: 2, Icon: Circle, iconColor: 'text-red-500' },
+    { id: 'rps', name: 'Rock Paper Scissors', players: 2, Icon: Gamepad2, iconColor: 'text-purple-500' },
+    { id: 'dotsandboxes', name: 'Dots & Boxes', players: 2, Icon: Circle, iconColor: 'text-indigo-500' },
   ];
 
   const createRoom = async () => {
@@ -137,7 +138,7 @@ export default function CreateRoom() {
                       : 'border-gray-300 hover:border-blue-400'
                   }`}
                 >
-                  <div className="text-2xl mb-1">{game.emoji}</div>
+                  <game.Icon className={`w-8 h-8 mb-1 ${game.iconColor}`} fill="currentColor" />
                   <h3 className="font-semibold mb-1">{game.name}</h3>
                   <p className="text-sm text-gray-600">
                     {game.players} players

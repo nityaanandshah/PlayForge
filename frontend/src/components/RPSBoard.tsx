@@ -1,5 +1,6 @@
 import { RPSState, RPSMove, RPSChoice } from '../types/game'
 import { useState, useEffect } from 'react'
+import { Circle, Square, Scissors } from 'lucide-react'
 
 interface RPSBoardProps {
   state: RPSState
@@ -9,7 +10,6 @@ interface RPSBoardProps {
 }
 
 export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPSBoardProps) {
-  const [selectedChoice, setSelectedChoice] = useState<RPSChoice>('')
   const [showResult, setShowResult] = useState(false)
   
   const isPlayer1 = state.player1_id === currentUserId
@@ -30,7 +30,6 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
       // Auto-hide result after 3 seconds
       const timer = setTimeout(() => {
         setShowResult(false)
-        setSelectedChoice('')
       }, 3000)
       return () => clearTimeout(timer)
     }
@@ -38,16 +37,15 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
 
   const handleChoice = (choice: RPSChoice) => {
     if (disabled || myChoice !== '') return
-    setSelectedChoice(choice)
     onMove({ choice })
   }
 
-  const getChoiceEmoji = (choice: RPSChoice) => {
+  const getChoiceIcon = (choice: RPSChoice) => {
     switch (choice) {
-      case 'rock': return '✊'
-      case 'paper': return '✋'
-      case 'scissors': return '✌️'
-      default: return '❓'
+      case 'rock': return Circle
+      case 'paper': return Square
+      case 'scissors': return Scissors
+      default: return Circle
     }
   }
 
@@ -112,12 +110,18 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
         } animate-[scale-in_0.5s_ease-out]`}>
           <div className="flex justify-center items-center gap-8 mb-4">
             <div className="text-center">
-              <div className="text-6xl mb-2">{getChoiceEmoji(myChoice)}</div>
+              {(() => {
+                const MyChoiceIcon = getChoiceIcon(myChoice)
+                return <MyChoiceIcon className="w-24 h-24 mb-2 mx-auto" fill="currentColor" />
+              })()}
               <div className="text-lg font-semibold text-gray-700">You</div>
             </div>
             <div className="text-4xl text-gray-400">VS</div>
             <div className="text-center">
-              <div className="text-6xl mb-2">{getChoiceEmoji(opponentChoice)}</div>
+              {(() => {
+                const OpponentChoiceIcon = getChoiceIcon(opponentChoice)
+                return <OpponentChoiceIcon className="w-24 h-24 mb-2 mx-auto" fill="currentColor" />
+              })()}
               <div className="text-lg font-semibold text-gray-700">Opponent</div>
             </div>
           </div>
@@ -143,34 +147,37 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
           </div>
           
           <div className="grid grid-cols-3 gap-6">
-            {(['rock', 'paper', 'scissors'] as RPSChoice[]).map((choice) => (
-              <button
-                key={choice}
-                onClick={() => handleChoice(choice)}
-                disabled={disabled || myChoice !== ''}
-                className={`relative group ${
-                  myChoice === choice
-                    ? 'scale-110 ring-4 ring-green-400'
-                    : myChoice !== ''
-                    ? 'opacity-30 cursor-not-allowed'
-                    : 'hover:scale-110 cursor-pointer'
-                } transition-all duration-300`}
-              >
-                <div className={`bg-gradient-to-br ${getChoiceColor(choice)} rounded-3xl p-8 shadow-2xl ${
-                  myChoice === '' && !disabled ? 'group-hover:shadow-3xl' : ''
-                }`}>
-                  <div className="text-8xl mb-4">{getChoiceEmoji(choice)}</div>
-                  <div className="text-2xl font-bold text-white capitalize">{choice}</div>
-                </div>
-                {myChoice === choice && (
-                  <div className="absolute top-4 right-4 bg-green-500 text-white rounded-full p-2">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                )}
-              </button>
-            ))}
+            {(['rock', 'paper', 'scissors'] as RPSChoice[]).map((choice) => {
+              const ChoiceIcon = getChoiceIcon(choice)
+              return (
+                <button
+                  key={choice}
+                  onClick={() => handleChoice(choice)}
+                  disabled={disabled || myChoice !== ''}
+                  className={`relative group ${
+                    myChoice === choice
+                      ? 'scale-110 ring-4 ring-green-400'
+                      : myChoice !== ''
+                      ? 'opacity-30 cursor-not-allowed'
+                      : 'hover:scale-110 cursor-pointer'
+                  } transition-all duration-300`}
+                >
+                  <div className={`bg-gradient-to-br ${getChoiceColor(choice)} rounded-3xl p-8 shadow-2xl ${
+                    myChoice === '' && !disabled ? 'group-hover:shadow-3xl' : ''
+                  }`}>
+                    <ChoiceIcon className="w-32 h-32 mb-4 mx-auto text-white" fill="currentColor" />
+                    <div className="text-2xl font-bold text-white capitalize">{choice}</div>
+                    </div>
+                  {myChoice === choice && (
+                    <div className="absolute top-4 right-4 bg-green-500 text-white rounded-full p-2">
+                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
@@ -233,9 +240,17 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
                   <div className="flex items-center gap-4">
                     <div className="text-lg font-bold text-gray-600">R{round.round_number}</div>
                     <div className="flex items-center gap-2">
-                      <span className="text-3xl">{getChoiceEmoji(myRoundChoice)}</span>
-                      <span className="text-gray-400">vs</span>
-                      <span className="text-3xl">{getChoiceEmoji(opponentRoundChoice)}</span>
+                      {(() => {
+                        const MyRoundChoiceIcon = getChoiceIcon(myRoundChoice)
+                        const OpponentRoundChoiceIcon = getChoiceIcon(opponentRoundChoice)
+                        return (
+                          <>
+                            <MyRoundChoiceIcon className="w-8 h-8" fill="currentColor" />
+                            <span className="text-gray-400">vs</span>
+                            <OpponentRoundChoiceIcon className="w-8 h-8" fill="currentColor" />
+                          </>
+                        )
+                      })()}
                     </div>
                   </div>
                   <div className={`font-bold ${textColor}`}>

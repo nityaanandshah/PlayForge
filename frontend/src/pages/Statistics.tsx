@@ -3,6 +3,7 @@ import api from '../lib/api'
 import { AxiosResponse } from 'axios'
 import Layout from '../components/Layout'
 import { useAuth } from '../hooks/useAuth'
+import { BarChart3, Trophy, X, Circle, Gamepad2 } from 'lucide-react'
 
 interface GameStats {
   id: string
@@ -24,10 +25,10 @@ const Statistics = () => {
   const [error, setError] = useState<string>('')
 
   const games = [
-    { id: 'tictactoe', name: 'Tic-Tac-Toe', emoji: '❌⭕', color: 'bg-blue-100' },
-    { id: 'connect4', name: 'Connect 4', emoji: '🔴🟡', color: 'bg-yellow-100' },
-    { id: 'rps', name: 'Rock Paper Scissors', emoji: '✊✋✌️', color: 'bg-purple-100' },
-    { id: 'dotsandboxes', name: 'Dots & Boxes', emoji: '⚫📦', color: 'bg-green-100' },
+    { id: 'tictactoe', name: 'Tic-Tac-Toe', Icon: X, bgColor: 'bg-blue-100', iconColor: 'text-blue-500' },
+    { id: 'connect4', name: 'Connect 4', Icon: Circle, bgColor: 'bg-yellow-100', iconColor: 'text-red-500' },
+    { id: 'rps', name: 'Rock Paper Scissors', Icon: Gamepad2, bgColor: 'bg-purple-100', iconColor: 'text-purple-500' },
+    { id: 'dotsandboxes', name: 'Dots & Boxes', Icon: Circle, bgColor: 'bg-green-100', iconColor: 'text-indigo-500' },
   ]
 
   useEffect(() => {
@@ -70,7 +71,10 @@ const Statistics = () => {
     <Layout>
       <div className="max-w-7xl mx-auto">
         <div className="bg-white shadow rounded-lg p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">📊 My Statistics</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <BarChart3 className="w-8 h-8" fill="currentColor" />
+            My Statistics
+          </h1>
 
           {/* Loading/Error States */}
           {loading && (
@@ -90,7 +94,10 @@ const Statistics = () => {
             <>
               {/* Overall Stats Card */}
               <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-6 mb-6 text-white">
-                <h2 className="text-2xl font-bold mb-4">🏆 Overall Performance</h2>
+                <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+                  <Trophy className="w-7 h-7" fill="currentColor" />
+                  Overall Performance
+                </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
                     <div className="text-3xl font-bold">{allStats.total_games}</div>
@@ -139,11 +146,12 @@ const Statistics = () => {
                 {games.map((game, index) => {
                   const stats = gameStats[index]
                   const winRate = parseFloat(calculateWinRate(stats.wins, stats.total_games))
+                  const IconComponent = game.Icon
                   
                   return (
-                    <div key={game.id} className={`${game.color} rounded-lg p-6 border-2 border-gray-200`}>
+                    <div key={game.id} className={`${game.bgColor} rounded-lg p-6 border-2 border-gray-200`}>
                       <div className="flex items-center gap-3 mb-4">
-                        <span className="text-4xl">{game.emoji}</span>
+                        <IconComponent className={`w-10 h-10 ${game.iconColor}`} fill="currentColor" />
                         <div>
                           <h3 className="text-xl font-bold text-gray-900">{game.name}</h3>
                           <p className="text-sm text-gray-600">{stats.total_games} games played</p>

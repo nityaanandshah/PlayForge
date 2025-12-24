@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../lib/api'
+import { Inbox, Gamepad2, Trophy, Check, X, Trash2, Bell } from 'lucide-react'
 
 interface Notification {
   id: string
@@ -154,8 +155,9 @@ export default function Notifications() {
       <div className="bg-white shadow rounded-lg p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-              📬 All Notifications
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+              <Inbox className="w-8 h-8" fill="currentColor" />
+              All Notifications
               {unreadCount > 0 && (
                 <span className="ml-3 bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-full">
                   {unreadCount} unread
@@ -234,17 +236,15 @@ export default function Notifications() {
                 } ${!isInvitation ? 'cursor-pointer hover:shadow-md' : ''}`}
                 onClick={() => !isInvitation && handleNotificationClick(notification)}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">
-                        {notification.type === 'invitation_received' && '🎮'}
-                        {notification.type === 'tournament_started' && '🏁'}
-                        {notification.type === 'player_joined' && '👥'}
-                        {notification.type === 'invitation_accepted' && '✅'}
-                        {notification.type === 'invitation_declined' && '❌'}
-                      </span>
-                      <h4 className="font-bold text-gray-800 text-lg">{notification.title}</h4>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        {notification.type === 'invitation_received' && <Gamepad2 className="w-6 h-6" fill="currentColor" />}
+                        {notification.type === 'tournament_started' && <Trophy className="w-6 h-6" fill="currentColor" />}
+                        {notification.type === 'player_joined' && <Check className="w-6 h-6" fill="currentColor" />}
+                        {notification.type === 'invitation_accepted' && <Check className="w-6 h-6 text-green-600" fill="currentColor" />}
+                        {notification.type === 'invitation_declined' && <X className="w-6 h-6 text-red-600" fill="currentColor" />}
+                        <h4 className="font-bold text-gray-800 text-lg">{notification.title}</h4>
                       {!notification.read && (
                         <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
                           New
@@ -294,7 +294,7 @@ export default function Notifications() {
                         className="p-2 text-gray-400 hover:text-green-500 transition"
                         title="Mark as read"
                       >
-                        ✓
+                        <Check className="w-5 h-5" fill="currentColor" />
                       </button>
                     )}
 
@@ -307,7 +307,7 @@ export default function Notifications() {
                       className="p-2 text-gray-400 hover:text-red-500 transition"
                       title="Delete notification"
                     >
-                      🗑️
+                      <Trash2 className="w-5 h-5" fill="currentColor" />
                     </button>
                   </div>
                 </div>
@@ -317,7 +317,7 @@ export default function Notifications() {
         </div>
       ) : (
         <div className="bg-white shadow rounded-lg p-12 text-center">
-          <p className="text-6xl mb-4">🔔</p>
+          <Bell className="w-24 h-24 mb-4 mx-auto text-gray-400" fill="currentColor" />
           <p className="text-xl font-medium text-gray-900">
             {filter === 'unread' ? 'No unread notifications' : 'No new notifications'}
           </p>

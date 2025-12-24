@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { statsApi, PlayerStats } from '../lib/api'
 import api from '../lib/api'
+import { Crown, Gem, Star, Target, Gamepad2, PartyPopper, Trophy, Dumbbell, Flame, Zap, Medal, Settings } from 'lucide-react'
 
 interface PublicProfile {
   user_id: string
@@ -56,35 +57,35 @@ export default function Profile() {
     if (elo >= 2000) return { 
       name: 'Grandmaster', 
       color: 'from-yellow-400 to-yellow-600', 
-      emoji: '👑',
+      Icon: Crown,
       description: '2000+ ELO - Highest rank! Legendary player',
       nextRank: null
     }
     if (elo >= 1800) return { 
       name: 'Master', 
       color: 'from-purple-400 to-purple-600', 
-      emoji: '💎',
+      Icon: Gem,
       description: '1800-1999 ELO - Elite player',
       nextRank: 'Grandmaster (2000 ELO)'
     }
     if (elo >= 1600) return { 
       name: 'Expert', 
       color: 'from-blue-400 to-blue-600', 
-      emoji: '⭐',
+      Icon: Star,
       description: '1600-1799 ELO - Skilled player',
       nextRank: 'Master (1800 ELO)'
     }
     if (elo >= 1400) return { 
       name: 'Advanced', 
       color: 'from-green-400 to-green-600', 
-      emoji: '🎯',
+      Icon: Target,
       description: '1400-1599 ELO - Proficient player',
       nextRank: 'Expert (1600 ELO)'
     }
     return { 
       name: 'Intermediate', 
       color: 'from-gray-400 to-gray-600', 
-      emoji: '🎮',
+      Icon: Gamepad2,
       description: 'Below 1400 ELO - Keep playing to rank up!',
       nextRank: 'Advanced (1400 ELO)'
     }
@@ -97,28 +98,28 @@ export default function Profile() {
       // Win-based achievements
       { 
         name: 'First Victory', 
-        emoji: '🎉', 
+        Icon: PartyPopper, 
         requirement: 'Win your first game',
         unlocked: stats.wins >= 1,
         progress: `${Math.min(stats.wins, 1)}/1`
       },
       { 
         name: '10 Wins', 
-        emoji: '🏆', 
+        Icon: Trophy, 
         requirement: 'Win 10 games',
         unlocked: stats.wins >= 10,
         progress: `${Math.min(stats.wins, 10)}/10`
       },
       { 
         name: '50 Wins', 
-        emoji: '💪', 
+        Icon: Dumbbell, 
         requirement: 'Win 50 games',
         unlocked: stats.wins >= 50,
         progress: `${Math.min(stats.wins, 50)}/50`
       },
       { 
         name: 'Century', 
-        emoji: '💯', 
+        Icon: Trophy, 
         requirement: 'Win 100 games',
         unlocked: stats.wins >= 100,
         progress: `${Math.min(stats.wins, 100)}/100`
@@ -127,14 +128,14 @@ export default function Profile() {
       // Game activity achievements
       { 
         name: 'Veteran', 
-        emoji: '🎖️', 
+        Icon: Medal, 
         requirement: 'Play 10 total games',
         unlocked: stats.total_games >= 10,
         progress: `${Math.min(stats.total_games, 10)}/10`
       },
       { 
         name: 'Dedicated', 
-        emoji: '🔥', 
+        Icon: Flame, 
         requirement: 'Play 100 total games',
         unlocked: stats.total_games >= 100,
         progress: `${Math.min(stats.total_games, 100)}/100`
@@ -143,17 +144,17 @@ export default function Profile() {
       // Win streak achievements
       { 
         name: 'Hot Streak', 
-        emoji: '🔥', 
+        Icon: Flame, 
         requirement: 'Get a 5-game win streak',
-        unlocked: stats.best_win_streak >= 5,
-        progress: `Best: ${stats.best_win_streak}`
+        unlocked: stats.best_streak >= 5,
+        progress: `Best: ${stats.best_streak}`
       },
       { 
         name: 'Unstoppable', 
-        emoji: '⚡', 
+        Icon: Zap, 
         requirement: 'Get a 10-game win streak',
-        unlocked: stats.best_win_streak >= 10,
-        progress: `Best: ${stats.best_win_streak}`
+        unlocked: stats.best_streak >= 10,
+        progress: `Best: ${stats.best_streak}`
       },
     ]
     
@@ -186,12 +187,12 @@ export default function Profile() {
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-lg p-8 text-white">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-6">
             <div 
-              className="w-24 h-24 bg-white rounded-full flex items-center justify-center text-4xl cursor-help"
+              className="w-24 h-24 bg-white rounded-full flex items-center justify-center cursor-help"
               title={`${rank.name} - ${rank.description}${rank.nextRank ? `\nNext rank: ${rank.nextRank}` : ''}`}
             >
-              {rank.emoji}
+              <rank.Icon className="w-12 h-12 text-indigo-600" fill="currentColor" />
             </div>
             <div>
               <h1 className="text-4xl font-bold mb-2">{profile.username}</h1>
@@ -206,9 +207,10 @@ export default function Profile() {
           {isOwnProfile && (
             <button
               onClick={() => navigate('/settings')}
-              className="bg-white text-indigo-600 px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition"
+              className="bg-white text-indigo-600 px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition flex items-center gap-2"
             >
-              ⚙️ Settings
+              <Settings className="w-5 h-5" fill="currentColor" />
+              Settings
             </button>
           )}
         </div>
@@ -260,11 +262,16 @@ export default function Profile() {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-600">Current Streak:</span>
-                <span className="font-bold">{stats?.current_win_streak || 0} {stats && stats.current_win_streak > 0 ? '🔥' : ''}</span>
+                <span className="font-bold flex items-center gap-1">
+                  {stats?.current_streak || 0} 
+                  {stats && stats.current_streak > 0 && <Flame className="w-4 h-4 text-orange-500" fill="currentColor" />}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Best Streak:</span>
-                <span className="font-bold">{stats?.best_win_streak || 0} ⚡</span>
+                <span className="font-bold flex items-center gap-1">
+                  {stats?.best_streak || 0} <Zap className="w-4 h-4 text-yellow-500" fill="currentColor" />
+                </span>
               </div>
             </div>
           </div>
@@ -273,27 +280,31 @@ export default function Profile() {
 
       {/* Achievements */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-bold mb-4">
-          🏆 Achievements ({achievements.filter(a => a.unlocked).length}/{achievements.length})
+        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+          <Trophy className="w-7 h-7" fill="currentColor" />
+          Achievements ({achievements.filter(a => a.unlocked).length}/{achievements.length})
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-          {achievements.map((achievement) => (
-            <div
-              key={achievement.name}
-              className={`border-2 rounded-lg p-4 text-center transition cursor-help ${
-                achievement.unlocked
-                  ? 'border-yellow-400 bg-yellow-50 hover:shadow-lg'
-                  : 'border-gray-300 bg-gray-50 opacity-60 hover:opacity-80'
-              }`}
-              title={`${achievement.name}\n${achievement.requirement}\nProgress: ${achievement.progress}`}
-            >
-              <div className="text-3xl mb-2">{achievement.emoji}</div>
-              <div className="text-xs font-bold">{achievement.name}</div>
-              {!achievement.unlocked && (
-                <div className="text-xs text-gray-500 mt-1">🔒</div>
-              )}
-            </div>
-          ))}
+          {achievements.map((achievement) => {
+            const IconComponent = achievement.Icon
+            return (
+              <div
+                key={achievement.name}
+                className={`border-2 rounded-lg p-4 text-center transition cursor-help ${
+                  achievement.unlocked
+                    ? 'border-yellow-400 bg-yellow-50 hover:shadow-lg'
+                    : 'border-gray-300 bg-gray-50 opacity-60 hover:opacity-80'
+                }`}
+                title={`${achievement.name}\n${achievement.requirement}\nProgress: ${achievement.progress}`}
+              >
+                <IconComponent className="w-8 h-8 mb-2 mx-auto" fill="currentColor" />
+                <div className="text-xs font-bold">{achievement.name}</div>
+                {!achievement.unlocked && (
+                  <div className="text-xs text-gray-500 mt-1">🔒</div>
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
 
@@ -315,7 +326,7 @@ interface ContributionGraphProps {
   username: string
 }
 
-function ContributionGraph({ userId, username }: ContributionGraphProps) {
+function ContributionGraph({ userId }: ContributionGraphProps) {
   const navigate = useNavigate()
   const [matches, setMatches] = useState<MatchHistoryEntry[]>([])
   const [loading, setLoading] = useState(true)
@@ -469,7 +480,10 @@ function ContributionGraph({ userId, username }: ContributionGraphProps) {
   return (
     <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg shadow-xl p-8 text-white">
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-bold">🎮 Game Activity</h2>
+        <h2 className="text-2xl font-bold flex items-center gap-2">
+          <Gamepad2 className="w-7 h-7" fill="currentColor" />
+          Game Activity
+        </h2>
         <button
           onClick={() => navigate('/history')}
           className="text-sm text-blue-300 hover:text-blue-200 font-medium"
@@ -485,12 +499,16 @@ function ContributionGraph({ userId, username }: ContributionGraphProps) {
           <div className="text-sm text-gray-400 mt-2">games in last year</div>
         </div>
         <div className="bg-gray-800 rounded-lg p-5 text-center border border-gray-700 hover:border-orange-500 transition-colors">
-          <div className="text-4xl font-bold text-orange-400">{currentStreak}</div>
-          <div className="text-sm text-gray-400 mt-2">day streak 🔥</div>
+          <div className="text-4xl font-bold text-orange-400 flex items-center justify-center gap-2">
+            {currentStreak} <Flame className="w-8 h-8" fill="currentColor" />
+          </div>
+          <div className="text-sm text-gray-400 mt-2">day streak</div>
         </div>
         <div className="bg-gray-800 rounded-lg p-5 text-center border border-gray-700 hover:border-purple-500 transition-colors">
-          <div className="text-4xl font-bold text-purple-400">{longestStreak}</div>
-          <div className="text-sm text-gray-400 mt-2">longest streak 🏆</div>
+          <div className="text-4xl font-bold text-purple-400 flex items-center justify-center gap-2">
+            {longestStreak} <Trophy className="w-8 h-8" fill="currentColor" />
+          </div>
+          <div className="text-sm text-gray-400 mt-2">longest streak</div>
         </div>
       </div>
 
@@ -556,7 +574,7 @@ function ContributionGraph({ userId, username }: ContributionGraphProps) {
         </div>
       ) : (
         <div className="text-center py-12">
-          <div className="text-6xl mb-4">🎮</div>
+          <Gamepad2 className="w-24 h-24 mb-4 mx-auto text-gray-400" fill="currentColor" />
           <p className="text-gray-400">No games played yet</p>
           <p className="text-sm text-gray-500 mt-2">Start playing to build your streak!</p>
         </div>

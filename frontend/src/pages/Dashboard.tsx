@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { gameApi, statsApi, PlayerStats } from '../lib/api'
+import { statsApi, PlayerStats } from '../lib/api'
 import api from '../lib/api'
+import { Mail, Zap, Gamepad2, Trophy, X, Check, Trash2, Bell, Inbox, Circle } from 'lucide-react'
 
 interface TournamentInvitation {
   id: string;
@@ -33,7 +34,6 @@ interface Notification {
 export default function Dashboard() {
   const { user, refreshUser } = useAuth()
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [stats, setStats] = useState<PlayerStats | null>(null)
   const [invitations, setInvitations] = useState<TournamentInvitation[]>([])
@@ -193,8 +193,9 @@ export default function Dashboard() {
       {/* Tournament Invitations */}
       {invitations && invitations.length > 0 && (
         <div className="bg-white shadow rounded-lg p-6 border-2 border-indigo-300">
-          <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-            ✉️ Tournament Invitations
+          <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Mail className="w-6 h-6" fill="currentColor" />
+            Tournament Invitations
             <span className="ml-2 bg-indigo-500 text-white text-xs font-bold px-2 py-1 rounded-full">
               {invitations.length}
             </span>
@@ -215,16 +216,16 @@ export default function Dashboard() {
                   <button
                     onClick={() => handleAcceptInvitation(invitation.id, invitation.tournament_id)}
                     disabled={processingInvite === invitation.id}
-                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                   >
-                    {processingInvite === invitation.id ? '...' : '✓ Accept'}
+                    {processingInvite === invitation.id ? '...' : <><Check className="w-4 h-4" fill="currentColor" /> Accept</>}
                   </button>
                   <button
                     onClick={() => handleDeclineInvitation(invitation.id)}
                     disabled={processingInvite === invitation.id}
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                   >
-                    {processingInvite === invitation.id ? '...' : '✗ Decline'}
+                    {processingInvite === invitation.id ? '...' : <><X className="w-4 h-4" fill="currentColor" /> Decline</>}
                   </button>
                 </div>
               </div>
@@ -247,7 +248,7 @@ export default function Dashboard() {
             onClick={handleQuickPlay}
             className="bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 transition-colors font-medium text-center"
           >
-            <div className="text-2xl mb-1">⚡</div>
+            <Zap className="w-8 h-8 mb-1 mx-auto" fill="currentColor" />
             <div className="font-bold">Quick Play</div>
             <div className="text-xs opacity-90">Find match with standard rules</div>
           </button>
@@ -255,7 +256,7 @@ export default function Dashboard() {
             onClick={() => navigate('/rooms')}
             className="bg-purple-600 text-white px-6 py-4 rounded-lg hover:bg-purple-700 transition-colors font-medium text-center"
           >
-            <div className="text-2xl mb-1">🎮</div>
+            <Gamepad2 className="w-8 h-8 mb-1 mx-auto" fill="currentColor" />
             <div className="font-bold">Custom Game</div>
             <div className="text-xs opacity-90">Create room with your rules</div>
           </button>
@@ -263,7 +264,7 @@ export default function Dashboard() {
             onClick={() => navigate('/tournaments')}
             className="bg-orange-600 text-white px-6 py-4 rounded-lg hover:bg-orange-700 transition-colors font-medium text-center"
           >
-            <div className="text-2xl mb-1">🏆</div>
+            <Trophy className="w-8 h-8 mb-1 mx-auto" fill="currentColor" />
             <div className="font-bold">Tournaments</div>
             <div className="text-xs opacity-90">Compete in brackets</div>
           </button>
@@ -274,25 +275,34 @@ export default function Dashboard() {
         <h3 className="text-xl font-bold text-gray-900 mb-4">Available Games</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-500 transition-colors">
-            <div className="text-2xl mb-2">❌⭕</div>
+            <div className="flex gap-1 mb-2">
+              <X className="w-6 h-6 text-blue-500" fill="currentColor" />
+              <Circle className="w-6 h-6 text-red-500" fill="currentColor" />
+            </div>
             <h4 className="font-bold text-lg mb-2">Tic-Tac-Toe</h4>
             <p className="text-sm text-gray-600">Classic 3×3 grid</p>
             <p className="text-xs text-gray-500 mt-1">Custom: up to 5×5</p>
           </div>
           <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-500 transition-colors">
-            <div className="text-2xl mb-2">🔴🟡</div>
+            <div className="flex gap-1 mb-2">
+              <Circle className="w-6 h-6 text-red-500" fill="currentColor" />
+              <Circle className="w-6 h-6 text-yellow-500" fill="currentColor" />
+            </div>
             <h4 className="font-bold text-lg mb-2">Connect 4</h4>
             <p className="text-sm text-gray-600">Standard 6×7 board</p>
             <p className="text-xs text-gray-500 mt-1">Custom: up to 10×10</p>
           </div>
           <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-500 transition-colors">
-            <div className="text-2xl mb-2">✊✋✌️</div>
+            <Gamepad2 className="w-8 h-8 mb-2 text-purple-500" fill="currentColor" />
             <h4 className="font-bold text-lg mb-2">Rock-Paper-Scissors</h4>
             <p className="text-sm text-gray-600">Best of 5 rounds</p>
             <p className="text-xs text-gray-500 mt-1">Custom: 3, 5, 7, or 9</p>
           </div>
           <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-500 transition-colors">
-            <div className="text-2xl mb-2">⚫📦</div>
+            <div className="flex gap-1 mb-2">
+              <Circle className="w-6 h-6 text-indigo-500" fill="currentColor" />
+              <Circle className="w-6 h-6 text-pink-500" fill="currentColor" />
+            </div>
             <h4 className="font-bold text-lg mb-2">Dots & Boxes</h4>
             <p className="text-sm text-gray-600">Classic 5×5 grid</p>
             <p className="text-xs text-gray-500 mt-1">Custom: 4×4 to 8×8</p>
@@ -303,8 +313,9 @@ export default function Dashboard() {
       {/* Notifications Feed - Always Visible */}
       <div className="bg-white shadow rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold text-gray-900 flex items-center">
-            📬 Recent Activity
+          <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <Inbox className="w-6 h-6" fill="currentColor" />
+            Recent Activity
             {notifications && notifications.filter(n => !n.read).length > 0 && (
               <span className="ml-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                 {notifications.filter(n => !n.read).length} new
@@ -347,13 +358,11 @@ export default function Dashboard() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">
-                          {notification.type === 'invitation_received' && '🎮'}
-                          {notification.type === 'tournament_started' && '🏁'}
-                          {notification.type === 'player_joined' && '👥'}
-                          {notification.type === 'invitation_accepted' && '✅'}
-                          {notification.type === 'invitation_declined' && '❌'}
-                        </span>
+                        {notification.type === 'invitation_received' && <Gamepad2 className="w-5 h-5" fill="currentColor" />}
+                        {notification.type === 'tournament_started' && <Trophy className="w-5 h-5" fill="currentColor" />}
+                        {notification.type === 'player_joined' && <Check className="w-5 h-5" fill="currentColor" />}
+                        {notification.type === 'invitation_accepted' && <Check className="w-5 h-5 text-green-600" fill="currentColor" />}
+                        {notification.type === 'invitation_declined' && <X className="w-5 h-5 text-red-600" fill="currentColor" />}
                         <h4 className="font-bold text-gray-800">{notification.title}</h4>
                         {!notification.read && (
                           <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">New</span>
@@ -395,7 +404,7 @@ export default function Dashboard() {
                         className="p-2 text-gray-400 hover:text-red-500 transition"
                         title="Delete notification"
                       >
-                        🗑️
+                        <Trash2 className="w-5 h-5" fill="currentColor" />
                       </button>
                     </div>
                   </div>
@@ -405,7 +414,7 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="text-center py-8 text-gray-500">
-            <p className="text-4xl mb-2">🔔</p>
+            <Bell className="w-16 h-16 mb-2 mx-auto text-gray-400" fill="currentColor" />
             <p className="font-medium">No new notifications</p>
             <p className="text-sm mt-1">You'll see tournament invites, game starts, and player activity here</p>
           </div>

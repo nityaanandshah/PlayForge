@@ -1,6 +1,7 @@
 import { ReactNode } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { Home, Trophy, Crown, BarChart3, ScrollText, User } from 'lucide-react'
 
 interface LayoutProps {
   children: ReactNode
@@ -17,11 +18,11 @@ export default function Layout({ children }: LayoutProps) {
   }
 
   const navLinks = [
-    { path: '/dashboard', label: '🏠 Home', icon: '🏠' },
-    { path: '/tournaments', label: '🏆 Tournaments', icon: '🏆' },
-    { path: '/leaderboard', label: '👑 Leaderboard', icon: '👑' },
-    { path: '/statistics', label: '📊 Stats', icon: '📊' },
-    { path: '/history', label: '📜 History', icon: '📜' },
+    { path: '/dashboard', label: 'Home', icon: Home },
+    { path: '/tournaments', label: 'Tournaments', icon: Trophy },
+    { path: '/leaderboard', label: 'Leaderboard', icon: Crown },
+    { path: '/statistics', label: 'Stats', icon: BarChart3 },
+    { path: '/history', label: 'History', icon: ScrollText },
   ]
 
   const isActive = (path: string) => location.pathname === path
@@ -39,22 +40,26 @@ export default function Layout({ children }: LayoutProps) {
                 PlayForge
               </h1>
               <div className="hidden md:flex space-x-1">
-                {navLinks.map((link) => (
-                  <button
-                    key={link.path}
-                    onClick={() => navigate(link.path)}
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      isActive(link.path)
-                        ? 'bg-primary-100 text-primary-700'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
-                  >
-                    {link.label}
-                  </button>
-                ))}
+                {navLinks.map((link) => {
+                  const IconComponent = link.icon
+                  return (
+                    <button
+                      key={link.path}
+                      onClick={() => navigate(link.path)}
+                      className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                        isActive(link.path)
+                          ? 'bg-primary-100 text-primary-700'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      }`}
+                    >
+                      <IconComponent className="w-4 h-4" fill="currentColor" />
+                      {link.label}
+                    </button>
+                  )
+                })}
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 ml-auto">
               <button
                 onClick={() => navigate(`/profile/${user?.username}`)}
                 className="flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
@@ -63,14 +68,7 @@ export default function Layout({ children }: LayoutProps) {
                   <p className="font-medium text-gray-900">{user?.username}</p>
                   <p className="text-gray-500 text-xs">ELO: {user?.elo_rating}</p>
                 </div>
-                <div className="text-xl">👤</div>
-              </button>
-              <button
-                onClick={() => navigate('/settings')}
-                className="p-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
-                title="Settings"
-              >
-                ⚙️
+                <User className="w-5 h-5" fill="currentColor" />
               </button>
               <button
                 onClick={handleLogout}
@@ -87,20 +85,23 @@ export default function Layout({ children }: LayoutProps) {
       <div className="md:hidden bg-white border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-around py-2">
-            {navLinks.map((link) => (
-              <button
-                key={link.path}
-                onClick={() => navigate(link.path)}
-                className={`flex flex-col items-center px-3 py-2 rounded-md text-xs font-medium transition-colors ${
-                  isActive(link.path)
-                    ? 'text-primary-700'
-                    : 'text-gray-600'
-                }`}
-              >
-                <span className="text-xl mb-1">{link.icon}</span>
-                <span>{link.label.replace(/[🏠🏆👑📊📜]\s/, '')}</span>
-              </button>
-            ))}
+            {navLinks.map((link) => {
+              const IconComponent = link.icon
+              return (
+                <button
+                  key={link.path}
+                  onClick={() => navigate(link.path)}
+                  className={`flex flex-col items-center px-3 py-2 rounded-md text-xs font-medium transition-colors ${
+                    isActive(link.path)
+                      ? 'text-primary-700'
+                      : 'text-gray-600'
+                  }`}
+                >
+                  <IconComponent className="w-6 h-6 mb-1" fill="currentColor" />
+                  <span>{link.label}</span>
+                </button>
+              )
+            })}
           </div>
         </div>
       </div>

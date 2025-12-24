@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { matchmakingApi } from '../lib/api';
 import type { QueueEntry } from '../types/matchmaking';
+import { X, Circle, Gamepad2 } from 'lucide-react';
 
 export default function Matchmaking() {
   const navigate = useNavigate();
@@ -13,10 +14,10 @@ export default function Matchmaking() {
   const [queueTime, setQueueTime] = useState(0);
 
   const games = [
-    { id: 'tictactoe', name: 'Tic-Tac-Toe', description: 'Classic 3×3 grid', emoji: '❌⭕' },
-    { id: 'connect4', name: 'Connect 4', description: 'Standard 6×7 board', emoji: '🔴🟡' },
-    { id: 'rps', name: 'Rock Paper Scissors', description: 'Best of 5 rounds', emoji: '✊✋✌️' },
-    { id: 'dotsandboxes', name: 'Dots & Boxes', description: 'Classic 5×5 grid', emoji: '⚫📦' },
+    { id: 'tictactoe', name: 'Tic-Tac-Toe', description: 'Classic 3×3 grid', Icon: X, iconColor: 'text-blue-500' },
+    { id: 'connect4', name: 'Connect 4', description: 'Standard 6×7 board', Icon: Circle, iconColor: 'text-red-500' },
+    { id: 'rps', name: 'Rock Paper Scissors', description: 'Best of 5 rounds', Icon: Gamepad2, iconColor: 'text-purple-500' },
+    { id: 'dotsandboxes', name: 'Dots & Boxes', description: 'Classic 5×5 grid', Icon: Circle, iconColor: 'text-indigo-500' },
   ];
 
   // Check queue status on mount
@@ -150,21 +151,24 @@ export default function Matchmaking() {
         <div>
           <h2 className="text-xl font-semibold mb-4">Select a Game</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            {games.map((game) => (
-              <button
-                key={game.id}
-                onClick={() => setSelectedGame(game.id)}
-                className={`p-6 rounded-lg border-2 text-left transition-all cursor-pointer ${
-                  selectedGame === game.id
-                    ? 'border-blue-500 bg-blue-50 shadow-lg scale-105'
-                    : 'border-gray-300 hover:border-blue-400 hover:shadow-md'
-                }`}
-              >
-                <div className="text-3xl mb-2">{game.emoji}</div>
-                <h3 className="text-lg font-semibold mb-1">{game.name}</h3>
-                <p className="text-sm text-gray-600">{game.description}</p>
-              </button>
-            ))}
+            {games.map((game) => {
+              const IconComponent = game.Icon
+              return (
+                <button
+                  key={game.id}
+                  onClick={() => setSelectedGame(game.id)}
+                  className={`p-6 rounded-lg border-2 text-left transition-all cursor-pointer ${
+                    selectedGame === game.id
+                      ? 'border-blue-500 bg-blue-50 shadow-lg scale-105'
+                      : 'border-gray-300 hover:border-blue-400 hover:shadow-md'
+                  }`}
+                >
+                  <IconComponent className={`w-12 h-12 mb-2 ${game.iconColor}`} fill="currentColor" />
+                  <h3 className="text-lg font-semibold mb-1">{game.name}</h3>
+                  <p className="text-sm text-gray-600">{game.description}</p>
+                </button>
+              )
+            })}
           </div>
 
           <button
