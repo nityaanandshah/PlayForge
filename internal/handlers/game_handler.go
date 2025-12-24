@@ -132,6 +132,10 @@ type MakeMoveRequest struct {
 	Move   interface{} `json:"move"`
 }
 
+type SpectatorJoinRequest struct {
+	GameID string `json:"game_id"`
+}
+
 // CreateGame creates a new game
 func (h *GameHandler) CreateGame(c *fiber.Ctx) error {
 	// Get user from context (set by auth middleware)
@@ -240,6 +244,16 @@ func (h *GameHandler) handleGameMove(ctx context.Context, client *ws.Client, msg
 		return err
 	}
 
+	// Convert spectators to interface slice
+	spectators := make([]interface{}, len(g.Spectators))
+	for i, spec := range g.Spectators {
+		spectators[i] = map[string]interface{}{
+			"user_id":   spec.UserID.String(),
+			"username":  spec.Username,
+			"joined_at": spec.JoinedAt,
+		}
+	}
+	
 	// Broadcast game state to all players
 	stateMsg := ws.Message{
 		Type: ws.MessageTypeGameState,
@@ -254,6 +268,7 @@ func (h *GameHandler) handleGameMove(ctx context.Context, client *ws.Client, msg
 			Player1Name: g.Player1Name,
 			Player2Name: g.Player2Name,
 			WinnerID:    uuidToStringPtr(g.WinnerID),
+			Spectators:  spectators,
 		},
 	}
 
@@ -269,5 +284,105 @@ func uuidToStringPtr(id *uuid.UUID) *string {
 	}
 	s := id.String()
 	return &s
+}
+
+// JoinAsSpectator allows a user to join a game as a spectator
+func (h *GameHandler) JoinAsSpectator(c *fiber.Ctx) error {
+	// Get user from context
+	userID := c.Locals("userID").(uuid.UUID)
+	username := c.Locals("username").(string)
+
+	// Parse game ID from URL params
+	gameID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid game ID")
+	}
+
+	// Add spectator
+	g, err := h.gameService.AddSpectator(c.Context(), gameID, userID, username)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	// Broadcast spectator joined event via WebSocket
+	spectatorMsg := ws.Message{
+		Type: ws.MessageTypeSpectatorJoined,
+		Payload: map[string]interface{}{
+			"game_id": gameID.String(),
+			"spectator": map[string]interface{}{
+				"user_id":  userID.String(),
+				"username": username,
+			},
+			"count": len(g.Spectators),
+		},
+		Timestamp: time.Now(),
+	}
+
+	data, _ := json.Marshal(spectatorMsg)
+	h.hub.BroadcastToGame(gameID, data, nil)
+
+	return c.JSON(fiber.Map{
+		"message":    "Joined as spectator",
+		"game":       g,
+		"spectators": g.Spectators,
+	})
+}
+
+// LeaveAsSpectator allows a user to stop spectating a game
+func (h *GameHandler) LeaveAsSpectator(c *fiber.Ctx) error {
+	// Get user from context
+	userID := c.Locals("userID").(uuid.UUID)
+	username := c.Locals("username").(string)
+
+	// Parse game ID from URL params
+	gameID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid game ID")
+	}
+
+	// Remove spectator
+	g, err := h.gameService.RemoveSpectator(c.Context(), gameID, userID)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	// Broadcast spectator left event via WebSocket
+	spectatorMsg := ws.Message{
+		Type: ws.MessageTypeSpectatorLeft,
+		Payload: map[string]interface{}{
+			"game_id": gameID.String(),
+			"user_id": userID.String(),
+			"count":   len(g.Spectators),
+		},
+		Timestamp: time.Now(),
+	}
+
+	data, _ := json.Marshal(spectatorMsg)
+	h.hub.BroadcastToGame(gameID, data, nil)
+
+	return c.JSON(fiber.Map{
+		"message": "Left as spectator",
+		"count":   len(g.Spectators),
+	})
+}
+
+// GetSpectators returns the list of spectators for a game
+func (h *GameHandler) GetSpectators(c *fiber.Ctx) error {
+	// Parse game ID from URL params
+	gameID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid game ID")
+	}
+
+	// Get spectators
+	spectators, err := h.gameService.GetSpectators(c.Context(), gameID)
+	if err != nil {
+		return fiber.NewError(fiber.StatusNotFound, "Game not found")
+	}
+
+	return c.JSON(fiber.Map{
+		"spectators": spectators,
+		"count":      len(spectators),
+	})
 }
 

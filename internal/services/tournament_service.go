@@ -727,3 +727,136 @@ func getRoundName(roundNumber int, totalRounds int) string {
 	return fmt.Sprintf("Round %d", roundNumber)
 }
 
+// SendInvitation sends a tournament invitation to a user
+func (s *TournamentService) SendInvitation(ctx context.Context, tournamentID, inviterID uuid.UUID, inviterName, inviteeUsername string) (*domain.TournamentInvitation, error) {
+	// Get tournament
+	tournament, err := s.GetTournament(ctx, tournamentID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Verify inviter is the host
+	if tournament.CreatedBy != inviterID {
+		return nil, domain.ErrNotTournamentHost
+	}
+
+	// Check if tournament has started
+	if tournament.Status != domain.TournamentStatusPending {
+		return nil, domain.ErrTournamentAlreadyStarted
+	}
+
+	// Get invitee by username
+	invitee, err := s.userRepo.GetByUsername(ctx, inviteeUsername)
+	if err != nil {
+		return nil, domain.ErrUserNotFound
+	}
+
+	// Cannot invite yourself
+	if invitee.ID == inviterID {
+		return nil, domain.ErrCannotInviteSelf
+	}
+
+	// Check if user is already a participant
+	for _, p := range tournament.Participants {
+		if p.UserID == invitee.ID {
+			return nil, fmt.Errorf("user is already a participant")
+		}
+	}
+
+	// Create invitation
+	invitation := &domain.TournamentInvitation{
+		TournamentID: tournamentID,
+		InviterID:    inviterID,
+		InviterName:  inviterName,
+		InviteeID:    invitee.ID,
+		InviteeName:  invitee.Username,
+		TournamentName: tournament.Name,
+		GameType:     tournament.GameType,
+	}
+
+	err = s.tournamentRepo.CreateInvitation(ctx, invitation)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("Invitation sent from %s to %s for tournament %s", inviterName, invitee.Username, tournament.Name)
+	return invitation, nil
+}
+
+// AcceptInvitation accepts a tournament invitation
+func (s *TournamentService) AcceptInvitation(ctx context.Context, invitationID, userID uuid.UUID) (*domain.Tournament, error) {
+	// Get invitation
+	invitation, err := s.tournamentRepo.GetInvitation(ctx, invitationID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Verify user is the invitee
+	if invitation.InviteeID != userID {
+		return nil, domain.ErrUnauthorized
+	}
+
+	// Check if invitation is pending
+	if invitation.Status != domain.InvitationStatusPending {
+		return nil, domain.ErrInvitationNotPending
+	}
+
+	// Check if expired
+	if time.Now().After(invitation.ExpiresAt) {
+		s.tournamentRepo.UpdateInvitationStatus(ctx, invitationID, domain.InvitationStatusExpired)
+		return nil, domain.ErrInvitationExpired
+	}
+
+	// Update invitation status
+	err = s.tournamentRepo.UpdateInvitationStatus(ctx, invitationID, domain.InvitationStatusAccepted)
+	if err != nil {
+		return nil, err
+	}
+
+	// Join tournament
+	tournament, err := s.JoinTournament(ctx, invitation.TournamentID, userID, invitation.InviteeName)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("User %s accepted invitation to tournament %s", invitation.InviteeName, invitation.TournamentName)
+	return tournament, nil
+}
+
+// DeclineInvitation declines a tournament invitation
+func (s *TournamentService) DeclineInvitation(ctx context.Context, invitationID, userID uuid.UUID) error {
+	// Get invitation
+	invitation, err := s.tournamentRepo.GetInvitation(ctx, invitationID)
+	if err != nil {
+		return err
+	}
+
+	// Verify user is the invitee
+	if invitation.InviteeID != userID {
+		return domain.ErrUnauthorized
+	}
+
+	// Check if invitation is pending
+	if invitation.Status != domain.InvitationStatusPending {
+		return domain.ErrInvitationNotPending
+	}
+
+	// Update invitation status
+	err = s.tournamentRepo.UpdateInvitationStatus(ctx, invitationID, domain.InvitationStatusDeclined)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("User %s declined invitation to tournament %s", invitation.InviteeName, invitation.TournamentName)
+	return nil
+}
+
+// GetUserInvitations retrieves all invitations for a user
+func (s *TournamentService) GetUserInvitations(ctx context.Context, userID uuid.UUID) ([]domain.TournamentInvitation, error) {
+	invitations, err := s.tournamentRepo.GetInvitationsByInvitee(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return invitations, nil
+}
+

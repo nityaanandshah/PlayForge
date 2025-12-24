@@ -141,4 +141,43 @@ type TournamentListResponse struct {
 	Total       int          `json:"total"`
 }
 
+// TournamentInvitationStatus represents the status of an invitation
+type TournamentInvitationStatus string
+
+const (
+	InvitationStatusPending  TournamentInvitationStatus = "pending"
+	InvitationStatusAccepted TournamentInvitationStatus = "accepted"
+	InvitationStatusDeclined TournamentInvitationStatus = "declined"
+	InvitationStatusExpired  TournamentInvitationStatus = "expired"
+)
+
+// TournamentInvitation represents an invitation to join a tournament
+type TournamentInvitation struct {
+	ID           uuid.UUID                  `json:"id"`
+	TournamentID uuid.UUID                  `json:"tournament_id"`
+	InviterID    uuid.UUID                  `json:"inviter_id"`
+	InviterName  string                     `json:"inviter_name"`
+	InviteeID    uuid.UUID                  `json:"invitee_id"`
+	InviteeName  string                     `json:"invitee_name"`
+	Status       TournamentInvitationStatus `json:"status"`
+	CreatedAt    time.Time                  `json:"created_at"`
+	UpdatedAt    time.Time                  `json:"updated_at"`
+	ExpiresAt    time.Time                  `json:"expires_at"`
+	// Tournament details for convenience
+	TournamentName string `json:"tournament_name,omitempty"`
+	GameType       string `json:"game_type,omitempty"`
+}
+
+// SendInvitationRequest represents a request to send a tournament invitation
+type SendInvitationRequest struct {
+	TournamentID uuid.UUID `json:"tournament_id" validate:"required"`
+	Username     string    `json:"username" validate:"required"`
+}
+
+// InvitationResponse represents the response for invitation actions
+type InvitationResponse struct {
+	Invitation *TournamentInvitation `json:"invitation"`
+	Message    string                `json:"message,omitempty"`
+}
+
 

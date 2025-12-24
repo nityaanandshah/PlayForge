@@ -347,13 +347,37 @@ export default function TournamentLobby() {
                             {match.winner_id === match.player2_id && <span>🏆</span>}
                           </div>
 
-                          {/* Match Action */}
+                          {/* Match Actions */}
                           {match.status === 'ready' && match.match_id && (
+                            <>
+                              {/* Play button for match participants */}
+                              {(match.player1_id === user?.id || match.player2_id === user?.id) ? (
+                                <button
+                                  onClick={() => navigate(`/game/${match.match_id}`)}
+                                  className="w-full mt-3 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition shadow-md"
+                                >
+                                  ▶️ Play Game
+                                </button>
+                              ) : (
+                                /* Watch button for spectators */
+                                <button
+                                  onClick={() => navigate(`/game/${match.match_id}?spectate=true`)}
+                                  className="w-full mt-3 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition shadow-md"
+                                >
+                                  👁️ Watch Match
+                                </button>
+                              )}
+                            </>
+                          )}
+                          
+                          {/* Watch in-progress match */}
+                          {match.status === 'in_progress' && match.match_id && (
                             <button
-                              onClick={() => navigate(`/game/${match.match_id}`)}
-                              className="w-full mt-3 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition shadow-md"
+                              onClick={() => navigate(`/game/${match.match_id}?spectate=true`)}
+                              className="w-full mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition shadow-md flex items-center justify-center gap-2"
                             >
-                              ▶️ Play Game
+                              <span className="animate-pulse">🔴</span>
+                              Watch Live
                             </button>
                           )}
                           
@@ -363,7 +387,7 @@ export default function TournamentLobby() {
                               onClick={() => navigate(`/game/${match.match_id}`)}
                               className="w-full mt-3 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition shadow-md"
                             >
-                              👁️ View Game
+                              👁️ View Replay
                             </button>
                           )}
                         </div>

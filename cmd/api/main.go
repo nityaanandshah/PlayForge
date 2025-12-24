@@ -116,6 +116,9 @@ func main() {
 	games.Post("/create", gameHandler.CreateGame)
 	games.Post("/join", gameHandler.JoinGame)
 	games.Get("/:id", gameHandler.GetGame)
+	games.Post("/:id/spectate", gameHandler.JoinAsSpectator)
+	games.Delete("/:id/spectate", gameHandler.LeaveAsSpectator)
+	games.Get("/:id/spectators", gameHandler.GetSpectators)
 
 	// Stats routes (protected)
 	stats := api.Group("/stats", middleware.AuthRequired(authService))
@@ -147,6 +150,13 @@ func main() {
 	tournaments.Get("/:id", tournamentHandler.GetTournament)
 	tournaments.Post("/:id/join", tournamentHandler.JoinTournament)
 	tournaments.Post("/:id/start", tournamentHandler.StartTournament)
+	tournaments.Post("/:id/invite", tournamentHandler.SendInvitation)
+
+	// Invitation routes (protected)
+	invitations := api.Group("/invitations", middleware.AuthRequired(authService))
+	invitations.Get("/", tournamentHandler.GetUserInvitations)
+	invitations.Post("/:id/accept", tournamentHandler.AcceptInvitation)
+	invitations.Post("/:id/decline", tournamentHandler.DeclineInvitation)
 
 	// WebSocket route
 	app.Get("/ws", wsHandler.HandleConnection)

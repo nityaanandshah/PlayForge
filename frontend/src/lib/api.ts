@@ -132,6 +132,20 @@ export const gameApi = {
     const response = await api.get(`/games/${gameId}`)
     return response.data
   },
+
+  joinAsSpectator: async (gameId: string) => {
+    const response = await api.post(`/games/${gameId}/spectate`)
+    return response.data
+  },
+
+  leaveAsSpectator: async (gameId: string) => {
+    await api.delete(`/games/${gameId}/spectate`)
+  },
+
+  getSpectators: async (gameId: string) => {
+    const response = await api.get(`/games/${gameId}/spectators`)
+    return response.data
+  },
 }
 
 export interface PlayerStats {

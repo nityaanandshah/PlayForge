@@ -421,3 +421,138 @@ func (r *TournamentRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+// CreateInvitation creates a new tournament invitation
+func (r *TournamentRepository) CreateInvitation(ctx context.Context, invitation *domain.TournamentInvitation) error {
+	query := `
+		INSERT INTO tournament_invitations (id, tournament_id, inviter_id, invitee_id, status, created_at, updated_at, expires_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+	`
+
+	invitation.ID = uuid.New()
+	invitation.CreatedAt = time.Now()
+	invitation.UpdatedAt = time.Now()
+	invitation.ExpiresAt = time.Now().Add(7 * 24 * time.Hour) // 7 days expiry
+	invitation.Status = domain.InvitationStatusPending
+
+	_, err := r.db.Exec(ctx, query,
+		invitation.ID,
+		invitation.TournamentID,
+		invitation.InviterID,
+		invitation.InviteeID,
+		invitation.Status,
+		invitation.CreatedAt,
+		invitation.UpdatedAt,
+		invitation.ExpiresAt,
+	)
+
+	return err
+}
+
+// GetInvitation retrieves an invitation by ID
+func (r *TournamentRepository) GetInvitation(ctx context.Context, id uuid.UUID) (*domain.TournamentInvitation, error) {
+	query := `
+		SELECT 
+			ti.id, ti.tournament_id, ti.inviter_id, ti.invitee_id, ti.status, 
+			ti.created_at, ti.updated_at, ti.expires_at,
+			u1.username as inviter_name, u2.username as invitee_name,
+			t.name as tournament_name, t.game_type
+		FROM tournament_invitations ti
+		JOIN users u1 ON ti.inviter_id = u1.id
+		JOIN users u2 ON ti.invitee_id = u2.id
+		JOIN tournaments t ON ti.tournament_id = t.id
+		WHERE ti.id = $1
+	`
+
+	var invitation domain.TournamentInvitation
+	err := r.db.QueryRow(ctx, query, id).Scan(
+		&invitation.ID,
+		&invitation.TournamentID,
+		&invitation.InviterID,
+		&invitation.InviteeID,
+		&invitation.Status,
+		&invitation.CreatedAt,
+		&invitation.UpdatedAt,
+		&invitation.ExpiresAt,
+		&invitation.InviterName,
+		&invitation.InviteeName,
+		&invitation.TournamentName,
+		&invitation.GameType,
+	)
+
+	if err == pgx.ErrNoRows {
+		return nil, domain.ErrTournamentNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &invitation, nil
+}
+
+// GetInvitationsByInvitee retrieves all invitations for a user
+func (r *TournamentRepository) GetInvitationsByInvitee(ctx context.Context, inviteeID uuid.UUID) ([]domain.TournamentInvitation, error) {
+	query := `
+		SELECT 
+			ti.id, ti.tournament_id, ti.inviter_id, ti.invitee_id, ti.status, 
+			ti.created_at, ti.updated_at, ti.expires_at,
+			u1.username as inviter_name, u2.username as invitee_name,
+			t.name as tournament_name, t.game_type
+		FROM tournament_invitations ti
+		JOIN users u1 ON ti.inviter_id = u1.id
+		JOIN users u2 ON ti.invitee_id = u2.id
+		JOIN tournaments t ON ti.tournament_id = t.id
+		WHERE ti.invitee_id = $1
+		ORDER BY ti.created_at DESC
+	`
+
+	rows, err := r.db.Query(ctx, query, inviteeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var invitations []domain.TournamentInvitation
+	for rows.Next() {
+		var invitation domain.TournamentInvitation
+		err := rows.Scan(
+			&invitation.ID,
+			&invitation.TournamentID,
+			&invitation.InviterID,
+			&invitation.InviteeID,
+			&invitation.Status,
+			&invitation.CreatedAt,
+			&invitation.UpdatedAt,
+			&invitation.ExpiresAt,
+			&invitation.InviterName,
+			&invitation.InviteeName,
+			&invitation.TournamentName,
+			&invitation.GameType,
+		)
+		if err != nil {
+			return nil, err
+		}
+		invitations = append(invitations, invitation)
+	}
+
+	return invitations, nil
+}
+
+// UpdateInvitationStatus updates the status of an invitation
+func (r *TournamentRepository) UpdateInvitationStatus(ctx context.Context, id uuid.UUID, status domain.TournamentInvitationStatus) error {
+	query := `
+		UPDATE tournament_invitations
+		SET status = $1, updated_at = $2
+		WHERE id = $3
+	`
+
+	_, err := r.db.Exec(ctx, query, status, time.Now(), id)
+	return err
+}
+
+// DeleteInvitation deletes an invitation
+func (r *TournamentRepository) DeleteInvitation(ctx context.Context, id uuid.UUID) error {
+	query := `DELETE FROM tournament_invitations WHERE id = $1`
+	_, err := r.db.Exec(ctx, query, id)
+	return err
+}
+

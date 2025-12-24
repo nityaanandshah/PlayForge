@@ -98,6 +98,7 @@ func (s *GameService) CreateGameWithSettings(ctx context.Context, gameType game.
 		Player1Name: player1Name,
 		CurrentTurn: player1ID,
 		State:       gameState,
+		Spectators:  []game.Spectator{}, // Initialize as empty slice, not nil
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
@@ -141,6 +142,7 @@ func (s *GameService) CreateGameForTournament(ctx context.Context, gameID uuid.U
 		Player2Name:     player2Name,
 		CurrentTurn:     player1ID, // Player 1 goes first
 		State:           gameState,
+		Spectators:      []game.Spectator{}, // Initialize as empty slice, not nil
 		TournamentID:    &tournamentID,
 		TournamentRound: tournamentRound,
 		CreatedAt:       now,
@@ -342,6 +344,11 @@ func (s *GameService) GetGame(ctx context.Context, gameID uuid.UUID) (*game.Game
 		fmt.Printf("DotsAndBoxes state deserialized successfully\n")
 	}
 
+	// Ensure Spectators is never nil (initialize as empty slice if nil)
+	if g.Spectators == nil {
+		g.Spectators = []game.Spectator{}
+	}
+
 	fmt.Printf("Returning game %s\n", g.ID.String())
 	return &g, nil
 }
@@ -396,5 +403,130 @@ func (s *GameService) SubscribeToGame(ctx context.Context, gameID uuid.UUID) *re
 // SubscribeToGamePattern subscribes to game events using a pattern
 func (s *GameService) SubscribeToGamePattern(ctx context.Context, pattern string) *redis.PubSub {
 	return s.redisClient.PSubscribe(ctx, pattern)
+}
+
+// AddSpectator adds a spectator to a game
+func (s *GameService) AddSpectator(ctx context.Context, gameID, userID uuid.UUID, username string) (*game.Game, error) {
+	g, err := s.GetGame(ctx, gameID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if user is already a player
+	if userID == g.Player1ID || userID == g.Player2ID {
+		return nil, fmt.Errorf("players cannot spectate their own game")
+	}
+
+	// Check if already spectating
+	for _, spec := range g.Spectators {
+		if spec.UserID == userID {
+			return g, nil // Already spectating, return current state
+		}
+	}
+
+	// Add new spectator
+	spectator := game.Spectator{
+		UserID:   userID,
+		Username: username,
+		JoinedAt: time.Now(),
+	}
+	g.Spectators = append(g.Spectators, spectator)
+	g.UpdatedAt = time.Now()
+
+	// Save to Redis
+	if err := s.SaveGame(ctx, g); err != nil {
+		return nil, err
+	}
+
+	// Publish spectator joined event
+	s.PublishGameEvent(ctx, gameID, "spectator_joined", map[string]interface{}{
+		"spectator": spectator,
+		"count":     len(g.Spectators),
+	})
+
+	log.Printf("User %s (%s) joined game %s as spectator", username, userID, gameID)
+
+	return g, nil
+}
+
+// RemoveSpectator removes a spectator from a game
+func (s *GameService) RemoveSpectator(ctx context.Context, gameID, userID uuid.UUID) (*game.Game, error) {
+	g, err := s.GetGame(ctx, gameID)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("📋 [DEBUG] Current spectators before removal: %d", len(g.Spectators))
+	for i, spec := range g.Spectators {
+		log.Printf("   [DEBUG] Spectator %d: %s (%s)", i+1, spec.Username, spec.UserID)
+	}
+
+	// Find and remove spectator
+	found := false
+	newSpectators := make([]game.Spectator, 0)
+	for _, spec := range g.Spectators {
+		if spec.UserID != userID {
+			newSpectators = append(newSpectators, spec)
+		} else {
+			found = true
+			log.Printf("✂️ [DEBUG] Found spectator to remove: %s (%s)", spec.Username, spec.UserID)
+		}
+	}
+
+	if !found {
+		log.Printf("⚠️ [DEBUG] User %s not found in spectator list", userID)
+		return g, nil // Not spectating, return current state
+	}
+
+	g.Spectators = newSpectators
+	g.UpdatedAt = time.Now()
+
+	log.Printf("📋 [DEBUG] Spectators after removal: %d", len(g.Spectators))
+	for i, spec := range g.Spectators {
+		log.Printf("   [DEBUG] Spectator %d: %s (%s)", i+1, spec.Username, spec.UserID)
+	}
+
+	// Save to Redis
+	log.Printf("💾 [DEBUG] Saving game to Redis...")
+	if err := s.SaveGame(ctx, g); err != nil {
+		log.Printf("❌ [DEBUG] Failed to save game: %v", err)
+		return nil, err
+	}
+	log.Printf("✅ [DEBUG] Game saved to Redis")
+
+	// Publish spectator left event
+	log.Printf("📢 [DEBUG] Publishing spectator_left event...")
+	s.PublishGameEvent(ctx, gameID, "spectator_left", map[string]interface{}{
+		"user_id": userID.String(),
+		"count":   len(g.Spectators),
+	})
+
+	log.Printf("✅ [DEBUG] User %s left game %s as spectator. Remaining: %d", userID, gameID, len(g.Spectators))
+
+	return g, nil
+}
+
+// GetSpectators returns the list of spectators for a game
+func (s *GameService) GetSpectators(ctx context.Context, gameID uuid.UUID) ([]game.Spectator, error) {
+	g, err := s.GetGame(ctx, gameID)
+	if err != nil {
+		return nil, err
+	}
+	return g.Spectators, nil
+}
+
+// IsSpectator checks if a user is spectating a game
+func (s *GameService) IsSpectator(ctx context.Context, gameID, userID uuid.UUID) (bool, error) {
+	g, err := s.GetGame(ctx, gameID)
+	if err != nil {
+		return false, err
+	}
+
+	for _, spec := range g.Spectators {
+		if spec.UserID == userID {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 

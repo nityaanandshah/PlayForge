@@ -41,6 +41,7 @@ type Game struct {
 	WinnerID        *uuid.UUID      `json:"winner_id,omitempty"`
 	State           GameState       `json:"-"` // Excluded from JSON
 	StateData       json.RawMessage `json:"state"` // Raw JSON for serialization
+	Spectators      []Spectator     `json:"spectators,omitempty"` // Users watching the game
 	CreatedAt       time.Time       `json:"created_at"`
 	UpdatedAt       time.Time       `json:"updated_at"`
 	StartedAt       *time.Time      `json:"started_at,omitempty"`
@@ -49,6 +50,13 @@ type Game struct {
 	TournamentID    *uuid.UUID      `json:"tournament_id,omitempty"`
 	TournamentRound int             `json:"tournament_round,omitempty"`
 	TournamentMatch *uuid.UUID      `json:"tournament_match_id,omitempty"` // Bracket match ID
+}
+
+// Spectator represents a user watching a game
+type Spectator struct {
+	UserID   uuid.UUID `json:"user_id"`
+	Username string    `json:"username"`
+	JoinedAt time.Time `json:"joined_at"`
 }
 
 // GameState is an interface that all game implementations must satisfy

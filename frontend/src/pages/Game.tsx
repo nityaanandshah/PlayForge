@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import api from '../lib/api'
+import api, { gameApi } from '../lib/api'
 import { WebSocketClient, WebSocketMessage } from '../lib/websocket'
 import TicTacToeBoard from '../components/TicTacToeBoard'
 import Connect4Board from '../components/Connect4Board'
 import RPSBoard from '../components/RPSBoard'
 import DotsAndBoxesBoard from '../components/DotsAndBoxesBoard'
-import { Game as GameType, TicTacToeState, TicTacToeMove, Connect4State, Connect4Move, RPSState, RPSMove, DotsAndBoxesState, DotsAndBoxesMove } from '../types/game'
+import { Game as GameType, TicTacToeState, TicTacToeMove, Connect4State, Connect4Move, RPSState, RPSMove, DotsAndBoxesState, DotsAndBoxesMove, Spectator } from '../types/game'
 
 const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8080/ws'
 
@@ -15,19 +15,27 @@ export default function Game() {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   
   const [game, setGame] = useState<GameType | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [wsConnected, setWsConnected] = useState(false)
+  const [isSpectating, setIsSpectating] = useState(false)
+  const [spectators, setSpectators] = useState<Spectator[]>([])
+  const [spectatorsExpanded, setSpectatorsExpanded] = useState(false)
   
   const wsClient = useRef<WebSocketClient | null>(null)
+  const isSpectatingRef = useRef(false)
 
   useEffect(() => {
     if (!id || !user) return
 
+    // Check if spectating mode is requested
+    const spectateMode = searchParams.get('spectate') === 'true'
+
     // Load game
-    loadGame()
+    loadGame(spectateMode)
 
     // Connect to WebSocket
     connectWebSocket()
@@ -36,26 +44,49 @@ export default function Game() {
       if (wsClient.current) {
         wsClient.current.disconnect()
       }
+      // Leave as spectator if user was spectating (use ref to avoid stale closure)
+      if (isSpectatingRef.current && id) {
+        gameApi.leaveAsSpectator(id).catch(console.error)
+      }
     }
   }, [id, user])
 
-  const loadGame = async () => {
+  const loadGame = async (spectateMode: boolean) => {
     try {
       const response = await api.get<GameType>(`/games/${id}`)
       const gameData = response.data
       
-      // If game is waiting and current user is not player1, auto-join
-      if (gameData.status === 'waiting' && gameData.player1_id !== user?.id) {
-        console.log('Auto-joining game as player 2...')
+      // Check if user is a player
+      const isPlayer = gameData.player1_id === user?.id || gameData.player2_id === user?.id
+      
+      // If user is not a player, automatically join as spectator
+      if (!isPlayer && gameData.status !== 'waiting') {
+        // Join as spectator (for active or completed games)
+        setIsSpectating(true)
+        isSpectatingRef.current = true // Track in ref for cleanup
+        try {
+          const spectatorResponse = await gameApi.joinAsSpectator(id!)
+          setGame(spectatorResponse.game)
+          setSpectators(spectatorResponse.game.spectators || [])
+        } catch (specErr: any) {
+          console.error('Failed to join as spectator:', specErr)
+          setGame(gameData)
+          setSpectators(gameData.spectators || [])
+        }
+      } else if (gameData.status === 'waiting' && !isPlayer) {
+        // If game is waiting and current user is not player1, auto-join as player2
         try {
           const joinResponse = await api.post(`/games/join`, { game_id: id })
           setGame(joinResponse.data)
+          setIsSpectating(false)
         } catch (joinErr: any) {
           console.error('Failed to join game:', joinErr)
-          setGame(gameData) // Still show the game even if join fails
+          setGame(gameData)
         }
       } else {
+        // User is a player
         setGame(gameData)
+        setSpectators(gameData.spectators || [])
       }
       
       setLoading(false)
@@ -112,12 +143,17 @@ export default function Game() {
 
       case 'game_state':
         if (message.payload) {
-          console.log('Updating game state from WebSocket:', message.payload)
+          const updatedSpectators = message.payload.spectators || []
           setGame((prevGame) => ({
             ...prevGame!,
             ...message.payload,
             state: message.payload.state,
+            spectators: updatedSpectators,
           }))
+          // Also update the spectators state
+          if (message.payload.spectators) {
+            setSpectators(updatedSpectators)
+          }
         }
         break
 
@@ -128,6 +164,24 @@ export default function Game() {
             status: 'completed',
             winner_id: message.payload.winner_id,
           }))
+        }
+        break
+
+      case 'spectator_joined':
+        if (message.payload) {
+          setSpectators((prev) => {
+            const exists = prev.some(s => s.user_id === message.payload.spectator?.user_id)
+            if (!exists && message.payload.spectator) {
+              return [...prev, message.payload.spectator]
+            }
+            return prev
+          })
+        }
+        break
+
+      case 'spectator_left':
+        if (message.payload) {
+          setSpectators((prev) => prev.filter(s => s.user_id !== message.payload.user_id))
         }
         break
 
@@ -143,6 +197,12 @@ export default function Game() {
 
   const handleMove = (move: TicTacToeMove | Connect4Move | RPSMove | DotsAndBoxesMove) => {
     if (!wsClient.current || !game || !user) return
+    
+    // Prevent spectators from making moves
+    if (isSpectating) {
+      console.log('Spectators cannot make moves')
+      return
+    }
 
     const message: WebSocketMessage = {
       type: 'game_move',
@@ -155,6 +215,18 @@ export default function Game() {
     }
 
     wsClient.current.send(message)
+  }
+
+  const handleBackToDashboard = async () => {
+    // If user is spectating, leave before navigating
+    if (isSpectatingRef.current && id) {
+      try {
+        await gameApi.leaveAsSpectator(id)
+      } catch (err) {
+        console.error('Failed to leave as spectator:', err)
+      }
+    }
+    navigate('/dashboard')
   }
 
   if (loading) {
@@ -248,6 +320,13 @@ export default function Game() {
             </div>
           </div>
         </div>
+
+        {/* Spectator Mode Indicator */}
+        {isSpectating && (
+          <div className="mb-6 p-4 bg-purple-100 border-2 border-purple-300 rounded-xl text-center">
+            <p className="text-purple-800 font-semibold">👁️ Spectator Mode - Watch Only</p>
+          </div>
+        )}
 
         {/* Connection Status */}
         {!wsConnected && (
@@ -358,6 +437,51 @@ export default function Game() {
           </div>
         )}
 
+        {/* Spectator List - Collapsible */}
+        {spectators.length > 0 && (
+          <div className="mb-8 bg-white rounded-xl shadow-lg border-2 border-purple-200 overflow-hidden">
+            <button
+              onClick={() => setSpectatorsExpanded(!spectatorsExpanded)}
+              className="w-full flex items-center justify-between p-4 hover:bg-purple-50 transition-colors"
+            >
+              <h3 className="text-lg font-bold text-gray-800">
+                👁️ Spectators ({spectators.length})
+              </h3>
+              <div className="text-gray-500">
+                {spectatorsExpanded ? (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                )}
+              </div>
+            </button>
+            
+            {spectatorsExpanded && (
+              <div className="px-4 pb-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {spectators.map((spectator) => (
+                    <div
+                      key={spectator.user_id}
+                      className="flex items-center gap-2 p-3 bg-purple-50 rounded-lg border border-purple-200"
+                    >
+                      <div className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                        {spectator.username.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="text-sm font-medium text-gray-700 truncate">
+                        {spectator.username}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Actions */}
         <div className="flex justify-center gap-4">
           {/* Show "Back to Tournament" for tournament games, otherwise "Back to Dashboard" */}
@@ -371,12 +495,13 @@ export default function Game() {
           ) : (
             <>
               <button
-                onClick={() => navigate('/dashboard')}
+                onClick={handleBackToDashboard}
                 className="px-8 py-3 bg-gray-600 text-white rounded-xl font-semibold hover:bg-gray-700 transition-all shadow-lg hover:shadow-xl hover:scale-105"
               >
                 ← Back to Dashboard
               </button>
-              {game.status === 'completed' && (
+              {/* Only show "Play Again" button for actual players, not spectators */}
+              {game.status === 'completed' && (isPlayer1 || isPlayer2) && (
                 <button
                   onClick={() => navigate('/dashboard')}
                   className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl hover:scale-105"

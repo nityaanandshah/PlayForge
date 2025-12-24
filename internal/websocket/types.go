@@ -55,6 +55,11 @@ const (
 	MessageTypeTournamentMatchReady    MessageType = "tournament_match_ready"
 	MessageTypeTournamentMatchComplete MessageType = "tournament_match_complete"
 	MessageTypeTournamentComplete      MessageType = "tournament_complete"
+
+	// Spectator events
+	MessageTypeSpectatorJoined MessageType = "spectator_joined"
+	MessageTypeSpectatorLeft   MessageType = "spectator_left"
+	MessageTypeSpectatorCount  MessageType = "spectator_count"
 )
 
 // Client represents a connected WebSocket client
@@ -88,16 +93,17 @@ type JoinGameMessage struct {
 
 // GameStateMessage represents the current game state
 type GameStateMessage struct {
-	GameID       string      `json:"game_id"`
-	GameType     string      `json:"game_type"`
-	State        interface{} `json:"state"`
-	CurrentTurn  string      `json:"current_turn"`
-	Status       string      `json:"status"`
-	Player1ID    string      `json:"player1_id"`
-	Player2ID    string      `json:"player2_id"`
-	Player1Name  string      `json:"player1_name"`
-	Player2Name  string      `json:"player2_name"`
-	WinnerID     *string     `json:"winner_id,omitempty"`
+	GameID       string        `json:"game_id"`
+	GameType     string        `json:"game_type"`
+	State        interface{}   `json:"state"`
+	CurrentTurn  string        `json:"current_turn"`
+	Status       string        `json:"status"`
+	Player1ID    string        `json:"player1_id"`
+	Player2ID    string        `json:"player2_id"`
+	Player1Name  string        `json:"player1_name"`
+	Player2Name  string        `json:"player2_name"`
+	WinnerID     *string       `json:"winner_id,omitempty"`
+	Spectators   []interface{} `json:"spectators,omitempty"`
 }
 
 // ErrorMessage represents an error message
@@ -148,5 +154,29 @@ type TournamentMatchStartMessage struct {
 	TournamentID string `json:"tournament_id"`
 	MatchID      string `json:"match_id"`
 	GameID       string `json:"game_id"`
+}
+
+// SpectatorJoinMessage represents a spectator join request
+type SpectatorJoinMessage struct {
+	GameID string `json:"game_id"`
+}
+
+// SpectatorLeaveMessage represents a spectator leave request
+type SpectatorLeaveMessage struct {
+	GameID string `json:"game_id"`
+}
+
+// SpectatorInfo represents spectator information
+type SpectatorInfo struct {
+	UserID   string `json:"user_id"`
+	Username string `json:"username"`
+	JoinedAt string `json:"joined_at"`
+}
+
+// SpectatorListMessage represents the list of spectators
+type SpectatorListMessage struct {
+	GameID     string          `json:"game_id"`
+	Spectators []SpectatorInfo `json:"spectators"`
+	Count      int             `json:"count"`
 }
 

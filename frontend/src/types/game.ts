@@ -1,6 +1,12 @@
 export type GameType = 'tictactoe' | 'connect4' | 'rps' | 'dotsandboxes'
 export type GameStatus = 'waiting' | 'active' | 'completed' | 'abandoned'
 
+export interface Spectator {
+  user_id: string
+  username: string
+  joined_at: string
+}
+
 export interface Game {
   id: string
   type: GameType
@@ -12,6 +18,7 @@ export interface Game {
   current_turn: string
   winner_id?: string
   state: any
+  spectators?: Spectator[]
   created_at: string
   updated_at: string
   started_at?: string

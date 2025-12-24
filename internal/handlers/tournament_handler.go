@@ -178,3 +178,127 @@ func (h *TournamentHandler) StartTournament(c *fiber.Ctx) error {
 	})
 }
 
+// SendInvitation sends a tournament invitation to a user
+// POST /api/v1/tournaments/:id/invite
+func (h *TournamentHandler) SendInvitation(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uuid.UUID)
+	username, ok := c.Locals("username").(string)
+	if !ok || username == "" {
+		return fiber.NewError(fiber.StatusUnauthorized, "Username not found in token")
+	}
+
+	tournamentID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid tournament ID")
+	}
+
+	var req domain.SendInvitationRequest
+	if err := c.BodyParser(&req); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
+	}
+
+	invitation, err := h.tournamentService.SendInvitation(c.Context(), tournamentID, userID, username, req.Username)
+	if err != nil {
+		if errors.Is(err, domain.ErrTournamentNotFound) {
+			return fiber.NewError(fiber.StatusNotFound, "Tournament not found")
+		}
+		if errors.Is(err, domain.ErrNotTournamentHost) {
+			return fiber.NewError(fiber.StatusForbidden, "Only the tournament host can send invitations")
+		}
+		if errors.Is(err, domain.ErrUserNotFound) {
+			return fiber.NewError(fiber.StatusNotFound, "User not found")
+		}
+		if errors.Is(err, domain.ErrCannotInviteSelf) {
+			return fiber.NewError(fiber.StatusBadRequest, "Cannot invite yourself")
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("Failed to send invitation: %v", err))
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(domain.InvitationResponse{
+		Invitation: invitation,
+		Message:    "Invitation sent successfully",
+	})
+}
+
+// AcceptInvitation accepts a tournament invitation
+// POST /api/v1/invitations/:id/accept
+func (h *TournamentHandler) AcceptInvitation(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uuid.UUID)
+
+	invitationID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid invitation ID")
+	}
+
+	tournament, err := h.tournamentService.AcceptInvitation(c.Context(), invitationID, userID)
+	if err != nil {
+		if errors.Is(err, domain.ErrInvitationNotFound) || errors.Is(err, domain.ErrTournamentNotFound) {
+			return fiber.NewError(fiber.StatusNotFound, "Invitation not found")
+		}
+		if errors.Is(err, domain.ErrUnauthorized) {
+			return fiber.NewError(fiber.StatusForbidden, "Not authorized to accept this invitation")
+		}
+		if errors.Is(err, domain.ErrInvitationExpired) {
+			return fiber.NewError(fiber.StatusGone, "Invitation has expired")
+		}
+		if errors.Is(err, domain.ErrInvitationNotPending) {
+			return fiber.NewError(fiber.StatusConflict, "Invitation is not pending")
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("Failed to accept invitation: %v", err))
+	}
+
+	return c.JSON(domain.TournamentResponse{
+		Tournament: tournament,
+		Message:    "Invitation accepted successfully",
+	})
+}
+
+// DeclineInvitation declines a tournament invitation
+// POST /api/v1/invitations/:id/decline
+func (h *TournamentHandler) DeclineInvitation(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uuid.UUID)
+
+	invitationID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid invitation ID")
+	}
+
+	err = h.tournamentService.DeclineInvitation(c.Context(), invitationID, userID)
+	if err != nil {
+		if errors.Is(err, domain.ErrInvitationNotFound) {
+			return fiber.NewError(fiber.StatusNotFound, "Invitation not found")
+		}
+		if errors.Is(err, domain.ErrUnauthorized) {
+			return fiber.NewError(fiber.StatusForbidden, "Not authorized to decline this invitation")
+		}
+		if errors.Is(err, domain.ErrInvitationNotPending) {
+			return fiber.NewError(fiber.StatusConflict, "Invitation is not pending")
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("Failed to decline invitation: %v", err))
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Invitation declined successfully",
+	})
+}
+
+// GetUserInvitations retrieves all invitations for the current user
+// GET /api/v1/invitations
+func (h *TournamentHandler) GetUserInvitations(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uuid.UUID)
+
+	invitations, err := h.tournamentService.GetUserInvitations(c.Context(), userID)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Failed to get invitations")
+	}
+
+	if invitations == nil {
+		invitations = []domain.TournamentInvitation{}
+	}
+
+	return c.JSON(fiber.Map{
+		"invitations": invitations,
+		"total":       len(invitations),
+	})
+}
+
