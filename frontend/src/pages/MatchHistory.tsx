@@ -103,25 +103,25 @@ const MatchHistory = () => {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-white shadow rounded-lg p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <ScrollText className="w-8 h-8" fill="currentColor" />
+      <div className="space-y-8">
+        <div className="bg-white shadow-elevated rounded-xl p-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+            <ScrollText className="w-10 h-10" fill="currentColor" />
             Match History
           </h1>
           
           {/* Game Type Selector */}
-          <div className="flex flex-wrap gap-2 mb-6">
+          <div className="flex flex-wrap gap-3 mb-8">
             {games.map((game) => {
               const IconComponent = game.Icon
               return (
                 <button
                   key={game.id}
                   onClick={() => setSelectedGame(game.id)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                  className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 ${
                     selectedGame === game.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-blue-600 text-white shadow-elevated'
+                      : 'bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-50 hover:shadow-soft'
                   }`}
                 >
                   <IconComponent 
@@ -136,15 +136,15 @@ const MatchHistory = () => {
 
           {/* Loading/Error States */}
           {loading && (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-gray-600 mt-4">Loading match history...</p>
+            <div className="text-center py-16">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
+              <p className="text-gray-600 text-lg font-medium mt-6">Loading match history...</p>
             </div>
           )}
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-              <p className="text-red-600">{error}</p>
+            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-5 mb-8 shadow-soft">
+              <p className="text-red-600 font-medium">{error}</p>
             </div>
           )}
 
@@ -152,8 +152,9 @@ const MatchHistory = () => {
           {!loading && !error && (
             <>
               {matches.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <p className="text-lg">No match history found.</p>
+                <div className="text-center py-16 text-gray-500">
+                  <Gamepad2 className="w-24 h-24 mx-auto text-gray-300 mb-6" fill="currentColor" />
+                  <p className="text-xl font-semibold mb-2">No match history found.</p>
                   <p className="text-sm mt-2">Play some games to see your match history here!</p>
                 </div>
               ) : (
@@ -166,34 +167,34 @@ const MatchHistory = () => {
                       return (
                         <div
                           key={match.id}
-                          className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                          className="bg-white border border-gray-200 shadow-soft rounded-xl p-6 hover:shadow-elevated transition-all"
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-2">
+                              <div className="flex items-center gap-4 mb-2">
                                 {(() => {
                                   const game = games.find(g => g.id === match.game_type)
                                   const IconComponent = game?.Icon || Gamepad2
                                   const iconColor = game?.iconColor || 'text-gray-600'
-                                  return <IconComponent className={`w-6 h-6 ${iconColor}`} fill="currentColor" />
+                                  return <IconComponent className={`w-8 h-8 ${iconColor}`} fill="currentColor" />
                                 })()}
                                 <div>
-                                  <h3 className="font-semibold text-gray-900">
+                                  <h3 className="font-bold text-lg text-gray-900">
                                     {games.find(g => g.id === match.game_type)?.name || match.game_type}
                                   </h3>
-                                  <p className="text-sm text-gray-600">
+                                  <p className="text-sm text-gray-600 font-medium">
                                     vs {opponent}
                                   </p>
                                 </div>
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-6">
                               <div className="text-right">
-                                <div className={`${result.bg} ${result.color} px-3 py-1 rounded-full font-bold text-sm mb-1`}>
+                                <div className={`${result.bg} ${result.color} px-5 py-2 rounded-xl font-bold text-sm mb-2 shadow-soft`}>
                                   {result.text}
                                 </div>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-gray-500 font-medium">
                                   {formatDate(match.started_at)}
                                 </p>
                               </div>
@@ -206,8 +207,8 @@ const MatchHistory = () => {
 
                   {/* Pagination Controls */}
                   {totalPages > 1 && (
-                    <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200">
-                      <div className="text-sm text-gray-600">
+                    <div className="flex items-center justify-between mt-8 pt-8 border-t-2 border-gray-100">
+                      <div className="text-sm text-gray-600 font-semibold">
                         Showing {startIndex + 1}-{Math.min(endIndex, matches.length)} of {matches.length} matches
                       </div>
                       
@@ -216,10 +217,10 @@ const MatchHistory = () => {
                         <button
                           onClick={() => goToPage(1)}
                           disabled={currentPage === 1}
-                          className={`p-2 rounded-lg transition ${
+                          className={`p-3 rounded-xl transition-all ${
                             currentPage === 1
                               ? 'text-gray-400 cursor-not-allowed'
-                              : 'text-gray-700 hover:bg-gray-100'
+                              : 'text-gray-700 hover:bg-gray-100 hover:shadow-soft'
                           }`}
                           title="First Page"
                         >
@@ -230,10 +231,10 @@ const MatchHistory = () => {
                         <button
                           onClick={() => goToPage(currentPage - 1)}
                           disabled={currentPage === 1}
-                          className={`p-2 rounded-lg transition ${
+                          className={`p-3 rounded-xl transition-all ${
                             currentPage === 1
                               ? 'text-gray-400 cursor-not-allowed'
-                              : 'text-gray-700 hover:bg-gray-100'
+                              : 'text-gray-700 hover:bg-gray-100 hover:shadow-soft'
                           }`}
                           title="Previous Page"
                         >
@@ -241,7 +242,7 @@ const MatchHistory = () => {
                         </button>
 
                         {/* Page Numbers */}
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-2">
                           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
                             // Show first page, last page, current page, and pages around current
                             if (
@@ -253,10 +254,10 @@ const MatchHistory = () => {
                                 <button
                                   key={page}
                                   onClick={() => goToPage(page)}
-                                  className={`px-3 py-1 rounded-lg text-sm font-medium transition ${
+                                  className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
                                     currentPage === page
-                                      ? 'bg-blue-600 text-white'
-                                      : 'text-gray-700 hover:bg-gray-100'
+                                      ? 'bg-blue-600 text-white shadow-elevated'
+                                      : 'text-gray-700 hover:bg-gray-100 hover:shadow-soft'
                                   }`}
                                 >
                                   {page}
@@ -267,7 +268,7 @@ const MatchHistory = () => {
                               page === currentPage + 2
                             ) {
                               return (
-                                <span key={page} className="px-2 text-gray-400">
+                                <span key={page} className="px-3 text-gray-400 font-bold">
                                   ...
                                 </span>
                               )
@@ -280,10 +281,10 @@ const MatchHistory = () => {
                         <button
                           onClick={() => goToPage(currentPage + 1)}
                           disabled={currentPage === totalPages}
-                          className={`p-2 rounded-lg transition ${
+                          className={`p-3 rounded-xl transition-all ${
                             currentPage === totalPages
                               ? 'text-gray-400 cursor-not-allowed'
-                              : 'text-gray-700 hover:bg-gray-100'
+                              : 'text-gray-700 hover:bg-gray-100 hover:shadow-soft'
                           }`}
                           title="Next Page"
                         >
@@ -294,10 +295,10 @@ const MatchHistory = () => {
                         <button
                           onClick={() => goToPage(totalPages)}
                           disabled={currentPage === totalPages}
-                          className={`p-2 rounded-lg transition ${
+                          className={`p-3 rounded-xl transition-all ${
                             currentPage === totalPages
                               ? 'text-gray-400 cursor-not-allowed'
-                              : 'text-gray-700 hover:bg-gray-100'
+                              : 'text-gray-700 hover:bg-gray-100 hover:shadow-soft'
                           }`}
                           title="Last Page"
                         >

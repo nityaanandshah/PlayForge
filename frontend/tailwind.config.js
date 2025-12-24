@@ -24,6 +24,12 @@ export default {
         'sans': ['Source Sans Pro', 'system-ui', 'sans-serif'],
         'serif': ['Merriweather', 'Georgia', 'serif'],
       },
+      boxShadow: {
+        'soft': '0 2px 8px rgba(0, 0, 0, 0.08)',
+        'elevated': '0 4px 16px rgba(0, 0, 0, 0.12)',
+        'lifted': '0 8px 24px rgba(0, 0, 0, 0.15)',
+        'floating': '0 12px 32px rgba(0, 0, 0, 0.18)',
+      },
     },
   },
   plugins: [],

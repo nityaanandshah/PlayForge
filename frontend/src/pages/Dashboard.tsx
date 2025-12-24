@@ -169,63 +169,63 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+    <div className="space-y-8">
+      <div className="bg-white shadow-elevated rounded-xl p-8">
+        <h2 className="text-3xl font-bold text-gray-900 mb-6">
           Welcome, {user?.username}!
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-primary-50 rounded-lg p-4">
-            <p className="text-sm text-primary-600 font-medium">ELO Rating</p>
-            <p className="text-3xl font-bold text-primary-900">{user?.elo_rating}</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-primary-50 rounded-xl p-6 shadow-soft">
+            <p className="text-sm text-primary-600 font-semibold mb-2">ELO Rating</p>
+            <p className="text-4xl font-bold text-primary-900">{user?.elo_rating}</p>
           </div>
-          <div className="bg-green-50 rounded-lg p-4">
-            <p className="text-sm text-green-600 font-medium">Games Won</p>
-            <p className="text-3xl font-bold text-green-900">{stats?.wins || 0}</p>
+          <div className="bg-green-50 rounded-xl p-6 shadow-soft">
+            <p className="text-sm text-green-600 font-semibold mb-2">Games Won</p>
+            <p className="text-4xl font-bold text-green-900">{stats?.wins || 0}</p>
           </div>
-          <div className="bg-red-50 rounded-lg p-4">
-            <p className="text-sm text-red-600 font-medium">Games Lost</p>
-            <p className="text-3xl font-bold text-red-900">{stats?.losses || 0}</p>
+          <div className="bg-red-50 rounded-xl p-6 shadow-soft">
+            <p className="text-sm text-red-600 font-semibold mb-2">Games Lost</p>
+            <p className="text-4xl font-bold text-red-900">{stats?.losses || 0}</p>
           </div>
         </div>
       </div>
 
       {/* Tournament Invitations */}
       {invitations && invitations.length > 0 && (
-        <div className="bg-white shadow rounded-lg p-6 border-2 border-indigo-300">
-          <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Mail className="w-6 h-6" fill="currentColor" />
+        <div className="bg-white shadow-lifted rounded-xl p-8 border-l-4 border-indigo-500">
+          <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+            <Mail className="w-7 h-7" fill="currentColor" />
             Tournament Invitations
-            <span className="ml-2 bg-indigo-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+            <span className="ml-2 bg-indigo-500 text-white text-sm font-bold px-3 py-1 rounded-full">
               {invitations.length}
             </span>
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {invitations.map((invitation) => (
-              <div key={invitation.id} className="border border-gray-200 rounded-lg p-4 flex items-center justify-between hover:border-indigo-300 transition-colors">
+              <div key={invitation.id} className="bg-white border border-gray-200 shadow-soft rounded-xl p-6 flex items-center justify-between hover:shadow-elevated transition-all">
                 <div className="flex-1">
-                  <h4 className="font-bold text-lg text-gray-800">{invitation.tournament_name}</h4>
-                  <p className="text-sm text-gray-600">
-                    <span className="font-medium">{invitation.inviter_name}</span> invited you to play {getGameName(invitation.game_type)}
+                  <h4 className="font-bold text-xl text-gray-800 mb-2">{invitation.tournament_name}</h4>
+                  <p className="text-sm text-gray-600 mb-1">
+                    <span className="font-semibold">{invitation.inviter_name}</span> invited you to play {getGameName(invitation.game_type)}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500">
                     Expires: {new Date(invitation.expires_at).toLocaleDateString()} at {new Date(invitation.expires_at).toLocaleTimeString()}
                   </p>
                 </div>
-                <div className="flex gap-2 ml-4">
+                <div className="flex gap-3 ml-6">
                   <button
                     onClick={() => handleAcceptInvitation(invitation.id, invitation.tournament_id)}
                     disabled={processingInvite === invitation.id}
-                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                    className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all shadow-soft hover:shadow-elevated font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
-                    {processingInvite === invitation.id ? '...' : <><Check className="w-4 h-4" fill="currentColor" /> Accept</>}
+                    {processingInvite === invitation.id ? '...' : <><Check className="w-5 h-5" fill="currentColor" /> Accept</>}
                   </button>
                   <button
                     onClick={() => handleDeclineInvitation(invitation.id)}
                     disabled={processingInvite === invitation.id}
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                    className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all shadow-soft hover:shadow-elevated font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
-                    {processingInvite === invitation.id ? '...' : <><X className="w-4 h-4" fill="currentColor" /> Decline</>}
+                    {processingInvite === invitation.id ? '...' : <><X className="w-5 h-5" fill="currentColor" /> Decline</>}
                   </button>
                 </div>
               </div>
@@ -234,99 +234,99 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="bg-white shadow rounded-lg p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h3>
+      <div className="bg-white shadow-elevated rounded-xl p-8">
+        <h3 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h3>
         
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-800">
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800 shadow-soft">
             {error}
           </div>
         )}
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <button 
             onClick={handleQuickPlay}
-            className="bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 transition-colors font-medium text-center"
+            className="bg-green-600 text-white px-8 py-6 rounded-xl hover:bg-green-700 transition-all shadow-elevated hover:shadow-lifted font-medium text-center"
           >
-            <Zap className="w-8 h-8 mb-1 mx-auto" fill="currentColor" />
-            <div className="font-bold">Quick Play</div>
-            <div className="text-xs opacity-90">Find match with standard rules</div>
+            <Zap className="w-10 h-10 mb-3 mx-auto" fill="currentColor" />
+            <div className="font-bold text-lg mb-1">Quick Play</div>
+            <div className="text-sm opacity-90">Find match with standard rules</div>
           </button>
           <button 
             onClick={() => navigate('/rooms')}
-            className="bg-purple-600 text-white px-6 py-4 rounded-lg hover:bg-purple-700 transition-colors font-medium text-center"
+            className="bg-purple-600 text-white px-8 py-6 rounded-xl hover:bg-purple-700 transition-all shadow-elevated hover:shadow-lifted font-medium text-center"
           >
-            <Gamepad2 className="w-8 h-8 mb-1 mx-auto" fill="currentColor" />
-            <div className="font-bold">Custom Game</div>
-            <div className="text-xs opacity-90">Create room with your rules</div>
+            <Gamepad2 className="w-10 h-10 mb-3 mx-auto" fill="currentColor" />
+            <div className="font-bold text-lg mb-1">Custom Game</div>
+            <div className="text-sm opacity-90">Create room with your rules</div>
           </button>
           <button 
             onClick={() => navigate('/tournaments')}
-            className="bg-orange-600 text-white px-6 py-4 rounded-lg hover:bg-orange-700 transition-colors font-medium text-center"
+            className="bg-orange-600 text-white px-8 py-6 rounded-xl hover:bg-orange-700 transition-all shadow-elevated hover:shadow-lifted font-medium text-center"
           >
-            <Trophy className="w-8 h-8 mb-1 mx-auto" fill="currentColor" />
-            <div className="font-bold">Tournaments</div>
-            <div className="text-xs opacity-90">Compete in brackets</div>
+            <Trophy className="w-10 h-10 mb-3 mx-auto" fill="currentColor" />
+            <div className="font-bold text-lg mb-1">Tournaments</div>
+            <div className="text-sm opacity-90">Compete in brackets</div>
           </button>
         </div>
       </div>
 
-      <div className="bg-white shadow rounded-lg p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Available Games</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-500 transition-colors">
-            <div className="flex gap-1 mb-2">
-              <X className="w-6 h-6 text-blue-500" fill="currentColor" />
-              <Circle className="w-6 h-6 text-red-500" fill="currentColor" />
+      <div className="bg-white shadow-elevated rounded-xl p-8">
+        <h3 className="text-2xl font-bold text-gray-900 mb-6">Available Games</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white border border-gray-200 shadow-soft rounded-xl p-6 hover:shadow-elevated transition-all">
+            <div className="flex gap-2 mb-4">
+              <X className="w-7 h-7 text-blue-500" fill="currentColor" />
+              <Circle className="w-7 h-7 text-red-500" fill="currentColor" />
             </div>
-            <h4 className="font-bold text-lg mb-2">Tic-Tac-Toe</h4>
-            <p className="text-sm text-gray-600">Classic 3×3 grid</p>
-            <p className="text-xs text-gray-500 mt-1">Custom: up to 5×5</p>
+            <h4 className="font-bold text-xl mb-3">Tic-Tac-Toe</h4>
+            <p className="text-sm text-gray-600 mb-2">Classic 3×3 grid</p>
+            <p className="text-xs text-gray-500">Custom: up to 5×5</p>
           </div>
-          <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-500 transition-colors">
-            <div className="flex gap-1 mb-2">
-              <Circle className="w-6 h-6 text-red-500" fill="currentColor" />
-              <Circle className="w-6 h-6 text-yellow-500" fill="currentColor" />
+          <div className="bg-white border border-gray-200 shadow-soft rounded-xl p-6 hover:shadow-elevated transition-all">
+            <div className="flex gap-2 mb-4">
+              <Circle className="w-7 h-7 text-red-500" fill="currentColor" />
+              <Circle className="w-7 h-7 text-yellow-500" fill="currentColor" />
             </div>
-            <h4 className="font-bold text-lg mb-2">Connect 4</h4>
-            <p className="text-sm text-gray-600">Standard 6×7 board</p>
-            <p className="text-xs text-gray-500 mt-1">Custom: up to 10×10</p>
+            <h4 className="font-bold text-xl mb-3">Connect 4</h4>
+            <p className="text-sm text-gray-600 mb-2">Standard 6×7 board</p>
+            <p className="text-xs text-gray-500">Custom: up to 10×10</p>
           </div>
-          <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-500 transition-colors">
-            <Gamepad2 className="w-8 h-8 mb-2 text-purple-500" fill="currentColor" />
-            <h4 className="font-bold text-lg mb-2">Rock-Paper-Scissors</h4>
-            <p className="text-sm text-gray-600">Best of 5 rounds</p>
-            <p className="text-xs text-gray-500 mt-1">Custom: 3, 5, 7, or 9</p>
+          <div className="bg-white border border-gray-200 shadow-soft rounded-xl p-6 hover:shadow-elevated transition-all">
+            <Gamepad2 className="w-9 h-9 mb-4 text-purple-500" fill="currentColor" />
+            <h4 className="font-bold text-xl mb-3">Rock-Paper-Scissors</h4>
+            <p className="text-sm text-gray-600 mb-2">Best of 5 rounds</p>
+            <p className="text-xs text-gray-500">Custom: 3, 5, 7, or 9</p>
           </div>
-          <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-500 transition-colors">
-            <div className="flex gap-1 mb-2">
-              <Circle className="w-6 h-6 text-indigo-500" fill="currentColor" />
-              <Circle className="w-6 h-6 text-pink-500" fill="currentColor" />
+          <div className="bg-white border border-gray-200 shadow-soft rounded-xl p-6 hover:shadow-elevated transition-all">
+            <div className="flex gap-2 mb-4">
+              <Circle className="w-7 h-7 text-indigo-500" fill="currentColor" />
+              <Circle className="w-7 h-7 text-pink-500" fill="currentColor" />
             </div>
-            <h4 className="font-bold text-lg mb-2">Dots & Boxes</h4>
-            <p className="text-sm text-gray-600">Classic 5×5 grid</p>
-            <p className="text-xs text-gray-500 mt-1">Custom: 4×4 to 8×8</p>
+            <h4 className="font-bold text-xl mb-3">Dots & Boxes</h4>
+            <p className="text-sm text-gray-600 mb-2">Classic 5×5 grid</p>
+            <p className="text-xs text-gray-500">Custom: 4×4 to 8×8</p>
           </div>
         </div>
       </div>
 
       {/* Notifications Feed - Always Visible */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            <Inbox className="w-6 h-6" fill="currentColor" />
+      <div className="bg-white shadow-elevated rounded-xl p-8">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+            <Inbox className="w-7 h-7" fill="currentColor" />
             Recent Activity
             {notifications && notifications.filter(n => !n.read).length > 0 && (
-              <span className="ml-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+              <span className="ml-2 bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-full">
                 {notifications.filter(n => !n.read).length} new
               </span>
             )}
           </h3>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
             {notifications && notifications.filter(n => !n.read).length > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                className="text-sm text-blue-600 hover:text-blue-800 font-semibold"
               >
                 Mark all as read
               </button>
@@ -334,7 +334,7 @@ export default function Dashboard() {
             {notifications && notifications.length > 0 && (
               <button
                 onClick={() => navigate('/notifications')}
-                className="text-sm text-gray-600 hover:text-gray-800 font-medium"
+                className="text-sm text-gray-600 hover:text-gray-800 font-semibold"
               >
                 View All →
               </button>
@@ -342,7 +342,7 @@ export default function Dashboard() {
           </div>
         </div>
         {notifications && notifications.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-4">
             {notifications.slice(0, 5).map((notification) => {
               const isInvitation = notification.type === 'invitation_received'
               const invitation = isInvitation ? invitations?.find(inv => inv.id === notification.data?.invitation_id) : null
@@ -350,45 +350,45 @@ export default function Dashboard() {
               return (
                 <div
                   key={notification.id}
-                  className={`border rounded-lg p-4 transition-colors ${
+                  className={`border rounded-xl p-5 transition-all shadow-soft ${
                     notification.read ? 'border-gray-200 bg-gray-50' : 'border-blue-300 bg-blue-50'
-                  } ${!isInvitation ? 'cursor-pointer hover:border-blue-400' : ''}`}
+                  } ${!isInvitation ? 'cursor-pointer hover:shadow-elevated' : ''}`}
                   onClick={() => !isInvitation && handleNotificationClick(notification)}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        {notification.type === 'invitation_received' && <Gamepad2 className="w-5 h-5" fill="currentColor" />}
-                        {notification.type === 'tournament_started' && <Trophy className="w-5 h-5" fill="currentColor" />}
-                        {notification.type === 'player_joined' && <Check className="w-5 h-5" fill="currentColor" />}
-                        {notification.type === 'invitation_accepted' && <Check className="w-5 h-5 text-green-600" fill="currentColor" />}
-                        {notification.type === 'invitation_declined' && <X className="w-5 h-5 text-red-600" fill="currentColor" />}
-                        <h4 className="font-bold text-gray-800">{notification.title}</h4>
+                      <div className="flex items-center gap-3">
+                        {notification.type === 'invitation_received' && <Gamepad2 className="w-6 h-6" fill="currentColor" />}
+                        {notification.type === 'tournament_started' && <Trophy className="w-6 h-6" fill="currentColor" />}
+                        {notification.type === 'player_joined' && <Check className="w-6 h-6" fill="currentColor" />}
+                        {notification.type === 'invitation_accepted' && <Check className="w-6 h-6 text-green-600" fill="currentColor" />}
+                        {notification.type === 'invitation_declined' && <X className="w-6 h-6 text-red-600" fill="currentColor" />}
+                        <h4 className="font-bold text-lg text-gray-800">{notification.title}</h4>
                         {!notification.read && (
-                          <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">New</span>
+                          <span className="bg-blue-500 text-white text-xs px-3 py-1 rounded-full font-semibold">New</span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-700 mt-1">{notification.message}</p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-sm text-gray-700 mt-2 ml-9">{notification.message}</p>
+                      <p className="text-xs text-gray-500 mt-2 ml-9">
                         {new Date(notification.created_at).toLocaleString()}
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2 ml-4">
+                    <div className="flex items-center gap-3 ml-6">
                       {/* Show Accept/Decline buttons for invitation notifications */}
                       {isInvitation && invitation && (
-                        <div className="flex gap-2">
+                        <div className="flex gap-3">
                           <button
                             onClick={() => handleAcceptInvitation(invitation.id, invitation.tournament_id)}
                             disabled={processingInvite === invitation.id}
-                            className="px-3 py-1.5 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-4 py-2 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-all shadow-soft hover:shadow-elevated font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {processingInvite === invitation.id ? '...' : 'Accept'}
                           </button>
                           <button
                             onClick={() => handleDeclineInvitation(invitation.id)}
                             disabled={processingInvite === invitation.id}
-                            className="px-3 py-1.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-all shadow-soft hover:shadow-elevated font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {processingInvite === invitation.id ? '...' : 'Decline'}
                           </button>
@@ -401,7 +401,7 @@ export default function Dashboard() {
                           e.stopPropagation() // Prevent notification click
                           handleDeleteNotification(notification.id)
                         }}
-                        className="p-2 text-gray-400 hover:text-red-500 transition"
+                        className="p-2 text-gray-400 hover:text-red-500 transition-all rounded-lg hover:bg-red-50"
                         title="Delete notification"
                       >
                         <Trash2 className="w-5 h-5" fill="currentColor" />
@@ -413,10 +413,10 @@ export default function Dashboard() {
             })}
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
-            <Bell className="w-16 h-16 mb-2 mx-auto text-gray-400" fill="currentColor" />
-            <p className="font-medium">No new notifications</p>
-            <p className="text-sm mt-1">You'll see tournament invites, game starts, and player activity here</p>
+          <div className="text-center py-12 text-gray-500">
+            <Bell className="w-20 h-20 mb-4 mx-auto text-gray-400" fill="currentColor" />
+            <p className="font-semibold text-lg">No new notifications</p>
+            <p className="text-sm mt-2">You'll see tournament invites, game starts, and player activity here</p>
           </div>
         )}
       </div>

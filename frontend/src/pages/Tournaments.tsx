@@ -208,26 +208,27 @@ export default function Tournaments() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-8 px-4">
-      <div className="max-w-7xl mx-auto">
+    <>
+      <div className="space-y-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-2">
-            <Trophy className="w-10 h-10" fill="currentColor" />
+        <div className="bg-white shadow-elevated rounded-xl p-8 text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-3 flex items-center justify-center gap-3">
+            <Trophy className="w-12 h-12" fill="currentColor" />
             Tournaments
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-lg">
             Join or create competitive tournaments
           </p>
         </div>
 
         {/* Actions */}
-        <div className="flex flex-wrap gap-4 mb-6 justify-between items-center">
-          <div className="flex gap-2">
+        <div className="bg-white shadow-elevated rounded-xl p-6">
+        <div className="flex flex-wrap gap-4 justify-between items-center">
+          <div className="flex gap-3">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="px-5 py-3 border-2 border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-soft font-medium"
             >
               <option value="all">All Tournaments</option>
               <option value="pending">Open for Join</option>
@@ -238,63 +239,65 @@ export default function Tournaments() {
             
             <button
               onClick={loadTournaments}
-              className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition flex items-center gap-2"
+              className="px-5 py-3 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-all shadow-soft hover:shadow-elevated flex items-center gap-2 font-medium"
             >
-              <RefreshCw className="w-4 h-4" fill="currentColor" />
+              <RefreshCw className="w-5 h-5" fill="currentColor" />
               Refresh
             </button>
           </div>
 
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg font-semibold hover:from-indigo-600 hover:to-purple-700 transition shadow-lg flex items-center gap-2"
+            className="px-8 py-4 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-all shadow-elevated hover:shadow-lifted flex items-center gap-2"
           >
-            <Plus className="w-5 h-5" fill="currentColor" />
+            <Plus className="w-6 h-6" fill="currentColor" />
             Create Tournament
           </button>
         </div>
+      </div>
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          <div className="p-5 bg-red-50 border-2 border-red-200 text-red-700 rounded-xl shadow-soft">
             {error}
           </div>
         )}
 
         {/* Loading State */}
         {loading && (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-            <p className="mt-4 text-gray-600">Loading tournaments...</p>
+          <div className="bg-white shadow-elevated rounded-xl p-16 text-center">
+            <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600"></div>
+            <p className="mt-6 text-gray-600 text-lg font-medium">Loading tournaments...</p>
           </div>
         )}
 
         {/* Tournaments Grid */}
         {!loading && tournaments.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <p className="text-gray-500 text-lg">No tournaments found</p>
-            <p className="text-gray-400 mt-2">Create one to get started!</p>
+          <div className="bg-white shadow-elevated rounded-xl p-16 text-center">
+            <Trophy className="w-24 h-24 mx-auto text-gray-300 mb-6" fill="currentColor" />
+            <p className="text-gray-600 text-xl font-semibold mb-2">No tournaments found</p>
+            <p className="text-gray-500">Create one to get started!</p>
           </div>
         )}
 
         {!loading && tournaments.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {tournaments.map((tournament) => (
               <div
                 key={tournament.id}
-                className="bg-white rounded-lg shadow-md hover:shadow-xl transition p-6 cursor-pointer border border-gray-200"
+                className="bg-white rounded-xl shadow-elevated hover:shadow-floating transition-all p-8 cursor-pointer border border-gray-100"
                 onClick={() => navigate(`/tournament/${tournament.id}`)}
               >
                 {/* Tournament Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex items-start justify-between mb-6">
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
                     {(() => {
                       const { Icon: GameIcon, color } = getGameIcon(tournament.game_type)
-                      return <GameIcon className={`w-8 h-8 flex-shrink-0 ${color}`} fill="currentColor" />
+                      return <GameIcon className={`w-10 h-10 flex-shrink-0 ${color}`} fill="currentColor" />
                     })()}
                     <div className="flex-1 min-w-0">
                       <h3 
-                        className="font-bold text-lg text-gray-800 truncate cursor-default" 
+                        className="font-bold text-xl text-gray-900 truncate cursor-default mb-1" 
                         title={tournament.name}
                       >
                         {tournament.name}
@@ -302,31 +305,31 @@ export default function Tournaments() {
                       <p className="text-sm text-gray-500">{getGameName(tournament.game_type)}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0 ml-3">
                     {tournament.is_private && (
-                      <span className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded flex items-center gap-1">
-                        <Lock className="w-3 h-3" fill="currentColor" />
+                      <span className="text-xs px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg flex items-center gap-1.5 font-semibold shadow-soft">
+                        <Lock className="w-3.5 h-3.5" fill="currentColor" />
                         Private
                       </span>
                     )}
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${getStatusBadgeColor(tournament.status)}`}>
+                    <span className={`px-4 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shadow-soft ${getStatusBadgeColor(tournament.status)}`}>
                       {tournament.status.replace('_', ' ').toUpperCase()}
                     </span>
                   </div>
                 </div>
 
                 {/* Tournament Info */}
-                <div className="space-y-2 mb-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Participants:</span>
-                    <span className="font-semibold text-gray-800">
+                <div className="space-y-3 mb-6">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 font-medium">Participants:</span>
+                    <span className="font-bold text-gray-900">
                       {tournament.participants?.length || 0} / {tournament.max_participants || 0}
                     </span>
                   </div>
 
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Format:</span>
-                    <span className="font-semibold text-gray-800">Single Elimination</span>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 font-medium">Format:</span>
+                    <span className="font-bold text-gray-900">Single Elimination</span>
                   </div>
                 </div>
 
@@ -340,10 +343,10 @@ export default function Tournaments() {
                       navigate(`/tournament/${tournament.id}`);
                     }
                   }}
-                  className={`w-full py-2 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
+                  className={`w-full py-3.5 rounded-xl font-bold transition-all shadow-soft hover:shadow-elevated flex items-center justify-center gap-2 ${
                     tournament.status === 'pending'
-                      ? 'bg-indigo-500 text-white hover:bg-indigo-600'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   {tournament.status === 'pending' ? (
@@ -360,7 +363,7 @@ export default function Tournaments() {
                     )
                   ) : (
                     <>
-                      <Eye className="w-4 h-4" />
+                      <Eye className="w-4 h-4" fill="none" stroke="currentColor" />
                       View
                     </>
                   )}
@@ -639,7 +642,7 @@ export default function Tournaments() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
