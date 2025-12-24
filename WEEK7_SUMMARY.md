@@ -40,20 +40,34 @@ Week 7 focused on completing the final user-facing features (notifications and p
 
 - Updated `Dashboard.tsx` with notification feed section
 - Displays below "Available Games" section
-- Shows recent 10 notifications with auto-refresh (30 seconds)
+- Shows recent 5 notifications with auto-refresh (5 seconds)
 - Inline Accept/Decline buttons for invitations
 - Click-to-navigate for other notification types
 - Unread badge indicators
 - Real-time visual feedback
+- "View All" link to dedicated Notifications page
+- Delete button for each notification
+
+**Notifications Page (`/notifications`):**
+- Created dedicated `Notifications.tsx` page
+- Shows all notifications (up to 100)
+- Filter buttons: "All" and "Unread"
+- Mark individual or all as read
+- Delete notifications
+- Auto-refresh every 5 seconds
+- Full-featured notification management
 
 **Key Features:**
 - ✅ Notifications sent for all tournament/invitation events
-- ✅ Dashboard integration (no separate page needed)
+- ✅ Dashboard integration with latest 5
+- ✅ Dedicated notifications page for full history
 - ✅ Inline invitation actions
-- ✅ Auto-refresh every 30 seconds
+- ✅ Auto-refresh every 5 seconds (real-time feel)
 - ✅ Unread count badges
 - ✅ Click-to-navigate functionality
 - ✅ Mark as read on interaction
+- ✅ Delete individual notifications
+- ✅ Filter by read/unread status
 
 ---
 
@@ -82,6 +96,63 @@ Week 7 focused on completing the final user-facing features (notifications and p
 - Minimum password length (8 characters)
 - Protected routes (authentication required)
 
+**Frontend Implementation:**
+
+- Created `Profile.tsx` - Gamer-style profile page
+  - Player stats (ELO, Win/Loss, Win Rate)
+  - ELO progression visualization
+  - Achievement badges
+  - **GitHub-style contribution graph** 🎮
+- Created `Settings.tsx` - Settings management page
+  - Profile information editing
+  - Password change form
+  - Form validation and error handling
+
+---
+
+### 3. GitHub-Style Game Activity Graph
+
+**Visual Features:**
+- 52-week heatmap showing all games played in the last year
+- Color-coded intensity (like GitHub contributions):
+  - Gray: 0 games
+  - Light green: 1 game
+  - Medium green: 2-3 games
+  - Dark green: 4-5 games
+  - Darkest green: 6+ games
+- Month labels across the top
+- Day of week labels on the left
+- Hover tooltips showing date and game count
+- Legend at bottom (Less → More)
+
+**Streak Tracking:**
+- **Current Streak**: Consecutive days with at least one game played
+  - Counts from today or yesterday (if not played today yet)
+  - Resets if you miss a day
+- **Longest Streak**: All-time best consecutive days
+- **Total Games**: Games played in the last year
+
+**Stats Display:**
+Three prominent stat cards:
+1. 🎮 Total games in last year
+2. 🔥 Current day streak
+3. 🏆 Longest streak ever
+
+**Technical Implementation:**
+- Fetches match history data (all games, up to 1000 records)
+- Groups matches by date
+- Generates 52 weeks of calendar data
+- Calculates streaks using date arithmetic
+- Responsive grid layout with smooth animations
+- Dark themed section matching gamer aesthetic
+
+**User Experience:**
+- Empty state for new users (no games yet)
+- Encourages engagement through visible streaks
+- Links to detailed Match History page
+- Smooth hover interactions
+- Tooltip information on each day
+
 ---
 
 ## Files Created
@@ -101,8 +172,15 @@ Week 7 focused on completing the final user-facing features (notifications and p
 4. `internal/handlers/auth_handler.go` - Added profile handlers
 5. `cmd/api/main.go` - Added routes
 
-### Modified Frontend Files (1 file):
-1. `frontend/src/pages/Dashboard.tsx` - Added notification feed
+### Frontend Files Created (3 files):
+1. `frontend/src/pages/Profile.tsx` (430+ lines) - Gamer profile with contribution graph
+2. `frontend/src/pages/Settings.tsx` (150+ lines) - Settings management
+3. `frontend/src/pages/Notifications.tsx` (330+ lines) - Dedicated notifications page
+
+### Modified Frontend Files (2 files):
+1. `frontend/src/pages/Dashboard.tsx` - Added notification feed (latest 5)
+2. `frontend/src/components/Layout.tsx` - Added profile/settings navigation
+3. `frontend/src/App.tsx` - Added new routes
 
 ---
 
@@ -117,13 +195,33 @@ Tournament Service calls NotificationService
          ↓
 Notification created in PostgreSQL
          ↓
-Frontend polls /api/v1/notifications every 30s
+Frontend polls /api/v1/notifications every 5s (real-time)
          ↓
-Dashboard displays notification feed
+Dashboard displays latest 5 notifications
          ↓
 User clicks notification → Navigate or take action
          ↓
 Mark as read automatically
+         ↓
+View all notifications at /notifications page
+```
+
+### Contribution Graph Flow
+
+```
+User navigates to Profile page
+         ↓
+Frontend fetches match history (up to 1000 games)
+         ↓
+Group matches by date
+         ↓
+Generate 52-week calendar grid
+         ↓
+Calculate streaks (current & longest)
+         ↓
+Display GitHub-style heatmap
+         ↓
+Show engagement stats (total games, streaks)
 ```
 
 ### Database Schema
@@ -172,11 +270,12 @@ All existing features continue to work:
 
 ## Stats & Metrics
 
-- **Total Lines Added:** ~800+ lines (backend + frontend)
+- **Total Lines Added:** ~1,600+ lines (backend + frontend)
 - **Backend Files Created:** 6
 - **Backend Files Modified:** 5
-- **Frontend Files Modified:** 1
-- **New API Endpoints:** 7
+- **Frontend Files Created:** 3 (Profile, Settings, Notifications pages)
+- **Frontend Files Modified:** 3 (Dashboard, Layout, App)
+- **New API Endpoints:** 7 (notifications) + 3 (profile/settings)
   - 4 notification endpoints
   - 3 profile endpoints
 - **Database Tables Added:** 1 (notifications)

@@ -669,11 +669,85 @@ curl http://localhost:8080/api/v1/profile/nonexistentuser
 
 - ✅ Player stats card displayed (ELO, Win/Loss, Win Rate)
 - ✅ ELO Progression graph visible
-- ✅ Recent Activity timeline
+- ✅ Game Activity contribution graph (GitHub-style)
 - ✅ Achievement badges section
 - ✅ Gamer-style aesthetic (dark theme, stats-heavy)
 - ✅ All data accurate
 - ✅ Responsive design
+
+### Test 4.3b: GitHub-Style Contribution Graph
+
+**Test Steps:**
+
+1. Navigate to your profile page
+2. Scroll to bottom to view "Game Activity" section
+3. Inspect the contribution graph
+
+**Expected Results:**
+
+- ✅ Dark themed section (gray-900 to gray-800 gradient)
+- ✅ Title "🎮 Game Activity" displayed
+- ✅ Three stat cards showing:
+  - Total games in last year
+  - Current day streak (with 🔥 emoji)
+  - Longest streak (with 🏆 emoji)
+- ✅ 52-week heatmap grid (GitHub-style)
+- ✅ Cells colored based on activity:
+  - Gray: 0 games
+  - Light green: 1 game
+  - Medium green: 2-3 games
+  - Dark green: 4-5 games
+  - Darkest green: 6+ games
+- ✅ Month labels above grid
+- ✅ Day labels (Mon, Wed, Fri) on left
+- ✅ Legend at bottom (Less → More)
+- ✅ "View Details →" link to Match History
+
+### Test 4.3c: Contribution Graph Interactions
+
+**Test Steps:**
+
+1. Hover over contribution graph cells
+2. Click "View Details →" link
+
+**Expected Results:**
+
+- ✅ Hovering shows tooltip with date and game count
+- ✅ Cell highlights with white ring on hover
+- ✅ "View Details" link navigates to Match History page
+- ✅ Smooth transitions and animations
+
+### Test 4.3d: Streak Calculation Accuracy
+
+**Test Steps:**
+
+1. Note your current streak value
+2. Play a game today (if haven't already)
+3. Refresh profile page
+4. Check if streak increased
+
+**Expected Results:**
+
+- ✅ Current streak increases when playing daily
+- ✅ Current streak resets to 0 if missed a day
+- ✅ Longest streak tracks all-time best
+- ✅ Playing multiple games in one day counts as 1 streak day
+- ✅ Streak continues from yesterday if already played yesterday
+
+### Test 4.3e: Contribution Graph Empty State
+
+**Test Steps:**
+
+1. View profile of new user (no games played)
+2. Check contribution graph section
+
+**Expected Results:**
+
+- ✅ Shows large 🎮 emoji
+- ✅ Message: "No games played yet"
+- ✅ Encouragement: "Start playing to build your streak!"
+- ✅ Stats show 0 for all values
+- ✅ No graph grid displayed
 
 ### Test 4.4: View Another User's Profile
 

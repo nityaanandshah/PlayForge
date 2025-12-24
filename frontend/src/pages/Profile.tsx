@@ -53,29 +53,111 @@ export default function Profile() {
   }
 
   const getRankBadge = (elo: number) => {
-    if (elo >= 2000) return { name: 'Grandmaster', color: 'from-yellow-400 to-yellow-600', emoji: '👑' }
-    if (elo >= 1800) return { name: 'Master', color: 'from-purple-400 to-purple-600', emoji: '💎' }
-    if (elo >= 1600) return { name: 'Expert', color: 'from-blue-400 to-blue-600', emoji: '⭐' }
-    if (elo >= 1400) return { name: 'Advanced', color: 'from-green-400 to-green-600', emoji: '🎯' }
-    return { name: 'Intermediate', color: 'from-gray-400 to-gray-600', emoji: '🎮' }
+    if (elo >= 2000) return { 
+      name: 'Grandmaster', 
+      color: 'from-yellow-400 to-yellow-600', 
+      emoji: '👑',
+      description: '2000+ ELO - Highest rank! Legendary player',
+      nextRank: null
+    }
+    if (elo >= 1800) return { 
+      name: 'Master', 
+      color: 'from-purple-400 to-purple-600', 
+      emoji: '💎',
+      description: '1800-1999 ELO - Elite player',
+      nextRank: 'Grandmaster (2000 ELO)'
+    }
+    if (elo >= 1600) return { 
+      name: 'Expert', 
+      color: 'from-blue-400 to-blue-600', 
+      emoji: '⭐',
+      description: '1600-1799 ELO - Skilled player',
+      nextRank: 'Master (1800 ELO)'
+    }
+    if (elo >= 1400) return { 
+      name: 'Advanced', 
+      color: 'from-green-400 to-green-600', 
+      emoji: '🎯',
+      description: '1400-1599 ELO - Proficient player',
+      nextRank: 'Expert (1600 ELO)'
+    }
+    return { 
+      name: 'Intermediate', 
+      color: 'from-gray-400 to-gray-600', 
+      emoji: '🎮',
+      description: 'Below 1400 ELO - Keep playing to rank up!',
+      nextRank: 'Advanced (1400 ELO)'
+    }
   }
 
   const getAchievements = () => {
     if (!stats) return []
-    const achievements = []
     
-    if (stats.wins >= 1) achievements.push({ name: 'First Victory', emoji: '🎉', unlocked: true })
-    if (stats.wins >= 10) achievements.push({ name: '10 Wins', emoji: '🏆', unlocked: true })
-    if (stats.wins >= 50) achievements.push({ name: '50 Wins', emoji: '💪', unlocked: true })
-    if (stats.wins >= 100) achievements.push({ name: 'Century', emoji: '💯', unlocked: true })
+    const allAchievements = [
+      // Win-based achievements
+      { 
+        name: 'First Victory', 
+        emoji: '🎉', 
+        requirement: 'Win your first game',
+        unlocked: stats.wins >= 1,
+        progress: `${Math.min(stats.wins, 1)}/1`
+      },
+      { 
+        name: '10 Wins', 
+        emoji: '🏆', 
+        requirement: 'Win 10 games',
+        unlocked: stats.wins >= 10,
+        progress: `${Math.min(stats.wins, 10)}/10`
+      },
+      { 
+        name: '50 Wins', 
+        emoji: '💪', 
+        requirement: 'Win 50 games',
+        unlocked: stats.wins >= 50,
+        progress: `${Math.min(stats.wins, 50)}/50`
+      },
+      { 
+        name: 'Century', 
+        emoji: '💯', 
+        requirement: 'Win 100 games',
+        unlocked: stats.wins >= 100,
+        progress: `${Math.min(stats.wins, 100)}/100`
+      },
+      
+      // Game activity achievements
+      { 
+        name: 'Veteran', 
+        emoji: '🎖️', 
+        requirement: 'Play 10 total games',
+        unlocked: stats.total_games >= 10,
+        progress: `${Math.min(stats.total_games, 10)}/10`
+      },
+      { 
+        name: 'Dedicated', 
+        emoji: '🔥', 
+        requirement: 'Play 100 total games',
+        unlocked: stats.total_games >= 100,
+        progress: `${Math.min(stats.total_games, 100)}/100`
+      },
+      
+      // Win streak achievements
+      { 
+        name: 'Hot Streak', 
+        emoji: '🔥', 
+        requirement: 'Get a 5-game win streak',
+        unlocked: stats.best_win_streak >= 5,
+        progress: `Best: ${stats.best_win_streak}`
+      },
+      { 
+        name: 'Unstoppable', 
+        emoji: '⚡', 
+        requirement: 'Get a 10-game win streak',
+        unlocked: stats.best_win_streak >= 10,
+        progress: `Best: ${stats.best_win_streak}`
+      },
+    ]
     
-    if (stats.total_games >= 10) achievements.push({ name: 'Veteran', emoji: '🎖️', unlocked: true })
-    if (stats.total_games >= 100) achievements.push({ name: 'Dedicated', emoji: '🔥', unlocked: true })
-    
-    if (stats.current_win_streak >= 5) achievements.push({ name: 'Hot Streak', emoji: '🔥', unlocked: true })
-    if (stats.current_win_streak >= 10) achievements.push({ name: 'Unstoppable', emoji: '⚡', unlocked: true })
-    
-    return achievements
+    return allAchievements
   }
 
   if (loading) {
@@ -105,12 +187,18 @@ export default function Profile() {
       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-lg p-8 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-6">
-            <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center text-4xl">
+            <div 
+              className="w-24 h-24 bg-white rounded-full flex items-center justify-center text-4xl cursor-help"
+              title={`${rank.name} - ${rank.description}${rank.nextRank ? `\nNext rank: ${rank.nextRank}` : ''}`}
+            >
               {rank.emoji}
             </div>
             <div>
               <h1 className="text-4xl font-bold mb-2">{profile.username}</h1>
-              <div className={`inline-block px-4 py-2 bg-gradient-to-r ${rank.color} rounded-full text-white font-bold`}>
+              <div 
+                className={`inline-block px-4 py-2 bg-gradient-to-r ${rank.color} rounded-full text-white font-bold cursor-help`}
+                title={`${rank.description}${rank.nextRank ? `\nNext rank: ${rank.nextRank}` : ''}`}
+              >
                 {rank.name}
               </div>
             </div>
@@ -184,34 +272,295 @@ export default function Profile() {
       </div>
 
       {/* Achievements */}
-      {achievements.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-2xl font-bold mb-4">🏆 Achievements ({achievements.length})</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {achievements.map((achievement) => (
-              <div
-                key={achievement.name}
-                className={`border-2 rounded-lg p-4 text-center transition ${
-                  achievement.unlocked
-                    ? 'border-yellow-400 bg-yellow-50'
-                    : 'border-gray-300 bg-gray-100 opacity-50'
-                }`}
-              >
-                <div className="text-3xl mb-2">{achievement.emoji}</div>
-                <div className="text-sm font-bold">{achievement.name}</div>
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2 className="text-2xl font-bold mb-4">
+          🏆 Achievements ({achievements.filter(a => a.unlocked).length}/{achievements.length})
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+          {achievements.map((achievement) => (
+            <div
+              key={achievement.name}
+              className={`border-2 rounded-lg p-4 text-center transition cursor-help ${
+                achievement.unlocked
+                  ? 'border-yellow-400 bg-yellow-50 hover:shadow-lg'
+                  : 'border-gray-300 bg-gray-50 opacity-60 hover:opacity-80'
+              }`}
+              title={`${achievement.name}\n${achievement.requirement}\nProgress: ${achievement.progress}`}
+            >
+              <div className="text-3xl mb-2">{achievement.emoji}</div>
+              <div className="text-xs font-bold">{achievement.name}</div>
+              {!achievement.unlocked && (
+                <div className="text-xs text-gray-500 mt-1">🔒</div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Game Activity Contribution Graph */}
+      <ContributionGraph userId={profile?.user_id || ''} username={profile?.username || ''} />
+    </div>
+  )
+}
+
+interface MatchHistoryEntry {
+  id: string
+  game_type: string
+  started_at: string
+  ended_at: string | null
+}
+
+interface ContributionGraphProps {
+  userId: string
+  username: string
+}
+
+function ContributionGraph({ userId, username }: ContributionGraphProps) {
+  const navigate = useNavigate()
+  const [matches, setMatches] = useState<MatchHistoryEntry[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (userId) {
+      loadMatchHistory()
+    }
+  }, [userId])
+
+  const loadMatchHistory = async () => {
+    try {
+      const response = await api.get<{ matches: MatchHistoryEntry[] }>('/stats/history?game_type=all&limit=1000')
+      setMatches(response.data.matches || [])
+    } catch (err) {
+      console.error('Failed to load match history:', err)
+      setMatches([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Group matches by date
+  const getContributionData = () => {
+    const data: { [date: string]: number } = {}
+    
+    matches.forEach(match => {
+      const date = new Date(match.started_at).toDateString()
+      data[date] = (data[date] || 0) + 1
+    })
+    
+    return data
+  }
+
+  // Calculate streaks
+  const calculateStreaks = () => {
+    const contributionData = getContributionData()
+    const dates = Object.keys(contributionData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+    
+    let currentStreak = 0
+    let longestStreak = 0
+    let tempStreak = 0
+    let lastDate: Date | null = null
+
+    // Check if today has activity
+    const today = new Date().toDateString()
+    const yesterday = new Date(Date.now() - 86400000).toDateString()
+    const hasActivityToday = contributionData[today] > 0
+    const hasActivityYesterday = contributionData[yesterday] > 0
+
+    // Calculate current streak (counting backwards from today/yesterday)
+    const now = new Date()
+    let checkDate = new Date(now)
+    
+    // Start from today if has activity, otherwise yesterday
+    if (!hasActivityToday && !hasActivityYesterday) {
+      currentStreak = 0
+    } else {
+      if (!hasActivityToday) {
+        checkDate = new Date(Date.now() - 86400000) // Start from yesterday
+      }
+      
+      while (true) {
+        const dateStr = checkDate.toDateString()
+        if (contributionData[dateStr]) {
+          currentStreak++
+          checkDate = new Date(checkDate.getTime() - 86400000)
+        } else {
+          break
+        }
+      }
+    }
+
+    // Calculate longest streak
+    dates.forEach((dateStr) => {
+      const date = new Date(dateStr)
+      
+      if (lastDate && date.getTime() - lastDate.getTime() === 86400000) {
+        // Consecutive day
+        tempStreak++
+      } else {
+        // Streak broken
+        tempStreak = 1
+      }
+      
+      longestStreak = Math.max(longestStreak, tempStreak)
+      lastDate = date
+    })
+
+    return { currentStreak, longestStreak }
+  }
+
+  // Generate 52 weeks of data (GitHub style)
+  const generateWeeksData = () => {
+    const weeks: { date: Date; count: number }[][] = []
+    const contributionData = getContributionData()
+    const today = new Date()
+    const oneYearAgo = new Date(today.getTime() - 365 * 86400000)
+
+    // Start from Sunday of the week containing oneYearAgo
+    const startDate = new Date(oneYearAgo)
+    startDate.setDate(startDate.getDate() - startDate.getDay())
+
+    let currentWeek: { date: Date; count: number }[] = []
+    let currentDate = new Date(startDate)
+
+    while (currentDate <= today) {
+      const dateStr = currentDate.toDateString()
+      const count = contributionData[dateStr] || 0
+      
+      currentWeek.push({ date: new Date(currentDate), count })
+      
+      if (currentDate.getDay() === 6) {
+        // Saturday, end of week
+        weeks.push(currentWeek)
+        currentWeek = []
+      }
+      
+      currentDate.setDate(currentDate.getDate() + 1)
+    }
+    
+    if (currentWeek.length > 0) {
+      weeks.push(currentWeek)
+    }
+
+    return weeks
+  }
+
+  const getContributionColor = (count: number) => {
+    if (count === 0) return 'bg-gray-100'
+    if (count === 1) return 'bg-green-200'
+    if (count <= 3) return 'bg-green-400'
+    if (count <= 5) return 'bg-green-600'
+    return 'bg-green-800'
+  }
+
+  const { currentStreak, longestStreak } = calculateStreaks()
+  const weeksData = generateWeeksData()
+  const totalGames = matches.length
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg shadow-xl p-8 text-white">
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-2xl font-bold">🎮 Game Activity</h2>
+        <button
+          onClick={() => navigate('/history')}
+          className="text-sm text-blue-300 hover:text-blue-200 font-medium"
+        >
+          View Details →
+        </button>
+      </div>
+
+      {/* Contribution Stats */}
+      <div className="grid grid-cols-3 gap-6 mb-8">
+        <div className="bg-gray-800 rounded-lg p-5 text-center border border-gray-700 hover:border-green-500 transition-colors">
+          <div className="text-4xl font-bold text-green-400">{totalGames}</div>
+          <div className="text-sm text-gray-400 mt-2">games in last year</div>
+        </div>
+        <div className="bg-gray-800 rounded-lg p-5 text-center border border-gray-700 hover:border-orange-500 transition-colors">
+          <div className="text-4xl font-bold text-orange-400">{currentStreak}</div>
+          <div className="text-sm text-gray-400 mt-2">day streak 🔥</div>
+        </div>
+        <div className="bg-gray-800 rounded-lg p-5 text-center border border-gray-700 hover:border-purple-500 transition-colors">
+          <div className="text-4xl font-bold text-purple-400">{longestStreak}</div>
+          <div className="text-sm text-gray-400 mt-2">longest streak 🏆</div>
+        </div>
+      </div>
+
+      {/* Contribution Graph */}
+      {totalGames > 0 ? (
+        <div className="w-full">
+          <div className="flex items-start gap-2">
+            {/* Day labels */}
+            <div className="flex flex-col gap-[2px] text-xs text-gray-400 pt-6 flex-shrink-0">
+              <div style={{ height: '11px' }}></div>
+              <div style={{ height: '11px', lineHeight: '11px' }}>Mon</div>
+              <div style={{ height: '11px' }}></div>
+              <div style={{ height: '11px', lineHeight: '11px' }}>Wed</div>
+              <div style={{ height: '11px' }}></div>
+              <div style={{ height: '11px', lineHeight: '11px' }}>Fri</div>
+              <div style={{ height: '11px' }}></div>
+            </div>
+
+            {/* Weeks grid */}
+            <div className="flex-1">
+              {/* Month labels */}
+              <div className="flex justify-between mb-2 text-xs text-gray-400 h-6 pr-1">
+                <div>Jan</div>
+                <div>Feb</div>
+                <div>Mar</div>
+                <div>Apr</div>
+                <div>May</div>
+                <div>Jun</div>
+                <div>Jul</div>
+                <div>Aug</div>
+                <div>Sep</div>
+                <div>Oct</div>
+                <div>Nov</div>
+                <div>Dec</div>
               </div>
-            ))}
+
+              <div className="flex gap-[2px] w-full">
+                {weeksData.map((week, weekIndex) => (
+                  <div key={weekIndex} className="flex flex-col gap-[2px] flex-1">
+                    {week.map((day, dayIndex) => (
+                      <div
+                        key={dayIndex}
+                        className={`h-[11px] rounded-sm ${getContributionColor(day.count)} hover:ring-2 hover:ring-blue-400 transition-all cursor-pointer`}
+                        title={`${day.date.toDateString()}: ${day.count} game${day.count !== 1 ? 's' : ''}`}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="flex items-center justify-end gap-2 mt-6 text-xs text-gray-400">
+            <span>Less</span>
+            <div className="w-[11px] h-[11px] bg-gray-100 rounded-sm"></div>
+            <div className="w-[11px] h-[11px] bg-green-200 rounded-sm"></div>
+            <div className="w-[11px] h-[11px] bg-green-400 rounded-sm"></div>
+            <div className="w-[11px] h-[11px] bg-green-600 rounded-sm"></div>
+            <div className="w-[11px] h-[11px] bg-green-800 rounded-sm"></div>
+            <span>More</span>
           </div>
         </div>
+      ) : (
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">🎮</div>
+          <p className="text-gray-400">No games played yet</p>
+          <p className="text-sm text-gray-500 mt-2">Start playing to build your streak!</p>
+        </div>
       )}
-
-      {/* Recent Activity Placeholder */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-bold mb-4">Recent Activity</h2>
-        <p className="text-gray-600 text-center py-8">
-          View your recent matches in the <button onClick={() => navigate('/history')} className="text-indigo-600 hover:underline font-bold">Match History</button> page
-        </p>
-      </div>
     </div>
   )
 }
