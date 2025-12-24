@@ -13,6 +13,9 @@ import MatchHistory from './pages/MatchHistory'
 import Statistics from './pages/Statistics'
 import Tournaments from './pages/Tournaments'
 import TournamentLobby from './pages/TournamentLobby'
+import Profile from './pages/Profile'
+import Settings from './pages/Settings'
+import Notifications from './pages/Notifications'
 import Layout from './components/Layout'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -154,6 +157,36 @@ function App() {
               <PrivateRoute>
                 <Layout>
                   <TournamentLobby />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/profile/:username?"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <Profile />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <Settings />
+                </Layout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <PrivateRoute>
+                <Layout>
+                  <Notifications />
                 </Layout>
               </PrivateRoute>
             }

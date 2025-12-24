@@ -14,3 +14,4 @@ WHERE status = 'pending';
 -- ✅ Can send new invitation if previous was 'accepted' (though they're already in tournament)
 -- ❌ Cannot send duplicate invitation if one is still 'pending'
 
+

@@ -25,6 +25,9 @@ var (
 	ErrInvitationAlreadyExists = errors.New("invitation already exists")
 	ErrCannotInviteSelf       = errors.New("cannot invite yourself")
 	ErrInvitationNotPending   = errors.New("invitation is not pending")
+	
+	// Notification errors
+	ErrNotificationNotFound = errors.New("notification not found")
 )
 
 

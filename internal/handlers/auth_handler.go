@@ -18,6 +18,21 @@ func NewAuthHandler(authService *services.AuthService) *AuthHandler {
 	return &AuthHandler{authService: authService}
 }
 
+// Helper function to get user ID from fiber context
+func getUserIDFromContext(c *fiber.Ctx) (uuid.UUID, error) {
+	userID := c.Locals("userID")
+	if userID == nil {
+		return uuid.Nil, errors.New("user ID not found in context")
+	}
+
+	userUUID, ok := userID.(uuid.UUID)
+	if !ok {
+		return uuid.Nil, errors.New("invalid user ID format")
+	}
+
+	return userUUID, nil
+}
+
 func (h *AuthHandler) Signup(c *fiber.Ctx) error {
 	var req domain.SignupRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -105,6 +120,97 @@ func (h *AuthHandler) GetMe(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(user)
+}
+
+// UpdateProfile updates user profile
+func (h *AuthHandler) UpdateProfile(c *fiber.Ctx) error {
+	userID, err := getUserIDFromContext(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	var req domain.UpdateProfileRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+
+	user, err := h.authService.UpdateProfile(c.Context(), userID, &req)
+	if err != nil {
+		if strings.Contains(err.Error(), "already taken") {
+			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to update profile",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"user":    user,
+		"message": "profile updated successfully",
+	})
+}
+
+// ChangePassword changes user password
+func (h *AuthHandler) ChangePassword(c *fiber.Ctx) error {
+	userID, err := getUserIDFromContext(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "unauthorized",
+		})
+	}
+
+	var req domain.ChangePasswordRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+
+	err = h.authService.ChangePassword(c.Context(), userID, &req)
+	if err != nil {
+		if errors.Is(err, domain.ErrInvalidCredentials) {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "current password is incorrect",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to change password",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "password changed successfully",
+	})
+}
+
+// GetPublicProfile retrieves a user's public profile
+func (h *AuthHandler) GetPublicProfile(c *fiber.Ctx) error {
+	username := c.Params("username")
+	if username == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "username is required",
+		})
+	}
+
+	profile, err := h.authService.GetPublicProfile(c.Context(), username)
+	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "user not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to get profile",
+		})
+	}
+
+	return c.JSON(profile)
 }
 
 

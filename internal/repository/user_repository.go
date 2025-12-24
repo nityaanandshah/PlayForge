@@ -142,4 +142,33 @@ func (r *UserRepository) UpdateEloRating(ctx context.Context, userID uuid.UUID, 
 	return err
 }
 
+func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
+	query := `
+		UPDATE users
+		SET username = $1, email = $2, password_hash = $3, elo_rating = $4, updated_at = $5
+		WHERE id = $6
+	`
+
+	user.UpdatedAt = time.Now()
+
+	result, err := r.db.Exec(ctx, query,
+		user.Username,
+		user.Email,
+		user.PasswordHash,
+		user.EloRating,
+		user.UpdatedAt,
+		user.ID,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if result.RowsAffected() == 0 {
+		return domain.ErrUserNotFound
+	}
+
+	return nil
+}
+
 

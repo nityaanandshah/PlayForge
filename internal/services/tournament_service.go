@@ -22,11 +22,12 @@ const (
 )
 
 type TournamentService struct {
-	tournamentRepo *repository.TournamentRepository
-	userRepo       *repository.UserRepository
-	roomService    *RoomService
-	gameService    *GameService
-	redisClient    *redis.Client
+	tournamentRepo      *repository.TournamentRepository
+	userRepo            *repository.UserRepository
+	roomService         *RoomService
+	gameService         *GameService
+	redisClient         *redis.Client
+	notificationService *NotificationService
 }
 
 func NewTournamentService(
@@ -43,6 +44,11 @@ func NewTournamentService(
 		gameService:    gameService,
 		redisClient:    redisClient,
 	}
+}
+
+// SetNotificationService sets the notification service (to avoid circular dependency)
+func (s *TournamentService) SetNotificationService(notificationService *NotificationService) {
+	s.notificationService = notificationService
 }
 
 // CreateTournament creates a new tournament
@@ -191,6 +197,19 @@ func (s *TournamentService) JoinTournament(ctx context.Context, tournamentID uui
 		return nil, err
 	}
 
+	// Send notifications to all existing participants about new player
+	if s.notificationService != nil {
+		var participantIDs []uuid.UUID
+		for _, p := range tournament.Participants {
+			if p.UserID != userID { // Don't notify the player who just joined
+				participantIDs = append(participantIDs, p.UserID)
+			}
+		}
+		if len(participantIDs) > 0 {
+			_ = s.notificationService.NotifyPlayerJoined(ctx, participantIDs, user.Username, tournament.Name, tournamentID, len(tournament.Participants), tournament.MaxParticipants)
+		}
+	}
+
 	return tournament, nil
 }
 
@@ -257,6 +276,15 @@ func (s *TournamentService) StartTournament(ctx context.Context, tournamentID uu
 	err = s.createGamesForReadyMatches(ctx, tournament)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create games for matches: %w", err)
+	}
+
+	// Send notifications to all participants
+	if s.notificationService != nil {
+		var participantIDs []uuid.UUID
+		for _, p := range tournament.Participants {
+			participantIDs = append(participantIDs, p.UserID)
+		}
+		_ = s.notificationService.NotifyTournamentStarted(ctx, participantIDs, tournament.Name, tournamentID)
 	}
 
 	return tournament, nil
@@ -779,6 +807,11 @@ func (s *TournamentService) SendInvitation(ctx context.Context, tournamentID, in
 		return nil, err
 	}
 
+	// Send notification to invitee
+	if s.notificationService != nil {
+		_ = s.notificationService.NotifyInvitationReceived(ctx, invitee.ID, inviterName, tournament.Name, tournamentID, invitation.ID)
+	}
+
 	log.Printf("Invitation sent from %s to %s for tournament %s", inviterName, invitee.Username, tournament.Name)
 	return invitation, nil
 }
@@ -827,6 +860,11 @@ func (s *TournamentService) AcceptInvitation(ctx context.Context, invitationID, 
 		log.Printf("Warning: User joined tournament but failed to update invitation status: %v", err)
 	}
 
+	// Send notification to inviter
+	if s.notificationService != nil {
+		_ = s.notificationService.NotifyInvitationAccepted(ctx, invitation.InviterID, invitation.InviteeName, invitation.TournamentName, invitation.TournamentID)
+	}
+
 	log.Printf("User %s accepted invitation to tournament %s", invitation.InviteeName, invitation.TournamentName)
 	return tournament, nil
 }
@@ -853,6 +891,11 @@ func (s *TournamentService) DeclineInvitation(ctx context.Context, invitationID,
 	err = s.tournamentRepo.UpdateInvitationStatus(ctx, invitationID, domain.InvitationStatusDeclined)
 	if err != nil {
 		return err
+	}
+
+	// Send notification to inviter
+	if s.notificationService != nil {
+		_ = s.notificationService.NotifyInvitationDeclined(ctx, invitation.InviterID, invitation.InviteeName, invitation.TournamentName, invitation.TournamentID)
 	}
 
 	log.Printf("User %s declined invitation to tournament %s", invitation.InviteeName, invitation.TournamentName)

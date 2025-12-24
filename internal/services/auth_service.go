@@ -236,6 +236,76 @@ func (s *AuthService) storeRefreshToken(ctx context.Context, userID, token strin
 	return s.redisClient.Set(ctx, key, token, 7*24*time.Hour).Err()
 }
 
+// UpdateProfile updates user profile information
+func (s *AuthService) UpdateProfile(ctx context.Context, userID uuid.UUID, req *domain.UpdateProfileRequest) (*domain.User, error) {
+	// Get current user
+	user, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if username is being changed and if it's already taken
+	if req.Username != "" && req.Username != user.Username {
+		existingUser, _ := s.userRepo.GetByUsername(ctx, req.Username)
+		if existingUser != nil {
+			return nil, errors.New("username already taken")
+		}
+		user.Username = req.Username
+	}
+
+	// Update user
+	err = s.userRepo.Update(ctx, user)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update profile: %w", err)
+	}
+
+	return user, nil
+}
+
+// ChangePassword changes user's password
+func (s *AuthService) ChangePassword(ctx context.Context, userID uuid.UUID, req *domain.ChangePasswordRequest) error {
+	// Get user
+	user, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	// Verify current password
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.CurrentPassword))
+	if err != nil {
+		return domain.ErrInvalidCredentials
+	}
+
+	// Hash new password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	// Update password
+	user.PasswordHash = string(hashedPassword)
+	err = s.userRepo.Update(ctx, user)
+	if err != nil {
+		return fmt.Errorf("failed to update password: %w", err)
+	}
+
+	return nil
+}
+
+// GetPublicProfile retrieves a user's public profile by username
+func (s *AuthService) GetPublicProfile(ctx context.Context, username string) (*domain.PublicProfile, error) {
+	user, err := s.userRepo.GetByUsername(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.PublicProfile{
+		UserID:    user.ID,
+		Username:  user.Username,
+		EloRating: user.EloRating,
+	}, nil
+}
+
 func (s *AuthService) validateSignupRequest(req *domain.SignupRequest) error {
 	if len(req.Username) < 3 || len(req.Username) > 20 {
 		return errors.New("username must be between 3 and 20 characters")

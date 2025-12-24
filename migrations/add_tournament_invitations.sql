@@ -31,3 +31,4 @@ CREATE TRIGGER trigger_update_tournament_invitations_updated_at
     EXECUTE FUNCTION update_tournament_invitations_updated_at();
 
 
+

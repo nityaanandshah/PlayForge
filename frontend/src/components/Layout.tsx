@@ -55,12 +55,23 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
+              <button
+                onClick={() => navigate(`/profile/${user?.username}`)}
+                className="flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+              >
                 <div className="text-sm text-right">
                   <p className="font-medium text-gray-900">{user?.username}</p>
                   <p className="text-gray-500 text-xs">ELO: {user?.elo_rating}</p>
                 </div>
-              </div>
+                <div className="text-xl">👤</div>
+              </button>
+              <button
+                onClick={() => navigate('/settings')}
+                className="p-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                title="Settings"
+              >
+                ⚙️
+              </button>
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"

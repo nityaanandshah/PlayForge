@@ -43,6 +43,7 @@ func main() {
 	gameRepo := repository.NewGameRepository(pgPool)
 	tournamentRepo := repository.NewTournamentRepository(pgPool)
 	roomRepo := repository.NewRoomRepository(pgPool)
+	notificationRepo := repository.NewNotificationRepository(pgPool)
 
 	// Initialize services
 	authService := services.NewAuthService(userRepo, redisClient, cfg.JWTSecret)
@@ -50,10 +51,14 @@ func main() {
 	gameService := services.NewGameService(redisClient, statsService, gameRepo)
 	roomService := services.NewRoomService(redisClient, roomRepo)
 	matchmakingService := services.NewMatchmakingService(redisClient, roomService)
+	notificationService := services.NewNotificationService(notificationRepo)
 	tournamentService := services.NewTournamentService(tournamentRepo, userRepo, roomService, gameService, redisClient)
 	
 	// Wire up tournament service to game service (breaks circular dependency)
 	gameService.SetTournamentService(tournamentService)
+	
+	// Wire up notification service to tournament service
+	tournamentService.SetNotificationService(notificationService)
 
 	// Start matchmaking worker
 	matchmakingCtx, cancelMatchmaking := context.WithCancel(ctx)
@@ -90,6 +95,7 @@ func main() {
 	statsHandler := handlers.NewStatsHandler(statsService, authService)
 	roomHandler := handlers.NewRoomHandler(roomService, gameService)
 	matchmakingHandler := handlers.NewMatchmakingHandler(matchmakingService)
+	notificationHandler := handlers.NewNotificationHandler(notificationService)
 	tournamentHandler := handlers.NewTournamentHandler(tournamentService)
 
 	// Health check
@@ -110,6 +116,12 @@ func main() {
 	auth.Post("/refresh", authHandler.RefreshToken)
 	auth.Post("/logout", authHandler.Logout)
 	auth.Get("/me", middleware.AuthRequired(authService), authHandler.GetMe)
+
+	// Profile routes (protected)
+	profile := api.Group("/profile", middleware.AuthRequired(authService))
+	profile.Put("/", authHandler.UpdateProfile)
+	profile.Post("/password", authHandler.ChangePassword)
+	profile.Get("/:username", authHandler.GetPublicProfile)
 
 	// Game routes (protected)
 	games := api.Group("/games", middleware.AuthRequired(authService))
@@ -157,6 +169,13 @@ func main() {
 	invitations.Get("/", tournamentHandler.GetUserInvitations)
 	invitations.Post("/:id/accept", tournamentHandler.AcceptInvitation)
 	invitations.Post("/:id/decline", tournamentHandler.DeclineInvitation)
+
+	// Notification routes (protected)
+	notifications := api.Group("/notifications", middleware.AuthRequired(authService))
+	notifications.Get("/", notificationHandler.GetNotifications)
+	notifications.Post("/:id/read", notificationHandler.MarkAsRead)
+	notifications.Post("/read-all", notificationHandler.MarkAllAsRead)
+	notifications.Delete("/:id", notificationHandler.DeleteNotification)
 
 	// WebSocket route
 	app.Get("/ws", wsHandler.HandleConnection)
