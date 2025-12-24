@@ -20,6 +20,10 @@ export default {
           900: '#1e3a8a',
         },
       },
+      fontFamily: {
+        'sans': ['Source Sans Pro', 'system-ui', 'sans-serif'],
+        'serif': ['Merriweather', 'Georgia', 'serif'],
+      },
     },
   },
   plugins: [],
