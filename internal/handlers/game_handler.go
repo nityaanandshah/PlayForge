@@ -332,7 +332,6 @@ func (h *GameHandler) JoinAsSpectator(c *fiber.Ctx) error {
 func (h *GameHandler) LeaveAsSpectator(c *fiber.Ctx) error {
 	// Get user from context
 	userID := c.Locals("userID").(uuid.UUID)
-	username := c.Locals("username").(string)
 
 	// Parse game ID from URL params
 	gameID, err := uuid.Parse(c.Params("id"))

@@ -807,16 +807,24 @@ func (s *TournamentService) AcceptInvitation(ctx context.Context, invitationID, 
 		return nil, domain.ErrInvitationExpired
 	}
 
-	// Update invitation status
-	err = s.tournamentRepo.UpdateInvitationStatus(ctx, invitationID, domain.InvitationStatusAccepted)
+	// Get tournament to obtain join code for private tournaments
+	tournament, err := s.GetTournament(ctx, invitation.TournamentID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Join tournament
-	tournament, err := s.JoinTournament(ctx, invitation.TournamentID, userID, invitation.InviteeName)
+	// Join tournament FIRST (use the tournament's join code for private tournaments)
+	tournament, err = s.JoinTournament(ctx, invitation.TournamentID, userID, tournament.JoinCode)
 	if err != nil {
+		// Don't mark as accepted if join failed!
 		return nil, err
+	}
+
+	// Only mark invitation as accepted AFTER successfully joining
+	err = s.tournamentRepo.UpdateInvitationStatus(ctx, invitationID, domain.InvitationStatusAccepted)
+	if err != nil {
+		// User is already in tournament, so don't fail the request
+		log.Printf("Warning: User joined tournament but failed to update invitation status: %v", err)
 	}
 
 	log.Printf("User %s accepted invitation to tournament %s", invitation.InviteeName, invitation.TournamentName)

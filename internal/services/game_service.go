@@ -456,11 +456,6 @@ func (s *GameService) RemoveSpectator(ctx context.Context, gameID, userID uuid.U
 		return nil, err
 	}
 
-	log.Printf("📋 [DEBUG] Current spectators before removal: %d", len(g.Spectators))
-	for i, spec := range g.Spectators {
-		log.Printf("   [DEBUG] Spectator %d: %s (%s)", i+1, spec.Username, spec.UserID)
-	}
-
 	// Find and remove spectator
 	found := false
 	newSpectators := make([]game.Spectator, 0)
@@ -469,39 +464,26 @@ func (s *GameService) RemoveSpectator(ctx context.Context, gameID, userID uuid.U
 			newSpectators = append(newSpectators, spec)
 		} else {
 			found = true
-			log.Printf("✂️ [DEBUG] Found spectator to remove: %s (%s)", spec.Username, spec.UserID)
 		}
 	}
 
 	if !found {
-		log.Printf("⚠️ [DEBUG] User %s not found in spectator list", userID)
 		return g, nil // Not spectating, return current state
 	}
 
 	g.Spectators = newSpectators
 	g.UpdatedAt = time.Now()
 
-	log.Printf("📋 [DEBUG] Spectators after removal: %d", len(g.Spectators))
-	for i, spec := range g.Spectators {
-		log.Printf("   [DEBUG] Spectator %d: %s (%s)", i+1, spec.Username, spec.UserID)
-	}
-
 	// Save to Redis
-	log.Printf("💾 [DEBUG] Saving game to Redis...")
 	if err := s.SaveGame(ctx, g); err != nil {
-		log.Printf("❌ [DEBUG] Failed to save game: %v", err)
 		return nil, err
 	}
-	log.Printf("✅ [DEBUG] Game saved to Redis")
 
 	// Publish spectator left event
-	log.Printf("📢 [DEBUG] Publishing spectator_left event...")
 	s.PublishGameEvent(ctx, gameID, "spectator_left", map[string]interface{}{
 		"user_id": userID.String(),
 		"count":   len(g.Spectators),
 	})
-
-	log.Printf("✅ [DEBUG] User %s left game %s as spectator. Remaining: %d", userID, gameID, len(g.Spectators))
 
 	return g, nil
 }

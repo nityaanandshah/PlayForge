@@ -15,6 +15,10 @@ export default function TournamentLobby() {
   const [starting, setStarting] = useState(false);
   const [showJoinCodeModal, setShowJoinCodeModal] = useState(false);
   const [joinCode, setJoinCode] = useState('');
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteUsername, setInviteUsername] = useState('');
+  const [inviting, setInviting] = useState(false);
+  const [inviteSuccess, setInviteSuccess] = useState('');
 
   useEffect(() => {
     if (id) {
@@ -99,6 +103,29 @@ export default function TournamentLobby() {
     }
   };
 
+  const handleInviteUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inviteUsername.trim() || !id) return;
+    
+    setInviting(true);
+    setError('');
+    setInviteSuccess('');
+    
+    try {
+      await api.post(`/tournaments/${id}/invite`, { username: inviteUsername });
+      setInviteSuccess(`Invitation sent to ${inviteUsername}`);
+      setInviteUsername('');
+      setTimeout(() => {
+        setInviteSuccess('');
+        setShowInviteModal(false);
+      }, 2000);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to send invitation');
+    } finally {
+      setInviting(false);
+    }
+  };
+
   const isHost = tournament && user && tournament.created_by === user.id;
   const isParticipant = tournament && user && tournament.participants?.some(p => p.user_id === user.id);
 
@@ -171,20 +198,30 @@ export default function TournamentLobby() {
           {tournament.is_private && tournament.join_code && (isHost || isParticipant) && (
             <div className="mt-4 p-4 bg-amber-50 border-2 border-amber-300 rounded-lg">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="flex-1">
                   <p className="text-sm text-amber-800 font-semibold mb-1">🔒 Private Tournament - Join Code:</p>
                   <p className="text-2xl font-mono font-bold text-amber-900 tracking-wider">{tournament.join_code}</p>
                   <p className="text-xs text-amber-700 mt-1">Share this code with participants to join</p>
                 </div>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(tournament.join_code || '');
-                    alert('Join code copied to clipboard!');
-                  }}
-                  className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition text-sm font-semibold"
-                >
-                  📋 Copy Code
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(tournament.join_code || '');
+                      alert('Join code copied to clipboard!');
+                    }}
+                    className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition text-sm font-semibold"
+                  >
+                    📋 Copy Code
+                  </button>
+                  {isHost && tournament.status === 'pending' && (
+                    <button
+                      onClick={() => setShowInviteModal(true)}
+                      className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition text-sm font-semibold"
+                    >
+                      ✉️ Invite Players
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -458,6 +495,69 @@ export default function TournamentLobby() {
                   className="flex-1 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition font-semibold"
                 >
                   Join Tournament
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Invite Players Modal */}
+      {showInviteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800">✉️ Invite Player</h2>
+            <p className="text-gray-600 mb-4">Send a direct invitation to a user by entering their username.</p>
+            
+            <form onSubmit={handleInviteUser}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  value={inviteUsername}
+                  onChange={(e) => setInviteUsername(e.target.value)}
+                  placeholder="Enter username..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  required
+                  autoFocus
+                  disabled={inviting}
+                />
+              </div>
+
+              {error && (
+                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              {inviteSuccess && (
+                <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg text-sm">
+                  ✓ {inviteSuccess}
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowInviteModal(false);
+                    setInviteUsername('');
+                    setError('');
+                    setInviteSuccess('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                  disabled={inviting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={inviting}
+                  className="flex-1 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {inviting ? 'Sending...' : 'Send Invitation'}
                 </button>
               </div>
             </form>
