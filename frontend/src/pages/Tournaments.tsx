@@ -209,21 +209,18 @@ export default function Tournaments() {
 
   return (
     <>
-      <div className="space-y-8">
+      <div className="bg-white shadow-elevated rounded-xl p-8">
         {/* Header */}
-        <div className="bg-white shadow-elevated rounded-xl p-8 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-3 flex items-center justify-center gap-3">
-            <Trophy className="w-12 h-12" fill="currentColor" />
-            Tournaments
-          </h1>
-          <p className="text-gray-600 text-lg">
-            Join or create competitive tournaments
-          </p>
-        </div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+          <Trophy className="w-8 h-8" fill="currentColor" />
+          Tournaments
+        </h1>
+        <p className="text-gray-600 mb-6">
+          Join or create competitive tournaments
+        </p>
 
         {/* Actions */}
-        <div className="bg-white shadow-elevated rounded-xl p-6">
-        <div className="flex flex-wrap gap-4 justify-between items-center">
+        <div className="flex flex-wrap gap-4 justify-between items-center mb-8">
           <div className="flex gap-3">
             <select
               value={statusFilter}
@@ -254,7 +251,6 @@ export default function Tournaments() {
             Create Tournament
           </button>
         </div>
-      </div>
 
         {/* Error Message */}
         {error && (
@@ -265,7 +261,7 @@ export default function Tournaments() {
 
         {/* Loading State */}
         {loading && (
-          <div className="bg-white shadow-elevated rounded-xl p-16 text-center">
+          <div className="py-16 text-center">
             <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600"></div>
             <p className="mt-6 text-gray-600 text-lg font-medium">Loading tournaments...</p>
           </div>
@@ -273,7 +269,7 @@ export default function Tournaments() {
 
         {/* Tournaments Grid */}
         {!loading && tournaments.length === 0 && (
-          <div className="bg-white shadow-elevated rounded-xl p-16 text-center">
+          <div className="py-16 text-center">
             <Trophy className="w-24 h-24 mx-auto text-gray-300 mb-6" fill="currentColor" />
             <p className="text-gray-600 text-xl font-semibold mb-2">No tournaments found</p>
             <p className="text-gray-500">Create one to get started!</p>
@@ -281,11 +277,11 @@ export default function Tournaments() {
         )}
 
         {!loading && tournaments.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {tournaments.map((tournament) => (
               <div
                 key={tournament.id}
-                className="bg-white rounded-xl shadow-elevated hover:shadow-floating transition-all p-8 cursor-pointer border border-gray-100"
+                className="bg-gray-50 rounded-xl shadow-soft hover:shadow-elevated transition-all p-6 cursor-pointer border border-gray-200"
                 onClick={() => navigate(`/tournament/${tournament.id}`)}
               >
                 {/* Tournament Header */}

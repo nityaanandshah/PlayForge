@@ -15,3 +15,4 @@ WHERE status = 'pending';
 -- ❌ Cannot send duplicate invitation if one is still 'pending'
 
 
+

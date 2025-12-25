@@ -86,27 +86,27 @@ export default function CreateRoom() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">Rooms</h1>
+    <div className="max-w-3xl mx-auto">
+      <h1 className="text-3xl font-bold mb-10">Rooms</h1>
 
       {/* Mode Toggle */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-4 mb-8">
         <button
           onClick={() => setMode('create')}
-          className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-colors ${
+          className={`flex-1 py-4 px-6 rounded-xl font-semibold transition-all ${
             mode === 'create'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-blue-600 text-white shadow-elevated'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300 shadow-soft'
           }`}
         >
           Create Room
         </button>
         <button
           onClick={() => setMode('join')}
-          className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-colors ${
+          className={`flex-1 py-4 px-6 rounded-xl font-semibold transition-all ${
             mode === 'join'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-blue-600 text-white shadow-elevated'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300 shadow-soft'
           }`}
         >
           Join by Code
@@ -114,17 +114,17 @@ export default function CreateRoom() {
       </div>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-red-100 border-2 border-red-400 text-red-700 px-6 py-4 rounded-xl mb-6 shadow-soft">
           {error}
         </div>
       )}
 
       {mode === 'create' ? (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {/* Game Selection */}
           <div>
-            <label className="block text-sm font-semibold mb-2">Select Game</label>
-            <div className="grid grid-cols-2 gap-3">
+            <label className="block text-base font-bold mb-4">Select Game</label>
+            <div className="grid grid-cols-2 gap-4">
               {games.map((game) => (
                 <button
                   key={game.id}
@@ -132,15 +132,15 @@ export default function CreateRoom() {
                     setGameType(game.id);
                     setMaxPlayers(game.players);
                   }}
-                  className={`p-4 rounded-lg border-2 text-left transition-all cursor-pointer ${
+                  className={`p-6 rounded-xl border-2 text-left transition-all cursor-pointer ${
                     gameType === game.id
-                      ? 'border-blue-500 bg-blue-50 shadow-lg'
-                      : 'border-gray-300 hover:border-blue-400'
+                      ? 'border-blue-500 bg-blue-50 shadow-elevated'
+                      : 'border-gray-300 hover:border-blue-400 shadow-soft'
                   }`}
                 >
-                  <game.Icon className={`w-8 h-8 mb-1 ${game.iconColor}`} fill="currentColor" />
-                  <h3 className="font-semibold mb-1">{game.name}</h3>
-                  <p className="text-sm text-gray-600">
+                  <game.Icon className={`w-10 h-10 mb-2 ${game.iconColor}`} fill="currentColor" />
+                  <h3 className="font-bold mb-1">{game.name}</h3>
+                  <p className="text-sm text-gray-600 font-medium">
                     {game.players} players
                   </p>
                 </button>
@@ -150,29 +150,29 @@ export default function CreateRoom() {
 
           {/* Room Type */}
           <div>
-            <label className="block text-sm font-semibold mb-2">Room Type</label>
-            <div className="grid grid-cols-2 gap-3">
+            <label className="block text-base font-bold mb-4">Room Type</label>
+            <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => setRoomType('private')}
-                className={`p-4 rounded-lg border-2 text-left ${
+                className={`p-6 rounded-xl border-2 text-left transition-all ${
                   roomType === 'private'
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-300 hover:border-gray-400'
+                    ? 'border-blue-500 bg-blue-50 shadow-elevated'
+                    : 'border-gray-300 hover:border-gray-400 shadow-soft'
                 }`}
               >
-                <h3 className="font-semibold mb-1">Private</h3>
-                <p className="text-sm text-gray-600">Invite friends with code</p>
+                <h3 className="font-bold mb-2">Private</h3>
+                <p className="text-sm text-gray-600 font-medium">Invite friends with code</p>
               </button>
               <button
                 onClick={() => setRoomType('quickplay')}
-                className={`p-4 rounded-lg border-2 text-left ${
+                className={`p-6 rounded-xl border-2 text-left transition-all ${
                   roomType === 'quickplay'
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-300 hover:border-gray-400'
+                    ? 'border-blue-500 bg-blue-50 shadow-elevated'
+                    : 'border-gray-300 hover:border-gray-400 shadow-soft'
                 }`}
               >
-                <h3 className="font-semibold mb-1">Quick Play</h3>
-                <p className="text-sm text-gray-600">Open to anyone</p>
+                <h3 className="font-bold mb-2">Quick Play</h3>
+                <p className="text-sm text-gray-600 font-medium">Open to anyone</p>
               </button>
             </div>
           </div>

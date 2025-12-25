@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { statsApi, PlayerStats } from '../lib/api'
 import api from '../lib/api'
-import { Crown, Gem, Star, Target, Gamepad2, PartyPopper, Trophy, Dumbbell, Flame, Zap, Medal, Settings } from 'lucide-react'
+import { Crown, Gem, Star, Target, Gamepad2, PartyPopper, Trophy, Dumbbell, Flame, Zap, Medal, Settings, Lock } from 'lucide-react'
 
 interface PublicProfile {
   user_id: string
@@ -56,35 +56,35 @@ export default function Profile() {
   const getRankBadge = (elo: number) => {
     if (elo >= 2000) return { 
       name: 'Grandmaster', 
-      color: 'from-yellow-400 to-yellow-600', 
+      color: 'bg-yellow-500', 
       Icon: Crown,
       description: '2000+ ELO - Highest rank! Legendary player',
       nextRank: null
     }
     if (elo >= 1800) return { 
       name: 'Master', 
-      color: 'from-purple-400 to-purple-600', 
+      color: 'bg-purple-500', 
       Icon: Gem,
       description: '1800-1999 ELO - Elite player',
       nextRank: 'Grandmaster (2000 ELO)'
     }
     if (elo >= 1600) return { 
       name: 'Expert', 
-      color: 'from-blue-400 to-blue-600', 
+      color: 'bg-blue-500', 
       Icon: Star,
       description: '1600-1799 ELO - Skilled player',
       nextRank: 'Master (1800 ELO)'
     }
     if (elo >= 1400) return { 
       name: 'Advanced', 
-      color: 'from-green-400 to-green-600', 
+      color: 'bg-green-500', 
       Icon: Target,
       description: '1400-1599 ELO - Proficient player',
       nextRank: 'Expert (1600 ELO)'
     }
     return { 
       name: 'Intermediate', 
-      color: 'from-gray-400 to-gray-600', 
+      color: 'bg-gray-500', 
       Icon: Gamepad2,
       description: 'Below 1400 ELO - Keep playing to rank up!',
       nextRank: 'Advanced (1400 ELO)'
@@ -183,21 +183,21 @@ export default function Profile() {
   const winRate = stats ? ((stats.wins / stats.total_games) * 100).toFixed(1) : '0'
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-lg p-8 text-white">
+      <div className="bg-indigo-600 rounded-xl shadow-elevated p-10 text-white">
         <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-8">
             <div 
-              className="w-24 h-24 bg-white rounded-full flex items-center justify-center cursor-help"
+              className="w-28 h-28 bg-white rounded-full flex items-center justify-center cursor-help shadow-lifted"
               title={`${rank.name} - ${rank.description}${rank.nextRank ? `\nNext rank: ${rank.nextRank}` : ''}`}
             >
-              <rank.Icon className="w-12 h-12 text-indigo-600" fill="currentColor" />
+              <rank.Icon className="w-14 h-14 text-indigo-600" fill="currentColor" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold mb-2">{profile.username}</h1>
+              <h1 className="text-5xl font-bold mb-4">{profile.username}</h1>
               <div 
-                className={`inline-block px-4 py-2 bg-gradient-to-r ${rank.color} rounded-full text-white font-bold cursor-help`}
+                className={`inline-block px-6 py-3 ${rank.color} rounded-full text-white font-bold cursor-help shadow-soft`}
                 title={`${rank.description}${rank.nextRank ? `\nNext rank: ${rank.nextRank}` : ''}`}
               >
                 {rank.name}
@@ -207,7 +207,7 @@ export default function Profile() {
           {isOwnProfile && (
             <button
               onClick={() => navigate('/settings')}
-              className="bg-white text-indigo-600 px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition flex items-center gap-2"
+              className="bg-white text-indigo-600 px-8 py-4 rounded-xl font-bold hover:bg-gray-50 transition shadow-soft flex items-center gap-2"
             >
               <Settings className="w-5 h-5" fill="currentColor" />
               Settings
@@ -217,60 +217,60 @@ export default function Profile() {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-6 text-center">
-          <div className="text-3xl font-bold text-indigo-600 mb-2">{profile.elo_rating}</div>
-          <div className="text-sm text-gray-600">ELO Rating</div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-white rounded-xl shadow-elevated p-8 text-center hover:shadow-lifted transition-shadow">
+          <div className="text-4xl font-bold text-indigo-600 mb-3">{profile.elo_rating}</div>
+          <div className="text-sm text-gray-600 font-medium">ELO Rating</div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6 text-center">
-          <div className="text-3xl font-bold text-green-600 mb-2">{stats?.wins || 0}</div>
-          <div className="text-sm text-gray-600">Wins</div>
+        <div className="bg-white rounded-xl shadow-elevated p-8 text-center hover:shadow-lifted transition-shadow">
+          <div className="text-4xl font-bold text-green-600 mb-3">{stats?.wins || 0}</div>
+          <div className="text-sm text-gray-600 font-medium">Wins</div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6 text-center">
-          <div className="text-3xl font-bold text-blue-600 mb-2">{winRate}%</div>
-          <div className="text-sm text-gray-600">Win Rate</div>
+        <div className="bg-white rounded-xl shadow-elevated p-8 text-center hover:shadow-lifted transition-shadow">
+          <div className="text-4xl font-bold text-blue-600 mb-3">{winRate}%</div>
+          <div className="text-sm text-gray-600 font-medium">Win Rate</div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6 text-center">
-          <div className="text-3xl font-bold text-orange-600 mb-2">{stats?.total_games || 0}</div>
-          <div className="text-sm text-gray-600">Total Games</div>
+        <div className="bg-white rounded-xl shadow-elevated p-8 text-center hover:shadow-lifted transition-shadow">
+          <div className="text-4xl font-bold text-orange-600 mb-3">{stats?.total_games || 0}</div>
+          <div className="text-sm text-gray-600 font-medium">Total Games</div>
         </div>
       </div>
 
       {/* Performance Details */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-bold mb-4">Performance</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="bg-white rounded-xl shadow-elevated p-8">
+        <h2 className="text-3xl font-bold mb-8">Performance</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div>
-            <h3 className="font-bold text-lg mb-3">Overall Record</h3>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Wins:</span>
-                <span className="font-bold text-green-600">{stats?.wins || 0}</span>
+            <h3 className="font-bold text-xl mb-6">Overall Record</h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                <span className="text-gray-600 font-medium">Wins:</span>
+                <span className="font-bold text-green-600 text-xl">{stats?.wins || 0}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Losses:</span>
-                <span className="font-bold text-red-600">{stats?.losses || 0}</span>
+              <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                <span className="text-gray-600 font-medium">Losses:</span>
+                <span className="font-bold text-red-600 text-xl">{stats?.losses || 0}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Draws:</span>
-                <span className="font-bold text-gray-600">{stats?.draws || 0}</span>
+              <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                <span className="text-gray-600 font-medium">Draws:</span>
+                <span className="font-bold text-gray-600 text-xl">{stats?.draws || 0}</span>
               </div>
             </div>
           </div>
           <div>
-            <h3 className="font-bold text-lg mb-3">Streaks</h3>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Current Streak:</span>
-                <span className="font-bold flex items-center gap-1">
+            <h3 className="font-bold text-xl mb-6">Streaks</h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                <span className="text-gray-600 font-medium">Current Streak:</span>
+                <span className="font-bold flex items-center gap-2 text-xl">
                   {stats?.current_streak || 0} 
-                  {stats && stats.current_streak > 0 && <Flame className="w-4 h-4 text-orange-500" fill="currentColor" />}
+                  {stats && stats.current_streak > 0 && <Flame className="w-5 h-5 text-orange-500" fill="currentColor" />}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Best Streak:</span>
-                <span className="font-bold flex items-center gap-1">
-                  {stats?.best_streak || 0} <Zap className="w-4 h-4 text-yellow-500" fill="currentColor" />
+              <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                <span className="text-gray-600 font-medium">Best Streak:</span>
+                <span className="font-bold flex items-center gap-2 text-xl">
+                  {stats?.best_streak || 0} <Zap className="w-5 h-5 text-yellow-500" fill="currentColor" />
                 </span>
               </div>
             </div>
@@ -279,28 +279,30 @@ export default function Profile() {
       </div>
 
       {/* Achievements */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-          <Trophy className="w-7 h-7" fill="currentColor" />
+      <div className="bg-white rounded-xl shadow-elevated p-8">
+        <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
+          <Trophy className="w-9 h-9" fill="currentColor" />
           Achievements ({achievements.filter(a => a.unlocked).length}/{achievements.length})
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-6">
           {achievements.map((achievement) => {
             const IconComponent = achievement.Icon
             return (
               <div
                 key={achievement.name}
-                className={`border-2 rounded-lg p-4 text-center transition cursor-help ${
+                className={`border-2 rounded-xl p-5 text-center transition cursor-help ${
                   achievement.unlocked
-                    ? 'border-yellow-400 bg-yellow-50 hover:shadow-lg'
+                    ? 'border-yellow-400 bg-yellow-50 shadow-soft hover:shadow-elevated'
                     : 'border-gray-300 bg-gray-50 opacity-60 hover:opacity-80'
                 }`}
                 title={`${achievement.name}\n${achievement.requirement}\nProgress: ${achievement.progress}`}
               >
-                <IconComponent className="w-8 h-8 mb-2 mx-auto" fill="currentColor" />
+                <IconComponent className="w-10 h-10 mb-3 mx-auto" fill="currentColor" />
                 <div className="text-xs font-bold">{achievement.name}</div>
                 {!achievement.unlocked && (
-                  <div className="text-xs text-gray-500 mt-1">🔒</div>
+                  <div className="text-xs text-gray-500 mt-2">
+                    <Lock className="w-4 h-4 mx-auto" />
+                  </div>
                 )}
               </div>
             )
@@ -469,7 +471,7 @@ function ContributionGraph({ userId }: ContributionGraphProps) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-xl shadow-elevated p-8">
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
         </div>
@@ -478,37 +480,37 @@ function ContributionGraph({ userId }: ContributionGraphProps) {
   }
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg shadow-xl p-8 text-white">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <Gamepad2 className="w-7 h-7" fill="currentColor" />
+    <div className="bg-gray-900 rounded-xl shadow-lifted p-10 text-white">
+      <div className="flex items-center justify-between mb-10">
+        <h2 className="text-3xl font-bold flex items-center gap-3">
+          <Gamepad2 className="w-9 h-9" fill="currentColor" />
           Game Activity
         </h2>
         <button
           onClick={() => navigate('/history')}
-          className="text-sm text-blue-300 hover:text-blue-200 font-medium"
+          className="text-sm text-blue-300 hover:text-blue-200 font-medium px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
         >
           View Details →
         </button>
       </div>
 
       {/* Contribution Stats */}
-      <div className="grid grid-cols-3 gap-6 mb-8">
-        <div className="bg-gray-800 rounded-lg p-5 text-center border border-gray-700 hover:border-green-500 transition-colors">
-          <div className="text-4xl font-bold text-green-400">{totalGames}</div>
-          <div className="text-sm text-gray-400 mt-2">games in last year</div>
+      <div className="grid grid-cols-3 gap-8 mb-10">
+        <div className="bg-gray-800 rounded-xl p-6 text-center border-2 border-gray-700 hover:border-green-500 transition-all shadow-soft hover:shadow-elevated">
+          <div className="text-5xl font-bold text-green-400 mb-2">{totalGames}</div>
+          <div className="text-sm text-gray-400 font-medium">games in last year</div>
         </div>
-        <div className="bg-gray-800 rounded-lg p-5 text-center border border-gray-700 hover:border-orange-500 transition-colors">
-          <div className="text-4xl font-bold text-orange-400 flex items-center justify-center gap-2">
-            {currentStreak} <Flame className="w-8 h-8" fill="currentColor" />
+        <div className="bg-gray-800 rounded-xl p-6 text-center border-2 border-gray-700 hover:border-orange-500 transition-all shadow-soft hover:shadow-elevated">
+          <div className="text-5xl font-bold text-orange-400 flex items-center justify-center gap-3 mb-2">
+            {currentStreak} <Flame className="w-10 h-10" fill="currentColor" />
           </div>
-          <div className="text-sm text-gray-400 mt-2">day streak</div>
+          <div className="text-sm text-gray-400 font-medium">day streak</div>
         </div>
-        <div className="bg-gray-800 rounded-lg p-5 text-center border border-gray-700 hover:border-purple-500 transition-colors">
-          <div className="text-4xl font-bold text-purple-400 flex items-center justify-center gap-2">
-            {longestStreak} <Trophy className="w-8 h-8" fill="currentColor" />
+        <div className="bg-gray-800 rounded-xl p-6 text-center border-2 border-gray-700 hover:border-purple-500 transition-all shadow-soft hover:shadow-elevated">
+          <div className="text-5xl font-bold text-purple-400 flex items-center justify-center gap-3 mb-2">
+            {longestStreak} <Trophy className="w-10 h-10" fill="currentColor" />
           </div>
-          <div className="text-sm text-gray-400 mt-2">longest streak</div>
+          <div className="text-sm text-gray-400 font-medium">longest streak</div>
         </div>
       </div>
 

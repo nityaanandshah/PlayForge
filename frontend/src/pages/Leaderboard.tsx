@@ -66,14 +66,14 @@ const Leaderboard = () => {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white shadow rounded-lg p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <div className="bg-white shadow-elevated rounded-xl p-8 mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-2">
             <Trophy className="w-8 h-8" fill="currentColor" />
             Leaderboard
           </h1>
           
           {/* Game Type Selector */}
-          <div className="flex flex-wrap gap-2 mb-6">
+          <div className="flex flex-wrap gap-3 mb-8">
             {games.map((game) => {
               const IconComponent = game.Icon
               const isSelected = selectedGame === game.id
@@ -81,10 +81,10 @@ const Leaderboard = () => {
                 <button
                   key={game.id}
                   onClick={() => setSelectedGame(game.id)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                  className={`px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${
                     isSelected
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-blue-600 text-white shadow-elevated'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 shadow-soft'
                   }`}
                 >
                   <IconComponent 
@@ -99,15 +99,15 @@ const Leaderboard = () => {
 
           {/* Loading/Error States */}
           {loading && (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-gray-600 mt-4">Loading leaderboard...</p>
+            <div className="text-center py-16">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
+              <p className="text-gray-600 mt-6 text-lg font-medium">Loading leaderboard...</p>
             </div>
           )}
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-              <p className="text-red-600">{error}</p>
+            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6 mb-8 shadow-soft">
+              <p className="text-red-600 font-medium">{error}</p>
             </div>
           )}
 
@@ -115,8 +115,9 @@ const Leaderboard = () => {
           {!loading && !error && (
             <>
               {leaderboard.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <p className="text-lg">No players found for this game type yet.</p>
+                <div className="text-center py-16 text-gray-500">
+                  <Trophy className="w-20 h-20 mx-auto text-gray-300 mb-4" fill="currentColor" />
+                  <p className="text-xl font-semibold mb-2">No players found for this game type yet.</p>
                   <p className="text-sm mt-2">Be the first to play and claim the top spot!</p>
                 </div>
               ) : (
@@ -124,22 +125,22 @@ const Leaderboard = () => {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-8 py-5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                           Rank
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-8 py-5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                           Player
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-8 py-5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                           ELO Rating
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-8 py-5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                           Games
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-8 py-5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                           Record
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-8 py-5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                           Win Rate
                         </th>
                       </tr>
@@ -148,47 +149,47 @@ const Leaderboard = () => {
                       {leaderboard.map((entry, index) => (
                         <tr
                           key={entry.user_id}
-                          className={`hover:bg-gray-50 ${
+                          className={`transition-all hover:shadow-elevated ${
                             index < 3 ? 'bg-yellow-50' : ''
                           }`}
                         >
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-8 py-6 whitespace-nowrap">
                             <span className="text-2xl font-bold">
                               {getRankMedal(index + 1)}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">
+                          <td className="px-8 py-6 whitespace-nowrap">
+                            <div className="text-base font-semibold text-gray-900">
                               {entry.username}
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-8 py-6 whitespace-nowrap">
                             <div className="flex items-center">
                               <span className="text-2xl font-bold text-blue-600">
                                 {entry.elo_rating}
                               </span>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="text-sm text-gray-900">
+                          <td className="px-8 py-6 whitespace-nowrap">
+                            <span className="text-base font-medium text-gray-900">
                               {entry.total_games}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="text-sm text-gray-900">
-                              <span className="text-green-600 font-semibold">{entry.wins}W</span>
+                          <td className="px-8 py-6 whitespace-nowrap">
+                            <span className="text-base text-gray-900">
+                              <span className="text-green-600 font-bold">{entry.wins}W</span>
                               {' / '}
-                              <span className="text-red-600 font-semibold">{entry.losses}L</span>
+                              <span className="text-red-600 font-bold">{entry.losses}L</span>
                               {entry.draws > 0 && (
                                 <>
                                   {' / '}
-                                  <span className="text-gray-600 font-semibold">{entry.draws}D</span>
+                                  <span className="text-gray-600 font-bold">{entry.draws}D</span>
                                 </>
                               )}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="text-sm font-semibold text-gray-900">
+                          <td className="px-8 py-6 whitespace-nowrap">
+                            <span className="text-base font-bold text-gray-900">
                               {calculateWinRate(entry.wins, entry.total_games)}
                             </span>
                           </td>
