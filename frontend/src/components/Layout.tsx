@@ -30,58 +30,58 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen bg-bg-main">
       <nav className="bg-surface-1 shadow-elevated sticky top-0 z-50 border-b border-border-subtle">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-          <div className="flex justify-between h-20">
-            <div className="flex items-center space-x-12">
-              <div 
-                className="flex flex-col items-center cursor-pointer group"
-                onClick={() => navigate('/dashboard')}
-              >
-                <div className="relative flex items-center gap-1.5">
-                  <Zap className="w-3 h-3 text-accent-primary opacity-80 group-hover:opacity-100 transition-opacity" fill="currentColor" />
-                  <h1 
-                    className="text-xl font-bold tracking-wider group-hover:tracking-widest transition-all"
-                    style={{
-                      background: 'linear-gradient(180deg, #D6A35C 0%, #C08A3E 50%, #A9742E 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
-                      textShadow: '0px 2px 4px rgba(0, 0, 0, 0.5)',
-                      filter: 'drop-shadow(0px 1px 2px rgba(192, 138, 62, 0.4))',
-                      fontFamily: 'serif',
-                      letterSpacing: '0.05em'
-                    }}
-                  >
-                    PLAYFORGE
-                  </h1>
-                </div>
-                <div className="w-full flex items-center justify-center mt-0.5 gap-1.5">
-                  <div className="flex-1 h-[1px] bg-gradient-to-r from-transparent via-accent-primary to-accent-primary rounded-full"></div>
-                  <div className="w-4 h-4 rounded-full bg-gradient-to-br from-accent-hover to-accent-active shadow-soft border border-accent-primary"></div>
-                  <div className="flex-1 h-[1px] bg-gradient-to-l from-transparent via-accent-primary to-accent-primary rounded-full"></div>
-                </div>
+        <div className="w-full px-6 sm:px-8 lg:px-12">
+          <div className="flex items-center justify-between h-20 gap-8">
+            <div 
+              className="flex flex-col items-center cursor-pointer group flex-shrink-0"
+              onClick={() => navigate('/dashboard')}
+            >
+              <div className="relative flex items-center gap-1.5">
+                <Zap className="w-3 h-3 text-accent-primary opacity-80 group-hover:opacity-100 transition-opacity" fill="currentColor" />
+                <h1 
+                  className="text-xl font-bold tracking-wider group-hover:tracking-widest transition-all"
+                  style={{
+                    background: 'linear-gradient(180deg, #D6A35C 0%, #C08A3E 50%, #A9742E 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    textShadow: '0px 2px 4px rgba(0, 0, 0, 0.5)',
+                    filter: 'drop-shadow(0px 1px 2px rgba(192, 138, 62, 0.4))',
+                    fontFamily: 'serif',
+                    letterSpacing: '0.05em'
+                  }}
+                >
+                  PLAYFORGE
+                </h1>
               </div>
-              <div className="hidden md:flex space-x-2">
-                {navLinks.map((link) => {
-                  const IconComponent = link.icon
-                  return (
-                    <button
-                      key={link.path}
-                      onClick={() => navigate(link.path)}
-                      className={`px-5 py-3 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-                        isActive(link.path)
-                          ? 'bg-accent-soft text-accent-primary border-b-2 border-accent-primary'
-                          : 'text-text-secondary hover:bg-surface-2 hover:text-text-primary'
-                      }`}
-                    >
-                      <IconComponent className="w-4 h-4" fill="currentColor" />
-                      {link.label}
-                    </button>
-                  )
-                })}
+              <div className="w-full flex items-center justify-center mt-0.5 gap-1.5">
+                <div className="flex-1 h-[1px] bg-gradient-to-r from-transparent via-accent-primary to-accent-primary rounded-full"></div>
+                <div className="w-4 h-4 rounded-full bg-gradient-to-br from-accent-hover to-accent-active shadow-soft border border-accent-primary"></div>
+                <div className="flex-1 h-[1px] bg-gradient-to-l from-transparent via-accent-primary to-accent-primary rounded-full"></div>
               </div>
             </div>
-            <div className="flex items-center space-x-4 ml-auto">
+            
+            <div className="hidden md:flex space-x-2 flex-1 ml-4">
+              {navLinks.map((link) => {
+                const IconComponent = link.icon
+                return (
+                  <button
+                    key={link.path}
+                    onClick={() => navigate(link.path)}
+                    className={`px-5 py-3 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                      isActive(link.path)
+                        ? 'bg-accent-soft text-accent-primary border-b-2 border-accent-primary'
+                        : 'text-text-secondary hover:bg-surface-2 hover:text-text-primary'
+                    }`}
+                  >
+                    <IconComponent className="w-4 h-4" fill="currentColor" />
+                    {link.label}
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="flex items-center space-x-4 flex-shrink-0">
               <button
                 onClick={() => navigate(`/profile/${user?.username}`)}
                 className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-surface-2 transition-all border border-border-subtle"
