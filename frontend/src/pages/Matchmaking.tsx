@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { matchmakingApi } from '../lib/api';
 import type { QueueEntry } from '../types/matchmaking';
-import { X, Circle, Gamepad2 } from 'lucide-react';
+import { X, Circle, Gamepad2, Info } from 'lucide-react';
 
 export default function Matchmaking() {
   const navigate = useNavigate();
@@ -14,10 +14,41 @@ export default function Matchmaking() {
   const [queueTime, setQueueTime] = useState(0);
 
   const games = [
-    { id: 'tictactoe', name: 'Tic-Tac-Toe', description: 'Classic 3×3 grid', Icon: X, iconColor: 'text-accent-primary' },
-    { id: 'connect4', name: 'Connect 4', description: 'Standard 6×7 board', Icon: Circle, iconColor: 'text-accent-primary' },
-    { id: 'rps', name: 'Rock Paper Scissors', description: 'Best of 5 rounds', Icon: Gamepad2, iconColor: 'text-accent-primary' },
-    { id: 'dotsandboxes', name: 'Dots & Boxes', description: 'Classic 5×5 grid', Icon: Circle, iconColor: 'text-accent-primary' },
+    { 
+      id: 'tictactoe', 
+      name: 'Tic-Tac-Toe', 
+      description: 'Classic 3×3 grid', 
+      icons: [
+        { Icon: X, color: 'text-accent-primary' },
+        { Icon: Circle, color: 'text-accent-primary' }
+      ]
+    },
+    { 
+      id: 'connect4', 
+      name: 'Connect 4', 
+      description: 'Standard 6×7 board', 
+      icons: [
+        { Icon: Circle, color: 'text-accent-primary' },
+        { Icon: Circle, color: 'text-warning' }
+      ]
+    },
+    { 
+      id: 'rps', 
+      name: 'Rock Paper Scissors', 
+      description: 'Best of 5 rounds', 
+      icons: [
+        { Icon: Gamepad2, color: 'text-accent-primary' }
+      ]
+    },
+    { 
+      id: 'dotsandboxes', 
+      name: 'Dots & Boxes', 
+      description: 'Classic 5×5 grid', 
+      icons: [
+        { Icon: Circle, color: 'text-accent-primary' },
+        { Icon: Circle, color: 'text-text-muted' }
+      ]
+    },
   ];
 
   // Check queue status on mount
@@ -135,9 +166,12 @@ export default function Matchmaking() {
       <h1 className="text-3xl font-bold mb-8 text-text-primary">Quick Play Matchmaking</h1>
       
       <div className="bg-accent-soft border-2 border-accent-primary rounded-lg p-4 mb-6">
-        <p className="text-sm text-text-primary">
-          <strong>ℹ️ Standard Rules:</strong> All games use default settings (3×3 for Tic-Tac-Toe, 6×7 for Connect 4, Best of 5 for RPS, etc.). 
-          Want custom settings? Use <button onClick={() => navigate('/rooms')} className="underline font-semibold text-accent-primary">Custom Game Rooms</button> instead.
+        <p className="text-sm text-text-primary flex items-start gap-2">
+          <Info className="w-5 h-5 text-accent-primary flex-shrink-0 mt-0.5" />
+          <span>
+            <strong>Standard Rules:</strong> All games use default settings (3×3 for Tic-Tac-Toe, 6×7 for Connect 4, Best of 5 for RPS, etc.). 
+            Want custom settings? Use <button onClick={() => navigate('/rooms')} className="underline font-semibold text-accent-primary">Custom Game Rooms</button> instead.
+          </span>
         </p>
       </div>
 
@@ -152,7 +186,6 @@ export default function Matchmaking() {
           <h2 className="text-xl font-semibold mb-4 text-text-primary">Select a Game</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {games.map((game) => {
-              const IconComponent = game.Icon
               return (
                 <button
                   key={game.id}
@@ -163,7 +196,18 @@ export default function Matchmaking() {
                       : 'border-border-subtle bg-surface-2 hover:border-accent-primary hover:shadow-md'
                   }`}
                 >
-                  <IconComponent className={`w-12 h-12 mb-2 ${game.iconColor}`} fill="currentColor" />
+                  <div className="flex gap-2 mb-2">
+                    {game.icons.map((icon, idx) => {
+                      const IconComponent = icon.Icon
+                      return (
+                        <IconComponent 
+                          key={idx} 
+                          className={`w-12 h-12 ${icon.color}`} 
+                          fill="currentColor" 
+                        />
+                      )
+                    })}
+                  </div>
                   <h3 className="text-lg font-semibold mb-1 text-text-primary">{game.name}</h3>
                   <p className="text-sm text-text-secondary">{game.description}</p>
                 </button>

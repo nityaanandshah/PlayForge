@@ -194,7 +194,7 @@ export default function Dashboard() {
       {invitations && invitations.length > 0 && (
         <div className="bg-surface-1 shadow-lifted rounded-xl p-8 border border-border-subtle border-l-4 border-l-accent-primary">
           <h3 className="text-2xl font-bold text-text-primary mb-6 flex items-center gap-3">
-            <Mail className="w-7 h-7 text-accent-primary" fill="currentColor" />
+            <Mail className="w-7 h-7 text-accent-primary" />
             Tournament Invitations
             <span className="ml-2 bg-accent-primary text-bg-main text-sm font-bold px-3 py-1 rounded-full">
               {invitations.length}
@@ -246,17 +246,17 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <button 
             onClick={handleQuickPlay}
-            className="bg-accent-primary text-bg-main px-8 py-6 rounded-xl hover:bg-accent-hover active:bg-accent-active transition-all shadow-elevated font-medium text-center"
+            className="bg-surface-2 text-text-primary border border-border-subtle px-8 py-6 rounded-xl hover:bg-surface-3 transition-all shadow-elevated font-medium text-center"
           >
-            <Zap className="w-10 h-10 mb-3 mx-auto" fill="currentColor" />
+            <Zap className="w-10 h-10 mb-3 mx-auto text-accent-primary" />
             <div className="font-bold text-lg mb-1">Quick Play</div>
-            <div className="text-sm opacity-90">Find match with standard rules</div>
+            <div className="text-sm text-text-secondary">Find match with standard rules</div>
           </button>
           <button 
             onClick={() => navigate('/rooms')}
             className="bg-surface-2 text-text-primary border border-border-subtle px-8 py-6 rounded-xl hover:bg-surface-3 transition-all shadow-elevated font-medium text-center"
           >
-            <Gamepad2 className="w-10 h-10 mb-3 mx-auto text-accent-primary" fill="currentColor" />
+            <Gamepad2 className="w-10 h-10 mb-3 mx-auto text-accent-primary" />
             <div className="font-bold text-lg mb-1">Custom Game</div>
             <div className="text-sm text-text-secondary">Create room with your rules</div>
           </button>
@@ -264,7 +264,7 @@ export default function Dashboard() {
             onClick={() => navigate('/tournaments')}
             className="bg-surface-2 text-text-primary border border-border-subtle px-8 py-6 rounded-xl hover:bg-surface-3 transition-all shadow-elevated font-medium text-center"
           >
-            <Trophy className="w-10 h-10 mb-3 mx-auto text-accent-primary" fill="currentColor" />
+            <Trophy className="w-10 h-10 mb-3 mx-auto text-accent-primary" />
             <div className="font-bold text-lg mb-1">Tournaments</div>
             <div className="text-sm text-text-secondary">Compete in brackets</div>
           </button>
@@ -314,7 +314,7 @@ export default function Dashboard() {
       <div className="bg-surface-1 shadow-elevated rounded-xl p-8 border border-border-subtle">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-2xl font-bold text-text-primary flex items-center gap-3">
-            <Inbox className="w-7 h-7 text-accent-primary" fill="currentColor" />
+            <Inbox className="w-7 h-7 text-accent-primary" />
             Recent Activity
             {notifications && notifications.filter(n => !n.read).length > 0 && (
               <span className="ml-2 bg-accent-primary text-bg-main text-sm font-bold px-3 py-1 rounded-full">
@@ -343,7 +343,7 @@ export default function Dashboard() {
         </div>
         {notifications && notifications.length > 0 ? (
           <div className="space-y-4">
-            {notifications.slice(0, 5).map((notification) => {
+            {notifications.slice(0, 2).map((notification) => {
               const isInvitation = notification.type === 'invitation_received'
               const invitation = isInvitation ? invitations?.find(inv => inv.id === notification.data?.invitation_id) : null
 
@@ -358,11 +358,11 @@ export default function Dashboard() {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
-                        {notification.type === 'invitation_received' && <Gamepad2 className="w-6 h-6 text-accent-primary" fill="currentColor" />}
-                        {notification.type === 'tournament_started' && <Trophy className="w-6 h-6 text-accent-primary" fill="currentColor" />}
-                        {notification.type === 'player_joined' && <Check className="w-6 h-6 text-success" fill="currentColor" />}
-                        {notification.type === 'invitation_accepted' && <Check className="w-6 h-6 text-success" fill="currentColor" />}
-                        {notification.type === 'invitation_declined' && <X className="w-6 h-6 text-danger" fill="currentColor" />}
+                        {notification.type === 'invitation_received' && <Gamepad2 className="w-6 h-6 text-accent-primary" />}
+                        {notification.type === 'tournament_started' && <Trophy className="w-6 h-6 text-accent-primary" />}
+                        {notification.type === 'player_joined' && <Check className="w-6 h-6 text-success" />}
+                        {notification.type === 'invitation_accepted' && <Check className="w-6 h-6 text-success" />}
+                        {notification.type === 'invitation_declined' && <X className="w-6 h-6 text-danger" />}
                         <h4 className="font-bold text-lg text-text-primary">{notification.title}</h4>
                         {!notification.read && (
                           <span className="bg-accent-primary text-bg-main text-xs px-3 py-1 rounded-full font-semibold">New</span>
@@ -414,7 +414,7 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="text-center py-12 text-text-muted">
-            <Bell className="w-20 h-20 mb-4 mx-auto text-text-disabled" fill="currentColor" />
+            <Bell className="w-20 h-20 mb-4 mx-auto text-text-disabled" />
             <p className="font-semibold text-lg text-text-secondary">No new notifications</p>
             <p className="text-sm mt-2">You'll see tournament invites, game starts, and player activity here</p>
           </div>

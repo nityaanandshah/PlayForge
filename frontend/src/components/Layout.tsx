@@ -37,7 +37,7 @@ export default function Layout({ children }: LayoutProps) {
               onClick={() => navigate('/dashboard')}
             >
               <div className="relative flex items-center gap-1.5">
-                <Zap className="w-3 h-3 text-accent-primary opacity-80 group-hover:opacity-100 transition-opacity" fill="currentColor" />
+                <Zap className="w-3 h-3 text-accent-primary opacity-80 group-hover:opacity-100 transition-opacity" />
                 <h1 
                   className="text-xl font-bold tracking-wider group-hover:tracking-widest transition-all"
                   style={{
@@ -74,7 +74,7 @@ export default function Layout({ children }: LayoutProps) {
                         : 'text-text-secondary hover:bg-surface-2 hover:text-text-primary'
                     }`}
                   >
-                    <IconComponent className="w-4 h-4" fill="currentColor" />
+                    <IconComponent className="w-4 h-4" />
                     {link.label}
                   </button>
                 )
@@ -90,7 +90,7 @@ export default function Layout({ children }: LayoutProps) {
                   <p className="font-semibold text-text-primary">{user?.username}</p>
                   <p className="text-text-muted text-xs">ELO: {user?.elo_rating}</p>
                 </div>
-                <User className="w-5 h-5 text-accent-primary" fill="currentColor" />
+                <User className="w-5 h-5 text-accent-primary" />
               </button>
               <button
                 onClick={handleLogout}

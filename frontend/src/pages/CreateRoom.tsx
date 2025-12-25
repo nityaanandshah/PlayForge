@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { roomApi } from '../lib/api';
 import type { RoomType, GameSettings } from '../types/room';
-import { X, Circle, Gamepad2 } from 'lucide-react';
+import { X, Circle, Gamepad2, Target } from 'lucide-react';
 
 export default function CreateRoom() {
   const navigate = useNavigate();
@@ -23,10 +23,41 @@ export default function CreateRoom() {
   const [connect4WinLength, setConnect4WinLength] = useState<number>(4);
 
   const games = [
-    { id: 'tictactoe', name: 'Tic-Tac-Toe', players: 2, Icon: X, iconColor: 'text-accent-primary' },
-    { id: 'connect4', name: 'Connect 4', players: 2, Icon: Circle, iconColor: 'text-accent-primary' },
-    { id: 'rps', name: 'Rock Paper Scissors', players: 2, Icon: Gamepad2, iconColor: 'text-accent-primary' },
-    { id: 'dotsandboxes', name: 'Dots & Boxes', players: 2, Icon: Circle, iconColor: 'text-accent-primary' },
+    { 
+      id: 'tictactoe', 
+      name: 'Tic-Tac-Toe', 
+      players: 2,
+      icons: [
+        { Icon: X, color: 'text-accent-primary' },
+        { Icon: Circle, color: 'text-accent-primary' }
+      ]
+    },
+    { 
+      id: 'connect4', 
+      name: 'Connect 4', 
+      players: 2,
+      icons: [
+        { Icon: Circle, color: 'text-accent-primary' },
+        { Icon: Circle, color: 'text-warning' }
+      ]
+    },
+    { 
+      id: 'rps', 
+      name: 'Rock Paper Scissors', 
+      players: 2,
+      icons: [
+        { Icon: Gamepad2, color: 'text-accent-primary' }
+      ]
+    },
+    { 
+      id: 'dotsandboxes', 
+      name: 'Dots & Boxes', 
+      players: 2,
+      icons: [
+        { Icon: Circle, color: 'text-accent-primary' },
+        { Icon: Circle, color: 'text-text-muted' }
+      ]
+    },
   ];
 
   const createRoom = async () => {
@@ -138,7 +169,18 @@ export default function CreateRoom() {
                       : 'border-border-subtle bg-surface-2 hover:border-accent-primary shadow-soft'
                   }`}
                 >
-                  <game.Icon className={`w-10 h-10 mb-2 ${game.iconColor}`} fill="currentColor" />
+                  <div className="flex gap-2 mb-2">
+                    {game.icons.map((icon, idx) => {
+                      const IconComponent = icon.Icon
+                      return (
+                        <IconComponent 
+                          key={idx} 
+                          className={`w-10 h-10 ${icon.color}`} 
+                          fill="currentColor" 
+                        />
+                      )
+                    })}
+                  </div>
                   <h3 className="font-bold mb-1 text-text-primary">{game.name}</h3>
                   <p className="text-sm text-text-secondary font-medium">
                     {game.players} players
@@ -171,7 +213,7 @@ export default function CreateRoom() {
                     : 'border-border-subtle bg-surface-2 hover:border-accent-primary shadow-soft'
                 }`}
               >
-                <h3 className="font-bold mb-2 text-text-primary">Quick Play</h3>
+                <h3 className="font-bold mb-2 text-text-primary">Public</h3>
                 <p className="text-sm text-text-secondary font-medium">Open to anyone</p>
               </button>
             </div>
@@ -180,8 +222,9 @@ export default function CreateRoom() {
           {/* Game-Specific Settings */}
           {gameType === 'rps' && (
             <div className="bg-surface-2 p-4 rounded-lg border-2 border-accent-primary">
-              <label className="block text-sm font-semibold mb-2 text-text-primary">
-                ✊✋✌️ Best of: {rpsBestOf} rounds
+              <label className="block text-sm font-semibold mb-2 text-text-primary flex items-center gap-2">
+                <Gamepad2 className="w-5 h-5 text-accent-primary" fill="currentColor" />
+                Best of: {rpsBestOf} rounds
               </label>
               <div className="flex gap-2">
                 {[3, 5, 7, 9].map((value) => (
@@ -206,8 +249,10 @@ export default function CreateRoom() {
 
           {gameType === 'dotsandboxes' && (
             <div className="bg-surface-2 p-4 rounded-lg border-2 border-accent-primary">
-              <label className="block text-sm font-semibold mb-2 text-text-primary">
-                ⚫📦 Grid Size: {dotsGridSize}x{dotsGridSize} ({(dotsGridSize-1) * (dotsGridSize-1)} boxes)
+              <label className="block text-sm font-semibold mb-2 text-text-primary flex items-center gap-2">
+                <Circle className="w-5 h-5 text-accent-primary" fill="currentColor" />
+                <Circle className="w-5 h-5 text-text-muted" fill="currentColor" />
+                Grid Size: {dotsGridSize}x{dotsGridSize} ({(dotsGridSize-1) * (dotsGridSize-1)} boxes)
               </label>
               <input
                 type="range"
@@ -229,8 +274,10 @@ export default function CreateRoom() {
 
           {gameType === 'tictactoe' && (
             <div className="bg-surface-2 p-4 rounded-lg border-2 border-accent-primary">
-              <label className="block text-sm font-semibold mb-2 text-text-primary">
-                ❌⭕ Grid Size: {tictactoeGridSize}x{tictactoeGridSize}
+              <label className="block text-sm font-semibold mb-2 text-text-primary flex items-center gap-2">
+                <X className="w-5 h-5 text-accent-primary" fill="currentColor" />
+                <Circle className="w-5 h-5 text-accent-primary" fill="currentColor" />
+                Grid Size: {tictactoeGridSize}x{tictactoeGridSize}
               </label>
               <div className="flex gap-2">
                 {[3, 4, 5].map((size) => (
@@ -257,8 +304,10 @@ export default function CreateRoom() {
             <div className="bg-surface-2 p-4 rounded-lg border-2 border-accent-primary">
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-semibold mb-2 text-text-primary">
-                    🔴🟡 Rows: {connect4Rows}
+                  <label className="block text-sm font-semibold mb-2 text-text-primary flex items-center gap-2">
+                    <Circle className="w-5 h-5 text-accent-primary" fill="currentColor" />
+                    <Circle className="w-5 h-5 text-warning" fill="currentColor" />
+                    Rows: {connect4Rows}
                   </label>
                   <input
                     type="range"
@@ -277,8 +326,10 @@ export default function CreateRoom() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-2 text-text-primary">
-                    🔴🟡 Columns: {connect4Cols}
+                  <label className="block text-sm font-semibold mb-2 text-text-primary flex items-center gap-2">
+                    <Circle className="w-5 h-5 text-accent-primary" fill="currentColor" />
+                    <Circle className="w-5 h-5 text-warning" fill="currentColor" />
+                    Columns: {connect4Cols}
                   </label>
                   <input
                     type="range"
@@ -297,8 +348,9 @@ export default function CreateRoom() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-2 text-text-primary">
-                    🎯 Win Length: {connect4WinLength} in a row
+                  <label className="block text-sm font-semibold mb-2 text-text-primary flex items-center gap-2">
+                    <Target className="w-5 h-5 text-accent-primary" />
+                    Win Length: {connect4WinLength} in a row
                   </label>
                   <input
                     type="range"
