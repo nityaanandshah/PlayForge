@@ -83,62 +83,73 @@ export default function DotsAndBoxesBoard({ state, currentUserId, onMove, disabl
   }
 
   const getPlayerColor = (ownerId: string | null) => {
-    if (!ownerId) return 'bg-gray-300'
-    return ownerId === state.player1_id ? 'bg-blue-500' : 'bg-red-500'
+    if (!ownerId) return '#3A342D' // border-subtle
+    return ownerId === state.player1_id ? '#5A7F6E' : '#6B7C8A' // Player A : Player B
   }
 
   const getBoxFillColor = (ownerId: string | null) => {
     if (!ownerId) return 'transparent'
-    return ownerId === state.player1_id ? '#DBEAFE' : '#FEE2E2' // blue-100 : red-100
+    return ownerId === state.player1_id ? 'rgba(90,127,110,0.35)' : 'rgba(107,124,138,0.35)' // Player A : Player B
   }
   
   const getBoxStrokeColor = (ownerId: string | null) => {
     if (!ownerId) return 'transparent'
-    return ownerId === state.player1_id ? '#60A5FA' : '#F87171' // blue-400 : red-400
+    return ownerId === state.player1_id ? '#5A7F6E' : '#6B7C8A' // Player A : Player B
+  }
+  
+  const getLineColor = (drawn: boolean, owner: string | null, useless: boolean, isHovered: boolean, canClick: boolean) => {
+    if (drawn) {
+      return owner === state.player1_id ? '#5A7F6E' : '#6B7C8A' // Player A : Player B
+    }
+    if (useless) return '#3A342D' // border-subtle
+    if (isHovered && canClick) return '#B8A77A' // Highlight color
+    return '#3A342D' // border-subtle (undrawn lines)
   }
 
   return (
-    <div className="flex flex-col items-center space-y-6">
-      {/* Score Board */}
-      <div className="w-full max-w-2xl bg-gradient-to-r from-blue-100 to-red-100 rounded-2xl p-6 shadow-xl">
-        <div className="flex justify-between items-center">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <div className={`w-6 h-6 rounded ${isPlayer1 ? 'bg-blue-500' : 'bg-red-500'} border-2 border-white shadow-md`}></div>
-              <div className="text-sm text-gray-600">Your Score</div>
-            </div>
-            <div className={`text-5xl font-bold ${isPlayer1 ? 'text-blue-600' : 'text-red-600'}`}>{myScore}</div>
+    <div className="flex items-center justify-center gap-8 w-full max-w-6xl mx-auto px-4">
+      {/* Left Side - Player Info & Your Score */}
+      <div className="flex flex-col gap-4 w-48">
+        {/* Your Score */}
+        <div className="bg-surface-1 rounded-xl p-5 shadow-elevated border border-border-subtle">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <div className="w-6 h-6 rounded border-2 shadow-md" style={{ backgroundColor: isPlayer1 ? '#5A7F6E' : '#6B7C8A', borderColor: '#3A342D' }}></div>
+            <div className="text-xs font-semibold text-text-secondary uppercase tracking-wide">Your Score</div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-700">Dots & Boxes</div>
-            <div className="text-sm text-gray-600 mt-1">{state.boxes.length} / {state.total_boxes} boxes</div>
-          </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <div className={`w-6 h-6 rounded ${isPlayer1 ? 'bg-red-500' : 'bg-blue-500'} border-2 border-white shadow-md`}></div>
-              <div className="text-sm text-gray-600">Opponent</div>
-            </div>
-            <div className={`text-5xl font-bold ${isPlayer1 ? 'text-red-600' : 'text-blue-600'}`}>{opponentScore}</div>
-          </div>
+          <div className="text-6xl font-bold text-center" style={{ color: isPlayer1 ? '#5A7F6E' : '#6B7C8A' }}>{myScore}</div>
         </div>
+
+        {/* Turn Indicator */}
+        {isMyTurn && !disabled && (
+          <div className="flex flex-col items-center gap-2 bg-warning-soft px-4 py-3 rounded-xl border-2 shadow-md animate-pulse" style={{ borderColor: '#C8A14A' }}>
+            <div className="w-3 h-3 rounded-full animate-ping" style={{ backgroundColor: '#C8A14A' }}></div>
+            <p className="text-sm font-bold text-bg-main">Your Turn!</p>
+          </div>
+        )}
+        {!isMyTurn && !disabled && (
+          <div className="flex flex-col items-center gap-2 bg-surface-2 px-4 py-3 rounded-xl border-2 border-border-subtle shadow-md">
+            <div className="w-3 h-3 bg-text-muted rounded-full"></div>
+            <p className="text-sm font-semibold text-text-secondary">Opponent's Turn</p>
+          </div>
+        )}
+
+        {/* Instructions */}
+        {isMyTurn && !disabled && (
+          <div className="text-center text-xs text-text-secondary bg-surface-2 px-3 py-2 rounded-lg border border-border-subtle">
+            💡 Click lines to draw them
+          </div>
+        )}
       </div>
 
-      {/* Turn Indicator */}
-      {isMyTurn && !disabled && (
-        <div className="flex items-center gap-3 bg-green-100 px-6 py-3 rounded-full border-2 border-green-400 shadow-md animate-pulse">
-          <div className="w-3 h-3 bg-green-500 rounded-full animate-ping"></div>
-          <p className="text-lg font-bold text-green-700">Your Turn!</p>
+      {/* Center - Game Board */}
+      <div className="flex flex-col items-center gap-4">
+        {/* Title */}
+        <div className="text-center">
+          <div className="text-2xl font-bold text-text-primary">Dots & Boxes</div>
+          <div className="text-sm text-text-secondary mt-1">{state.boxes.length} / {state.total_boxes} boxes</div>
         </div>
-      )}
-      {!isMyTurn && !disabled && (
-        <div className="flex items-center gap-3 bg-gray-100 px-6 py-3 rounded-full border-2 border-gray-300 shadow-md">
-          <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-          <p className="text-lg font-semibold text-gray-600">Opponent's Turn...</p>
-        </div>
-      )}
 
-      {/* Game Board */}
-      <div className="relative bg-white p-8 rounded-2xl shadow-2xl">
+        <div className="relative p-8 rounded-2xl shadow-elevated" style={{ backgroundColor: '#2B2621' }}>
         <svg
           width={CELL_SIZE * (COLS - 1) + DOT_SIZE}
           height={CELL_SIZE * (ROWS - 1) + DOT_SIZE}
@@ -197,7 +208,7 @@ export default function DotsAndBoxesBoard({ state, currentUserId, onMove, disabl
                     y1={DOT_SIZE / 2 + row * CELL_SIZE}
                     x2={DOT_SIZE / 2 + (col + 1) * CELL_SIZE}
                     y2={DOT_SIZE / 2 + row * CELL_SIZE}
-                    stroke={drawn ? (owner === state.player1_id ? '#3B82F6' : '#EF4444') : (useless ? '#F3F4F6' : (isHovered && canClick ? '#10B981' : '#D1D5DB'))}
+                    stroke={getLineColor(drawn, owner, useless, isHovered, canClick)}
                     strokeWidth={drawn ? 4 : (isHovered && canClick ? 3 : 2)}
                     strokeLinecap="round"
                     strokeDasharray={useless ? '5,5' : undefined}
@@ -238,7 +249,7 @@ export default function DotsAndBoxesBoard({ state, currentUserId, onMove, disabl
                     y1={DOT_SIZE / 2 + row * CELL_SIZE}
                     x2={DOT_SIZE / 2 + col * CELL_SIZE}
                     y2={DOT_SIZE / 2 + (row + 1) * CELL_SIZE}
-                    stroke={drawn ? (owner === state.player1_id ? '#3B82F6' : '#EF4444') : (useless ? '#F3F4F6' : (isHovered && canClick ? '#10B981' : '#D1D5DB'))}
+                    stroke={getLineColor(drawn, owner, useless, isHovered, canClick)}
                     strokeWidth={drawn ? 4 : (isHovered && canClick ? 3 : 2)}
                     strokeLinecap="round"
                     strokeDasharray={useless ? '5,5' : undefined}
@@ -258,19 +269,25 @@ export default function DotsAndBoxesBoard({ state, currentUserId, onMove, disabl
                 cx={DOT_SIZE / 2 + col * CELL_SIZE}
                 cy={DOT_SIZE / 2 + row * CELL_SIZE}
                 r={DOT_SIZE / 2}
-                fill="#374151"
+                fill="#C08A3E"
               />
             ))
           )}
         </svg>
+        </div>
       </div>
 
-      {/* Instructions */}
-      {isMyTurn && !disabled && (
-        <div className="text-center text-sm text-gray-600 bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
-          💡 Click on a line between dots to draw it. Complete boxes to score!
+      {/* Right Side - Opponent Score */}
+      <div className="flex flex-col gap-4 w-48">
+        {/* Opponent Score */}
+        <div className="bg-surface-1 rounded-xl p-5 shadow-elevated border border-border-subtle">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <div className="w-6 h-6 rounded border-2 shadow-md" style={{ backgroundColor: isPlayer1 ? '#6B7C8A' : '#5A7F6E', borderColor: '#3A342D' }}></div>
+            <div className="text-xs font-semibold text-text-secondary uppercase tracking-wide">Opponent</div>
+          </div>
+          <div className="text-6xl font-bold text-center" style={{ color: isPlayer1 ? '#6B7C8A' : '#5A7F6E' }}>{opponentScore}</div>
         </div>
-      )}
+      </div>
     </div>
   )
 }

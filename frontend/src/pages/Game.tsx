@@ -33,12 +33,18 @@ export default function Game() {
 
     // Check if spectating mode is requested
     const spectateMode = searchParams.get('spectate') === 'true'
+    const fromHistory = searchParams.get('from') === 'history'
 
     // Load game
     loadGame(spectateMode)
 
-    // Connect to WebSocket
-    connectWebSocket()
+    // Connect to WebSocket only if not viewing from history (completed games don't need real-time updates)
+    if (!fromHistory) {
+      connectWebSocket()
+    } else {
+      // Mark as connected for UI purposes when viewing history
+      setWsConnected(true)
+    }
 
     return () => {
       if (wsClient.current) {
@@ -229,6 +235,10 @@ export default function Game() {
     navigate('/dashboard')
   }
 
+  const handleBackToHistory = () => {
+    navigate('/history')
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -238,21 +248,33 @@ export default function Game() {
   }
 
   if (error) {
+    const fromHistory = searchParams.get('from') === 'history'
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
-        <div className="text-xl text-red-600 mb-4">{error}</div>
+        <div className="text-xl text-danger mb-4">{error}</div>
         <button
-          onClick={() => navigate('/dashboard')}
-          className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+          onClick={() => navigate(fromHistory ? '/history' : '/dashboard')}
+          className="px-4 py-2 bg-accent-primary text-bg-main rounded-md hover:bg-accent-hover"
         >
-          Back to Dashboard
+          {fromHistory ? 'Back to History' : 'Back to Dashboard'}
         </button>
       </div>
     )
   }
 
   if (!game) {
-    return <div>Game not found</div>
+    const fromHistory = searchParams.get('from') === 'history'
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="text-xl text-danger mb-4">Game not found</div>
+        <button
+          onClick={() => navigate(fromHistory ? '/history' : '/dashboard')}
+          className="px-4 py-2 bg-accent-primary text-bg-main rounded-md hover:bg-accent-hover"
+        >
+          {fromHistory ? 'Back to History' : 'Back to Dashboard'}
+        </button>
+      </div>
+    )
   }
 
   const isPlayer1 = game.player1_id === user?.id
@@ -282,90 +304,90 @@ export default function Game() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-8">
+    <div className="min-h-screen bg-bg-main py-8">
       <div className="max-w-5xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+          <h1 className="text-5xl font-extrabold text-accent-primary mb-4">
             {getGameTitle()}
           </h1>
           
           {/* Players Info */}
           <div className="flex justify-center items-center gap-8 mt-6">
             {/* Player 1 */}
-            <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl shadow-lg ${isPlayer1 ? 'bg-blue-500 text-white' : 'bg-white text-gray-700'}`}>
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-2xl font-bold text-blue-600">
+            <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl shadow-elevated ${isPlayer1 ? 'bg-accent-primary text-bg-main' : 'bg-surface-1 text-text-primary border border-border-subtle'}`}>
+              <div className="w-12 h-12 bg-surface-2 rounded-full flex items-center justify-center text-2xl font-bold text-accent-primary">
                 {isPlayer1 ? user?.username.charAt(0).toUpperCase() : game.player1_name?.charAt(0).toUpperCase()}
               </div>
               <div className="text-left">
                 <div className="font-bold">{isPlayer1 ? user?.username : game.player1_name}</div>
                 <div className="text-sm opacity-80">{playerSymbols.player1}</div>
               </div>
-              {isPlayer1 && <span className="ml-2 text-xs bg-white/20 px-2 py-1 rounded-full">You</span>}
+              {isPlayer1 && <span className="ml-2 text-xs bg-surface-3 px-2 py-1 rounded-full">You</span>}
             </div>
             
             {/* VS */}
-            <div className="text-3xl font-bold text-gray-400">VS</div>
+            <div className="text-3xl font-bold text-text-muted">VS</div>
             
             {/* Player 2 */}
-            <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl shadow-lg ${isPlayer2 ? 'bg-red-500 text-white' : 'bg-white text-gray-700'}`}>
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-2xl font-bold text-red-600">
+            <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl shadow-elevated ${isPlayer2 ? 'bg-accent-primary text-bg-main' : 'bg-surface-1 text-text-primary border border-border-subtle'}`}>
+              <div className="w-12 h-12 bg-surface-2 rounded-full flex items-center justify-center text-2xl font-bold text-accent-primary">
                 {isPlayer2 ? user?.username.charAt(0).toUpperCase() : game.player2_name?.charAt(0).toUpperCase() || '?'}
               </div>
               <div className="text-left">
                 <div className="font-bold">{isPlayer2 ? user?.username : game.player2_name || 'Waiting...'}</div>
                 <div className="text-sm opacity-80">{playerSymbols.player2}</div>
               </div>
-              {isPlayer2 && <span className="ml-2 text-xs bg-white/20 px-2 py-1 rounded-full">You</span>}
+              {isPlayer2 && <span className="ml-2 text-xs bg-surface-3 px-2 py-1 rounded-full">You</span>}
             </div>
           </div>
         </div>
 
         {/* Spectator Mode Indicator */}
         {isSpectating && (
-          <div className="mb-6 p-4 bg-purple-100 border-2 border-purple-300 rounded-xl text-center">
-            <p className="text-purple-800 font-semibold">👁️ Spectator Mode - Watch Only</p>
+          <div className="mb-6 p-4 bg-surface-2 border border-border-subtle rounded-xl text-center shadow-soft">
+            <p className="text-text-primary font-semibold">👁️ Spectator Mode - Watch Only</p>
           </div>
         )}
 
         {/* Connection Status */}
         {!wsConnected && (
-          <div className="mb-6 p-4 bg-yellow-100 border-2 border-yellow-300 rounded-xl text-center animate-pulse">
-            <p className="text-yellow-800 font-semibold">🔄 Connecting to game server...</p>
+          <div className="mb-6 p-4 bg-warning-soft border border-warning rounded-xl text-center animate-pulse">
+            <p className="text-warning font-semibold">🔄 Connecting to game server...</p>
           </div>
         )}
 
         {/* Game Status Messages */}
         {game.status === 'waiting' && (
-          <div className="mb-8 p-6 bg-blue-100 border-2 border-blue-300 rounded-2xl text-center shadow-lg">
-            <p className="text-2xl font-bold text-blue-900 mb-2">⏳ Waiting for opponent...</p>
-            <p className="text-sm text-blue-700">Share the game link with a friend to start playing!</p>
+          <div className="mb-8 p-6 bg-surface-2 border border-border-subtle rounded-2xl text-center shadow-elevated">
+            <p className="text-2xl font-bold text-text-primary mb-2">⏳ Waiting for opponent...</p>
+            <p className="text-sm text-text-secondary">Share the game link with a friend to start playing!</p>
           </div>
         )}
 
         {/* Victory/Defeat Banner - Only for Participants */}
         {game.status === 'completed' && (user!.id === game.player1_id || user!.id === game.player2_id) && (
-          <div className={`mb-6 p-6 rounded-2xl text-center shadow-2xl border-4 ${
+          <div className={`mb-6 p-6 rounded-2xl text-center shadow-floating border-2 ${
             game.winner_id === user?.id 
-              ? 'bg-gradient-to-r from-green-400 to-emerald-500 border-green-300' 
+              ? 'bg-success-soft border-success' 
               : game.winner_id 
-              ? 'bg-gradient-to-r from-red-400 to-rose-500 border-red-300'
-              : 'bg-gradient-to-r from-gray-400 to-slate-500 border-gray-300'
+              ? 'bg-danger-soft border-danger'
+              : 'bg-surface-2 border-border-subtle'
           }`}>
             {game.winner_id === user?.id && (
-              <div className="text-white">
+              <div className="text-success">
                 <p className="text-5xl font-extrabold mb-2">🎉 VICTORY! 🎉</p>
                 <p className="text-xl">You won the game!</p>
               </div>
             )}
             {game.winner_id && game.winner_id !== user?.id && (
-              <div className="text-white">
+              <div className="text-danger">
                 <p className="text-5xl font-extrabold mb-2">😞 DEFEAT</p>
                 <p className="text-xl">Better luck next time!</p>
               </div>
             )}
             {!game.winner_id && (
-              <div className="text-white">
+              <div className="text-text-primary">
                 <p className="text-5xl font-extrabold mb-2">🤝 DRAW</p>
                 <p className="text-xl">Well played by both!</p>
               </div>
@@ -375,8 +397,8 @@ export default function Game() {
 
         {/* Game Result Banner - For Spectators */}
         {game.status === 'completed' && (user!.id !== game.player1_id && user!.id !== game.player2_id) && (
-          <div className="mb-6 p-6 rounded-2xl text-center shadow-2xl border-4 bg-gradient-to-r from-purple-400 to-indigo-500 border-purple-300">
-            <div className="text-white">
+          <div className="mb-6 p-6 rounded-2xl text-center shadow-floating border-2 bg-accent-soft border-accent-primary">
+            <div className="text-text-primary">
               <p className="text-4xl font-extrabold mb-2">🏁 Game Completed</p>
               {game.winner_id === game.player1_id && (
                 <p className="text-xl">Winner: {game.player1_name} 🏆</p>
@@ -393,9 +415,9 @@ export default function Game() {
 
         {/* Spectator Notice */}
         {(user!.id !== game.player1_id && user!.id !== game.player2_id) && (
-          <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg text-center">
-            <p className="text-lg font-semibold text-blue-800">👁️ Spectator Mode</p>
-            <p className="text-sm text-blue-600">You are watching this game. Only participants can make moves.</p>
+          <div className="mb-6 p-4 bg-surface-2 border border-border-subtle rounded-lg text-center shadow-soft">
+            <p className="text-lg font-semibold text-text-primary">👁️ Spectator Mode</p>
+            <p className="text-sm text-text-secondary">You are watching this game. Only participants can make moves.</p>
           </div>
         )}
 
@@ -439,15 +461,15 @@ export default function Game() {
 
         {/* Spectator List - Collapsible */}
         {spectators.length > 0 && (
-          <div className="mb-8 bg-white rounded-xl shadow-lg border-2 border-purple-200 overflow-hidden">
+          <div className="mb-8 bg-surface-1 rounded-xl shadow-elevated border border-border-subtle overflow-hidden">
             <button
               onClick={() => setSpectatorsExpanded(!spectatorsExpanded)}
-              className="w-full flex items-center justify-between p-4 hover:bg-purple-50 transition-colors"
+              className="w-full flex items-center justify-between p-4 hover:bg-surface-2 transition-colors"
             >
-              <h3 className="text-lg font-bold text-gray-800">
+              <h3 className="text-lg font-bold text-text-primary">
                 👁️ Spectators ({spectators.length})
               </h3>
-              <div className="text-gray-500">
+              <div className="text-text-muted">
                 {spectatorsExpanded ? (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
@@ -466,12 +488,12 @@ export default function Game() {
                   {spectators.map((spectator) => (
                     <div
                       key={spectator.user_id}
-                      className="flex items-center gap-2 p-3 bg-purple-50 rounded-lg border border-purple-200"
+                      className="flex items-center gap-2 p-3 bg-surface-2 rounded-lg border border-border-subtle"
                     >
-                      <div className="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                      <div className="w-8 h-8 bg-accent-primary text-bg-main rounded-full flex items-center justify-center text-sm font-bold">
                         {spectator.username.charAt(0).toUpperCase()}
                       </div>
-                      <span className="text-sm font-medium text-gray-700 truncate">
+                      <span className="text-sm font-medium text-text-primary truncate">
                         {spectator.username}
                       </span>
                     </div>
@@ -484,27 +506,51 @@ export default function Game() {
 
         {/* Actions */}
         <div className="flex justify-center gap-4">
-          {/* Show "Back to Tournament" for tournament games, otherwise "Back to Dashboard" */}
+          {/* Show "Back to Tournament" for tournament games, otherwise check if coming from history */}
           {game.tournament_id ? (
             <button
               onClick={() => navigate(`/tournament/${game.tournament_id}`)}
-              className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl hover:scale-105"
+              className="px-8 py-3 bg-accent-primary text-bg-main rounded-xl font-semibold hover:bg-accent-hover transition-all shadow-elevated"
             >
               ← Back to Tournament
+            </button>
+          ) : searchParams.get('from') === 'history' ? (
+            <button
+              onClick={handleBackToHistory}
+              className="px-8 py-3 bg-accent-primary text-bg-main rounded-xl font-semibold hover:bg-accent-hover transition-all shadow-elevated"
+            >
+              ← Back to History
             </button>
           ) : (
             <>
               <button
                 onClick={handleBackToDashboard}
-                className="px-8 py-3 bg-gray-600 text-white rounded-xl font-semibold hover:bg-gray-700 transition-all shadow-lg hover:shadow-xl hover:scale-105"
+                className="px-8 py-3 bg-surface-3 text-text-primary border border-border-subtle rounded-xl font-semibold hover:bg-surface-2 transition-all shadow-soft"
               >
                 ← Back to Dashboard
               </button>
               {/* Only show "Play Again" button for actual players, not spectators */}
               {game.status === 'completed' && (isPlayer1 || isPlayer2) && (
                 <button
-                  onClick={() => navigate('/dashboard')}
-                  className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl hover:scale-105"
+                  onClick={async () => {
+                    console.log('🎮 Play Again clicked!');
+                    console.log('Current game ID:', game.id);
+                    console.log('Game status:', game.status);
+                    
+                    // Clear any existing matchmaking state by leaving queue
+                    try {
+                      console.log('Leaving queue before navigating to matchmaking...');
+                      await api.delete('/matchmaking/queue');
+                      console.log('Successfully left queue');
+                    } catch (err) {
+                      console.log('No queue to leave or already left:', err);
+                      // It's okay if this fails - user might not be in queue
+                    }
+                    
+                    console.log('Navigating to /matchmaking');
+                    navigate('/matchmaking');
+                  }}
+                  className="px-8 py-3 bg-accent-primary text-bg-main rounded-xl font-semibold hover:bg-accent-hover transition-all shadow-elevated"
                 >
                   🎮 Play Again
                 </button>
@@ -516,4 +562,5 @@ export default function Game() {
     </div>
   )
 }
+
 

@@ -142,10 +142,10 @@ export default function TournamentLobby() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'in_progress': return 'bg-blue-100 text-blue-800';
-      case 'complete': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'pending': return 'bg-surface-2 text-text-secondary';
+      case 'in_progress': return 'bg-warning-soft text-warning';
+      case 'complete': return 'bg-success-soft text-success';
+      default: return 'bg-surface-2 text-text-secondary';
     }
   };
 
@@ -181,14 +181,14 @@ export default function TournamentLobby() {
   if (!tournament) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-8 px-4">
+    <div className="min-h-screen bg-bg-main py-8 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="bg-surface-1 rounded-lg shadow-floating border border-border-subtle p-6 mb-6">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-1">{tournament.name}</h1>
-              <p className="text-gray-600">{getGameName(tournament.game_type)} • Single Elimination</p>
+              <h1 className="text-3xl font-bold text-text-primary mb-1">{tournament.name}</h1>
+              <p className="text-text-secondary">{getGameName(tournament.game_type)} • Single Elimination</p>
             </div>
             <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(tournament.status)}`}>
               {tournament.status.replace('_', ' ').toUpperCase()}
@@ -197,14 +197,14 @@ export default function TournamentLobby() {
 
           {/* Join Code for Private Tournaments */}
           {tournament.is_private && tournament.join_code && (isHost || isParticipant) && (
-            <div className="mt-4 p-4 bg-amber-50 border-2 border-amber-300 rounded-lg">
+            <div className="mt-4 p-4 bg-warning-soft border border-warning rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <p className="text-sm text-amber-800 font-semibold mb-1 flex items-center gap-1">
+                  <p className="text-sm text-warning font-semibold mb-1 flex items-center gap-1">
                     <Lock className="w-4 h-4" fill="currentColor" /> Private Tournament - Join Code:
                   </p>
-                  <p className="text-2xl font-mono font-bold text-amber-900 tracking-wider">{tournament.join_code}</p>
-                  <p className="text-xs text-amber-700 mt-1">Share this code with participants to join</p>
+                  <p className="text-2xl font-mono font-bold text-text-primary tracking-wider">{tournament.join_code}</p>
+                  <p className="text-xs text-text-secondary mt-1">Share this code with participants to join</p>
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -212,7 +212,7 @@ export default function TournamentLobby() {
                       navigator.clipboard.writeText(tournament.join_code || '');
                       alert('Join code copied to clipboard!');
                     }}
-                    className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition text-sm font-semibold flex items-center gap-1"
+                    className="px-4 py-2 bg-accent-primary text-bg-main rounded-lg hover:bg-accent-hover transition text-sm font-semibold flex items-center gap-1"
                   >
                     <Copy className="w-4 h-4" fill="currentColor" /> Copy Code
                   </button>
@@ -230,21 +230,21 @@ export default function TournamentLobby() {
           )}
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <p className="text-gray-600 text-sm">Participants</p>
-              <p className="text-2xl font-bold text-gray-800">{tournament.participants?.length || 0}</p>
+            <div className="text-center p-3 bg-surface-2 rounded-lg border border-border-subtle">
+              <p className="text-text-secondary text-sm">Participants</p>
+              <p className="text-2xl font-bold text-text-primary">{tournament.participants?.length || 0}</p>
             </div>
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <p className="text-gray-600 text-sm">Total Rounds</p>
-              <p className="text-2xl font-bold text-gray-800">{tournament.total_rounds || '-'}</p>
+            <div className="text-center p-3 bg-surface-2 rounded-lg border border-border-subtle">
+              <p className="text-text-secondary text-sm">Total Rounds</p>
+              <p className="text-2xl font-bold text-text-primary">{tournament.total_rounds || '-'}</p>
             </div>
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <p className="text-gray-600 text-sm">Current Round</p>
-              <p className="text-2xl font-bold text-gray-800">{tournament.current_round || '-'}</p>
+            <div className="text-center p-3 bg-surface-2 rounded-lg border border-border-subtle">
+              <p className="text-text-secondary text-sm">Current Round</p>
+              <p className="text-2xl font-bold text-text-primary">{tournament.current_round || '-'}</p>
             </div>
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <p className="text-gray-600 text-sm">Status</p>
-              <p className="text-2xl font-bold text-gray-800">
+            <div className="text-center p-3 bg-surface-2 rounded-lg border border-border-subtle">
+              <p className="text-text-secondary text-sm">Status</p>
+              <p className="text-2xl font-bold text-text-primary">
                 {tournament.status === 'complete' ? <Trophy className="w-8 h-8 mx-auto" fill="currentColor" /> : 
                  tournament.status === 'in_progress' ? <Play className="w-8 h-8 mx-auto" fill="currentColor" /> : 
                  <span>⏸️</span>}
@@ -254,7 +254,7 @@ export default function TournamentLobby() {
 
           {/* Error Message */}
           {error && (
-            <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            <div className="mt-4 p-4 bg-danger-soft border border-danger text-danger rounded-lg">
               {error}
             </div>
           )}
@@ -263,7 +263,7 @@ export default function TournamentLobby() {
           <div className="mt-4 flex gap-3">
             <button
               onClick={() => navigate('/tournaments')}
-              className="flex-1 px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold"
+              className="flex-1 px-6 py-2 bg-surface-3 text-text-primary border border-border-subtle rounded-lg hover:bg-surface-2 transition font-semibold"
             >
               ← Back
             </button>
@@ -271,7 +271,7 @@ export default function TournamentLobby() {
             {tournament.status === 'pending' && !isParticipant && (
               <button
                 onClick={handleJoinTournament}
-                className="flex-1 px-6 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition font-semibold flex items-center justify-center gap-2"
+                className="flex-1 px-6 py-2 bg-accent-primary text-bg-main rounded-lg hover:bg-accent-hover transition font-semibold flex items-center justify-center gap-2"
               >
                 {tournament.is_private ? <><Lock className="w-5 h-5" fill="currentColor" /> Join with Code</> : '➕ Join Tournament'}
               </button>
@@ -281,7 +281,7 @@ export default function TournamentLobby() {
               <button
                 onClick={handleStartTournament}
                 disabled={starting || (tournament.participants?.length || 0) < tournament.max_participants}
-                className="flex-1 px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 px-6 py-2 bg-success text-text-primary rounded-lg hover:bg-success-soft transition font-semibold disabled:bg-text-disabled disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {starting ? '⏳ Starting...' : <><Rocket className="w-5 h-5" fill="currentColor" /> Start Tournament</>}
               </button>
@@ -289,13 +289,13 @@ export default function TournamentLobby() {
           </div>
 
           {tournament.status === 'pending' && isHost && (tournament.participants?.length || 0) < tournament.max_participants && (
-            <p className="text-sm text-gray-600 mt-2 text-center">
+            <p className="text-sm text-text-secondary mt-2 text-center">
               Need {tournament.max_participants - (tournament.participants?.length || 0)} more participant(s) to start (must be full: {tournament.participants?.length || 0}/{tournament.max_participants})
             </p>
           )}
 
           {tournament.status === 'pending' && (tournament.participants?.length || 0) < 2 && (
-            <p className="mt-2 text-sm text-gray-500 text-center">
+            <p className="mt-2 text-sm text-text-muted text-center">
               Need at least 2 participants to start (must be power of 2: 2, 4, 8, 16, 32)
             </p>
           )}
@@ -303,22 +303,22 @@ export default function TournamentLobby() {
 
         {/* Participants (if pending) */}
         {tournament.status === 'pending' && (
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Participants ({tournament.participants?.length || 0})</h2>
+          <div className="bg-surface-1 rounded-lg shadow-floating border border-border-subtle p-6 mb-6">
+            <h2 className="text-xl font-bold text-text-primary mb-4">Participants ({tournament.participants?.length || 0})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {(tournament.participants || []).map((participant) => (
-                <div key={participant.user_id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-10 h-10 bg-indigo-500 text-white rounded-full flex items-center justify-center font-bold">
+                <div key={participant.user_id} className="flex items-center gap-3 p-3 bg-surface-2 rounded-lg">
+                  <div className="w-10 h-10 bg-accent-primary text-bg-main rounded-full flex items-center justify-center font-bold">
                     {participant.username.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-800">
+                    <p className="font-semibold text-text-primary">
                       {participant.username}
                       {participant.user_id === tournament.created_by && (
-                        <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">HOST</span>
+                        <span className="ml-2 text-xs bg-warning-soft text-warning px-2 py-0.5 rounded">HOST</span>
                       )}
                     </p>
-                    <p className="text-sm text-gray-600">Seed #{participant.seed} • ELO {participant.elo_rating}</p>
+                    <p className="text-sm text-text-secondary">Seed #{participant.seed} • ELO {participant.elo_rating}</p>
                   </div>
                 </div>
               ))}
@@ -328,14 +328,14 @@ export default function TournamentLobby() {
 
         {/* Bracket Visualization */}
         {tournament.bracket_data && tournament.bracket_data.rounds.length > 0 && (
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Tournament Bracket</h2>
+          <div className="bg-surface-1 rounded-lg shadow-floating border border-border-subtle p-6">
+            <h2 className="text-xl font-bold text-text-primary mb-4">Tournament Bracket</h2>
             
             <div className="overflow-x-auto">
               <div className="flex gap-8 min-w-max pb-4">
                 {tournament.bracket_data.rounds.map((round: BracketRound, roundIdx: number) => (
                   <div key={roundIdx} className="flex flex-col gap-4" style={{ minWidth: '250px' }}>
-                    <h3 className="text-center font-bold text-gray-700 mb-2">
+                    <h3 className="text-center font-bold text-text-primary mb-2">
                       {round.round_name}
                     </h3>
                     
@@ -345,25 +345,25 @@ export default function TournamentLobby() {
                           key={matchIdx}
                           className={`border-2 rounded-lg p-4 ${
                             match.status === 'complete'
-                              ? 'border-green-400 bg-green-50'
+                              ? 'border-success bg-success-soft'
                               : match.status === 'in_progress'
-                              ? 'border-blue-400 bg-blue-50'
+                              ? 'border-warning bg-warning-soft'
                               : match.status === 'ready'
-                              ? 'border-indigo-400 bg-indigo-50'
-                              : 'border-gray-300 bg-white'
+                              ? 'border-accent-primary bg-accent-soft'
+                              : 'border-border-subtle bg-surface-1'
                           }`}
                         >
-                          <div className="text-xs text-gray-500 mb-2 text-center">
+                          <div className="text-xs text-text-muted mb-2 text-center">
                             Match {match.match_number}
                           </div>
                           
                           {/* Player 1 */}
                           <div className={`flex items-center gap-2 p-2 rounded mb-2 ${
                             match.winner_id === match.player1_id
-                              ? 'bg-green-200 font-bold'
-                              : 'bg-gray-100'
+                              ? 'bg-success-soft font-bold'
+                              : 'bg-surface-2'
                           }`}>
-                            <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs">
+                            <div className="w-6 h-6 bg-accent-primary text-bg-main rounded-full flex items-center justify-center text-xs">
                               {match.player1_name ? match.player1_name.charAt(0).toUpperCase() : '?'}
                             </div>
                             <span className="text-sm flex-1">
@@ -372,13 +372,13 @@ export default function TournamentLobby() {
                             {match.winner_id === match.player1_id && <span>🏆</span>}
                           </div>
                           
-                          <div className="text-center text-gray-400 text-xs my-1">vs</div>
+                          <div className="text-center text-text-muted text-xs my-1">vs</div>
                           
                           {/* Player 2 */}
                           <div className={`flex items-center gap-2 p-2 rounded ${
                             match.winner_id === match.player2_id
-                              ? 'bg-green-200 font-bold'
-                              : 'bg-gray-100'
+                              ? 'bg-success-soft font-bold'
+                              : 'bg-surface-2'
                           }`}>
                             <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs">
                               {match.player2_name ? match.player2_name.charAt(0).toUpperCase() : '?'}
@@ -396,7 +396,7 @@ export default function TournamentLobby() {
                               {(match.player1_id === user?.id || match.player2_id === user?.id) ? (
                                 <button
                                   onClick={() => navigate(`/game/${match.match_id}`)}
-                                  className="w-full mt-3 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition shadow-md flex items-center justify-center gap-2"
+                                  className="w-full mt-3 px-4 py-2 bg-accent-primary text-bg-main rounded-lg text-sm font-semibold hover:bg-accent-hover transition shadow-elevated flex items-center justify-center gap-2"
                                 >
                                   <Play className="w-4 h-4" fill="currentColor" /> Play Game
                                 </button>
@@ -404,7 +404,7 @@ export default function TournamentLobby() {
                                 /* Watch button for spectators */
                                 <button
                                   onClick={() => navigate(`/game/${match.match_id}?spectate=true`)}
-                                  className="w-full mt-3 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700 transition shadow-md flex items-center justify-center gap-2"
+                                  className="w-full mt-3 px-4 py-2 bg-surface-3 text-text-primary border border-border-subtle rounded-lg text-sm font-semibold hover:bg-surface-2 transition shadow-soft flex items-center justify-center gap-2"
                                 >
                                   <Eye className="w-4 h-4" /> Watch Match
                                 </button>
@@ -416,7 +416,7 @@ export default function TournamentLobby() {
                           {match.status === 'in_progress' && match.match_id && (
                             <button
                               onClick={() => navigate(`/game/${match.match_id}?spectate=true`)}
-                              className="w-full mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition shadow-md flex items-center justify-center gap-2"
+                              className="w-full mt-3 px-4 py-2 bg-warning text-text-primary rounded-lg text-sm font-semibold hover:bg-warning-soft transition shadow-elevated flex items-center justify-center gap-2"
                             >
                               <span className="animate-pulse">🔴</span>
                               Watch Live
@@ -427,7 +427,7 @@ export default function TournamentLobby() {
                           {match.status === 'complete' && match.match_id && (
                             <button
                               onClick={() => navigate(`/game/${match.match_id}`)}
-                              className="w-full mt-3 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition shadow-md flex items-center justify-center gap-2"
+                              className="w-full mt-3 px-4 py-2 bg-success text-text-primary rounded-lg text-sm font-semibold hover:bg-success-soft transition shadow-elevated flex items-center justify-center gap-2"
                             >
                               <Eye className="w-4 h-4" /> View Replay
                             </button>
@@ -461,11 +461,11 @@ export default function TournamentLobby() {
             <h2 className="text-2xl font-bold mb-4 text-gray-800 flex items-center gap-2">
               <Lock className="w-7 h-7" fill="currentColor" /> Enter Join Code
             </h2>
-            <p className="text-gray-600 mb-4">This is a private tournament. Please enter the join code to participate.</p>
+            <p className="text-text-secondary mb-4">This is a private tournament. Please enter the join code to participate.</p>
             
             <form onSubmit={handleJoinWithCode}>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-text-secondary mb-1">
                   Join Code
                 </label>
                 <input
@@ -473,7 +473,7 @@ export default function TournamentLobby() {
                   value={joinCode}
                   onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                   placeholder="Enter code..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-lg tracking-wider uppercase"
+                  className="w-full px-4 py-3 border border-border-subtle rounded-lg bg-surface-3 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary font-mono text-lg tracking-wider uppercase"
                   required
                   autoFocus
                 />
@@ -493,13 +493,13 @@ export default function TournamentLobby() {
                     setJoinCode('');
                     setError('');
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                  className="flex-1 px-4 py-2 border border-border-subtle rounded-lg hover:bg-surface-2 transition text-text-primary"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition font-semibold"
+                  className="flex-1 px-4 py-2 bg-accent-primary text-bg-main rounded-lg hover:bg-accent-hover transition font-semibold"
                 >
                   Join Tournament
                 </button>
@@ -512,15 +512,15 @@ export default function TournamentLobby() {
       {/* Invite Players Modal */}
       {showInviteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800 flex items-center gap-2">
+          <div className="bg-surface-1 rounded-lg shadow-floating border border-border-subtle max-w-md w-full p-6">
+            <h2 className="text-2xl font-bold mb-4 text-text-primary flex items-center gap-2">
               <Mail className="w-7 h-7" fill="currentColor" /> Invite Player
             </h2>
-            <p className="text-gray-600 mb-4">Send a direct invitation to a user by entering their username.</p>
+            <p className="text-text-secondary mb-4">Send a direct invitation to a user by entering their username.</p>
             
             <form onSubmit={handleInviteUser}>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-text-secondary mb-1">
                   Username
                 </label>
                 <input
@@ -528,7 +528,7 @@ export default function TournamentLobby() {
                   value={inviteUsername}
                   onChange={(e) => setInviteUsername(e.target.value)}
                   placeholder="Enter username..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-4 py-3 border border-border-subtle rounded-lg bg-surface-3 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                   required
                   autoFocus
                   disabled={inviting}
@@ -542,7 +542,7 @@ export default function TournamentLobby() {
               )}
 
               {inviteSuccess && (
-                <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg text-sm">
+                <div className="mb-4 p-3 bg-success-soft border border-success text-success rounded-lg text-sm">
                   ✓ {inviteSuccess}
                 </div>
               )}
@@ -556,7 +556,7 @@ export default function TournamentLobby() {
                     setError('');
                     setInviteSuccess('');
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                  className="flex-1 px-4 py-2 border border-border-subtle rounded-lg hover:bg-surface-2 transition text-text-primary"
                   disabled={inviting}
                 >
                   Cancel
@@ -564,7 +564,7 @@ export default function TournamentLobby() {
                 <button
                   type="submit"
                   disabled={inviting}
-                  className="flex-1 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-accent-primary text-bg-main rounded-lg hover:bg-accent-hover transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {inviting ? 'Sending...' : 'Send Invitation'}
                 </button>

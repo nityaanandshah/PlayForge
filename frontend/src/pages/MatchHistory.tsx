@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../lib/api'
 import Layout from '../components/Layout'
 import { useAuth } from '../hooks/useAuth'
@@ -24,6 +25,7 @@ interface MatchHistoryResponse {
 
 const MatchHistory = () => {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [selectedGame, setSelectedGame] = useState<string>('all')
   const [matches, setMatches] = useState<MatchHistoryEntry[]>([])
   const [loading, setLoading] = useState<boolean>(true)
@@ -32,11 +34,11 @@ const MatchHistory = () => {
   const matchesPerPage = 5
 
   const games = [
-    { id: 'all', name: 'All Games', Icon: Gamepad2, iconColor: 'text-gray-600' },
-    { id: 'tictactoe', name: 'Tic-Tac-Toe', Icon: X, iconColor: 'text-blue-500' },
-    { id: 'connect4', name: 'Connect 4', Icon: Circle, iconColor: 'text-red-500' },
-    { id: 'rps', name: 'Rock Paper Scissors', Icon: Gamepad2, iconColor: 'text-purple-500' },
-    { id: 'dotsandboxes', name: 'Dots & Boxes', Icon: Circle, iconColor: 'text-indigo-500' },
+    { id: 'all', name: 'All Games', Icon: Gamepad2, iconColor: 'text-text-muted' },
+    { id: 'tictactoe', name: 'Tic-Tac-Toe', Icon: X, iconColor: 'text-tictactoe-x' },
+    { id: 'connect4', name: 'Connect 4', Icon: Circle, iconColor: 'text-connect4-red' },
+    { id: 'rps', name: 'Rock Paper Scissors', Icon: Gamepad2, iconColor: 'text-rps-icon' },
+    { id: 'dotsandboxes', name: 'Dots & Boxes', Icon: Circle, iconColor: 'text-dots-a' },
   ]
 
   useEffect(() => {
@@ -61,12 +63,12 @@ const MatchHistory = () => {
 
   const getMatchResult = (match: MatchHistoryEntry) => {
     if (!match.winner_id) {
-      return { text: 'Draw', color: 'text-gray-600', bg: 'bg-gray-100' }
+      return { text: 'Draw', color: 'text-text-muted', bg: 'bg-surface-2' }
     }
     if (match.winner_id === user?.id) {
-      return { text: 'Won', color: 'text-green-600', bg: 'bg-green-100' }
+      return { text: 'Won', color: 'text-success', bg: 'bg-success-soft' }
     }
-    return { text: 'Lost', color: 'text-red-600', bg: 'bg-red-100' }
+    return { text: 'Lost', color: 'text-danger', bg: 'bg-danger-soft' }
   }
 
   const getOpponentName = (match: MatchHistoryEntry) => {
@@ -104,8 +106,8 @@ const MatchHistory = () => {
   return (
     <Layout>
       <div className="space-y-8">
-        <div className="bg-white shadow-elevated rounded-xl p-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+        <div className="bg-surface-1 shadow-floating rounded-xl p-8 border border-border-subtle">
+          <h1 className="text-4xl font-bold text-text-primary mb-8 flex items-center gap-3">
             <ScrollText className="w-10 h-10" fill="currentColor" />
             Match History
           </h1>
@@ -120,8 +122,8 @@ const MatchHistory = () => {
                   onClick={() => setSelectedGame(game.id)}
                   className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 ${
                     selectedGame === game.id
-                      ? 'bg-blue-600 text-white shadow-elevated'
-                      : 'bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-50 hover:shadow-soft'
+                      ? 'bg-accent-primary text-bg-main shadow-elevated'
+                      : 'bg-surface-2 border border-border-subtle text-text-secondary hover:bg-surface-3 hover:shadow-soft'
                   }`}
                 >
                   <IconComponent 
@@ -137,14 +139,14 @@ const MatchHistory = () => {
           {/* Loading/Error States */}
           {loading && (
             <div className="text-center py-16">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
-              <p className="text-gray-600 text-lg font-medium mt-6">Loading match history...</p>
+              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-accent-primary mx-auto"></div>
+              <p className="text-text-secondary text-lg font-medium mt-6">Loading match history...</p>
             </div>
           )}
 
           {error && (
-            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-5 mb-8 shadow-soft">
-              <p className="text-red-600 font-medium">{error}</p>
+            <div className="bg-danger-soft border border-danger rounded-xl p-5 mb-8 shadow-soft">
+              <p className="text-danger font-medium">{error}</p>
             </div>
           )}
 
@@ -152,8 +154,8 @@ const MatchHistory = () => {
           {!loading && !error && (
             <>
               {matches.length === 0 ? (
-                <div className="text-center py-16 text-gray-500">
-                  <Gamepad2 className="w-24 h-24 mx-auto text-gray-300 mb-6" fill="currentColor" />
+                <div className="text-center py-16 text-text-muted">
+                  <Gamepad2 className="w-24 h-24 mx-auto text-text-disabled mb-6" fill="currentColor" />
                   <p className="text-xl font-semibold mb-2">No match history found.</p>
                   <p className="text-sm mt-2">Play some games to see your match history here!</p>
                 </div>
@@ -167,7 +169,8 @@ const MatchHistory = () => {
                       return (
                         <div
                           key={match.id}
-                          className="bg-white border border-gray-200 shadow-soft rounded-xl p-6 hover:shadow-elevated transition-all"
+                          onClick={() => navigate(`/game/${match.id}?from=history`)}
+                          className="bg-surface-2 border border-border-subtle shadow-soft rounded-xl p-6 hover:shadow-elevated transition-all cursor-pointer hover:border-accent-primary"
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
@@ -175,14 +178,14 @@ const MatchHistory = () => {
                                 {(() => {
                                   const game = games.find(g => g.id === match.game_type)
                                   const IconComponent = game?.Icon || Gamepad2
-                                  const iconColor = game?.iconColor || 'text-gray-600'
+                                  const iconColor = game?.iconColor || 'text-text-muted'
                                   return <IconComponent className={`w-8 h-8 ${iconColor}`} fill="currentColor" />
                                 })()}
                                 <div>
-                                  <h3 className="font-bold text-lg text-gray-900">
+                                  <h3 className="font-bold text-lg text-text-primary">
                                     {games.find(g => g.id === match.game_type)?.name || match.game_type}
                                   </h3>
-                                  <p className="text-sm text-gray-600 font-medium">
+                                  <p className="text-sm text-text-secondary font-medium">
                                     vs {opponent}
                                   </p>
                                 </div>
@@ -194,7 +197,7 @@ const MatchHistory = () => {
                                 <div className={`${result.bg} ${result.color} px-5 py-2 rounded-xl font-bold text-sm mb-2 shadow-soft`}>
                                   {result.text}
                                 </div>
-                                <p className="text-xs text-gray-500 font-medium">
+                                <p className="text-xs text-text-muted font-medium">
                                   {formatDate(match.started_at)}
                                 </p>
                               </div>
@@ -207,8 +210,8 @@ const MatchHistory = () => {
 
                   {/* Pagination Controls */}
                   {totalPages > 1 && (
-                    <div className="flex items-center justify-between mt-8 pt-8 border-t-2 border-gray-100">
-                      <div className="text-sm text-gray-600 font-semibold">
+                    <div className="flex items-center justify-between mt-8 pt-8 border-t border-border-subtle">
+                      <div className="text-sm text-text-secondary font-semibold">
                         Showing {startIndex + 1}-{Math.min(endIndex, matches.length)} of {matches.length} matches
                       </div>
                       
@@ -219,8 +222,8 @@ const MatchHistory = () => {
                           disabled={currentPage === 1}
                           className={`p-3 rounded-xl transition-all ${
                             currentPage === 1
-                              ? 'text-gray-400 cursor-not-allowed'
-                              : 'text-gray-700 hover:bg-gray-100 hover:shadow-soft'
+                              ? 'text-text-disabled cursor-not-allowed'
+                              : 'text-text-primary hover:bg-surface-3 hover:shadow-soft'
                           }`}
                           title="First Page"
                         >
@@ -233,8 +236,8 @@ const MatchHistory = () => {
                           disabled={currentPage === 1}
                           className={`p-3 rounded-xl transition-all ${
                             currentPage === 1
-                              ? 'text-gray-400 cursor-not-allowed'
-                              : 'text-gray-700 hover:bg-gray-100 hover:shadow-soft'
+                              ? 'text-text-disabled cursor-not-allowed'
+                              : 'text-text-primary hover:bg-surface-3 hover:shadow-soft'
                           }`}
                           title="Previous Page"
                         >
@@ -256,8 +259,8 @@ const MatchHistory = () => {
                                   onClick={() => goToPage(page)}
                                   className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
                                     currentPage === page
-                                      ? 'bg-blue-600 text-white shadow-elevated'
-                                      : 'text-gray-700 hover:bg-gray-100 hover:shadow-soft'
+                                      ? 'bg-accent-primary text-bg-main shadow-elevated'
+                                      : 'text-text-primary hover:bg-surface-3 hover:shadow-soft'
                                   }`}
                                 >
                                   {page}
@@ -268,7 +271,7 @@ const MatchHistory = () => {
                               page === currentPage + 2
                             ) {
                               return (
-                                <span key={page} className="px-3 text-gray-400 font-bold">
+                                <span key={page} className="px-3 text-text-disabled font-bold">
                                   ...
                                 </span>
                               )
@@ -283,8 +286,8 @@ const MatchHistory = () => {
                           disabled={currentPage === totalPages}
                           className={`p-3 rounded-xl transition-all ${
                             currentPage === totalPages
-                              ? 'text-gray-400 cursor-not-allowed'
-                              : 'text-gray-700 hover:bg-gray-100 hover:shadow-soft'
+                              ? 'text-text-disabled cursor-not-allowed'
+                              : 'text-text-primary hover:bg-surface-3 hover:shadow-soft'
                           }`}
                           title="Next Page"
                         >
@@ -297,8 +300,8 @@ const MatchHistory = () => {
                           disabled={currentPage === totalPages}
                           className={`p-3 rounded-xl transition-all ${
                             currentPage === totalPages
-                              ? 'text-gray-400 cursor-not-allowed'
-                              : 'text-gray-700 hover:bg-gray-100 hover:shadow-soft'
+                              ? 'text-text-disabled cursor-not-allowed'
+                              : 'text-text-primary hover:bg-surface-3 hover:shadow-soft'
                           }`}
                           title="Last Page"
                         >

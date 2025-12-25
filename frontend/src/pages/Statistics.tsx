@@ -25,10 +25,10 @@ const Statistics = () => {
   const [error, setError] = useState<string>('')
 
   const games = [
-    { id: 'tictactoe', name: 'Tic-Tac-Toe', Icon: X, bgColor: 'bg-blue-100', iconColor: 'text-blue-500' },
-    { id: 'connect4', name: 'Connect 4', Icon: Circle, bgColor: 'bg-yellow-100', iconColor: 'text-red-500' },
-    { id: 'rps', name: 'Rock Paper Scissors', Icon: Gamepad2, bgColor: 'bg-purple-100', iconColor: 'text-purple-500' },
-    { id: 'dotsandboxes', name: 'Dots & Boxes', Icon: Circle, bgColor: 'bg-green-100', iconColor: 'text-indigo-500' },
+    { id: 'tictactoe', name: 'Tic-Tac-Toe', Icon: X, bgColor: 'bg-surface-2', iconColor: 'text-tictactoe-x' },
+    { id: 'connect4', name: 'Connect 4', Icon: Circle, bgColor: 'bg-surface-2', iconColor: 'text-connect4-red' },
+    { id: 'rps', name: 'Rock Paper Scissors', Icon: Gamepad2, bgColor: 'bg-surface-2', iconColor: 'text-rps-icon' },
+    { id: 'dotsandboxes', name: 'Dots & Boxes', Icon: Circle, bgColor: 'bg-surface-2', iconColor: 'text-dots-a' },
   ]
 
   useEffect(() => {
@@ -62,16 +62,16 @@ const Statistics = () => {
   }
 
   const getWinRateColor = (winRate: number) => {
-    if (winRate >= 60) return 'text-green-600'
-    if (winRate >= 40) return 'text-yellow-600'
-    return 'text-red-600'
+    if (winRate >= 60) return 'text-success'
+    if (winRate >= 40) return 'text-warning'
+    return 'text-danger'
   }
 
   return (
     <Layout>
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white shadow-elevated rounded-xl p-8 mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-2">
+        <div className="bg-surface-1 shadow-floating rounded-xl p-8 mb-8 border border-border-subtle">
+          <h1 className="text-3xl font-bold text-text-primary mb-8 flex items-center gap-2">
             <BarChart3 className="w-8 h-8" fill="currentColor" />
             My Statistics
           </h1>
@@ -79,21 +79,21 @@ const Statistics = () => {
           {/* Loading/Error States */}
           {loading && (
             <div className="text-center py-16">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
-              <p className="text-gray-600 mt-6 text-lg font-medium">Loading statistics...</p>
+              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-accent-primary mx-auto"></div>
+              <p className="text-text-secondary mt-6 text-lg font-medium">Loading statistics...</p>
             </div>
           )}
 
           {error && (
-            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6 mb-8 shadow-soft">
-              <p className="text-red-600 font-medium">{error}</p>
+            <div className="bg-danger-soft border border-danger rounded-xl p-6 mb-8 shadow-soft">
+              <p className="text-danger font-medium">{error}</p>
             </div>
           )}
 
           {!loading && !error && allStats && (
             <>
               {/* Overall Stats Card */}
-              <div className="bg-indigo-600 rounded-xl p-10 mb-10 text-white shadow-elevated">
+              <div className="bg-accent-soft border border-accent-primary rounded-xl p-10 mb-10 shadow-elevated">
                 <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
                   <Trophy className="w-9 h-9" fill="currentColor" />
                   Overall Performance
@@ -159,38 +159,38 @@ const Statistics = () => {
                       </div>
 
                       <div className="grid grid-cols-3 gap-4 mb-4">
-                        <div className="text-center bg-white rounded-xl p-4 shadow-soft">
-                          <div className="text-2xl font-bold text-green-600 mb-1">{stats.wins}</div>
-                          <div className="text-xs text-gray-600 font-medium">Wins</div>
+                        <div className="text-center bg-success-soft border border-success rounded-xl p-4 shadow-soft">
+                          <div className="text-2xl font-bold text-success mb-1">{stats.wins}</div>
+                          <div className="text-xs text-text-secondary font-medium">Wins</div>
                         </div>
-                        <div className="text-center bg-white rounded-xl p-4 shadow-soft">
-                          <div className="text-2xl font-bold text-red-600 mb-1">{stats.losses}</div>
-                          <div className="text-xs text-gray-600 font-medium">Losses</div>
+                        <div className="text-center bg-danger-soft border border-danger rounded-xl p-4 shadow-soft">
+                          <div className="text-2xl font-bold text-danger mb-1">{stats.losses}</div>
+                          <div className="text-xs text-text-secondary font-medium">Losses</div>
                         </div>
-                        <div className="text-center bg-white rounded-xl p-4 shadow-soft">
-                          <div className="text-2xl font-bold text-gray-600 mb-1">{stats.draws}</div>
-                          <div className="text-xs text-gray-600 font-medium">Draws</div>
+                        <div className="text-center bg-surface-2 border border-border-subtle rounded-xl p-4 shadow-soft">
+                          <div className="text-2xl font-bold text-text-muted mb-1">{stats.draws}</div>
+                          <div className="text-xs text-text-secondary font-medium">Draws</div>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-white rounded-xl p-4 shadow-soft">
-                          <div className="text-sm text-gray-600 font-medium mb-1">Win Rate</div>
+                        <div className="bg-surface-3 border border-border-subtle rounded-xl p-4 shadow-soft">
+                          <div className="text-sm text-text-secondary font-medium mb-1">Win Rate</div>
                           <div className={`text-3xl font-bold ${getWinRateColor(winRate)}`}>
                             {winRate}%
                           </div>
                         </div>
-                        <div className="bg-white rounded-xl p-4 shadow-soft">
-                          <div className="text-sm text-gray-600 font-medium mb-1">Best Streak</div>
-                          <div className="text-3xl font-bold text-blue-600">
+                        <div className="bg-surface-3 border border-border-subtle rounded-xl p-4 shadow-soft">
+                          <div className="text-sm text-text-secondary font-medium mb-1">Best Streak</div>
+                          <div className="text-3xl font-bold text-accent-primary">
                             {stats.best_streak}
                           </div>
                         </div>
                       </div>
 
                       {stats.current_streak > 0 && (
-                        <div className="mt-4 bg-yellow-100 border-2 border-yellow-300 rounded-xl p-3 text-center shadow-soft">
-                          <span className="text-sm font-bold text-yellow-800">
+                        <div className="mt-4 bg-warning-soft border border-warning rounded-xl p-3 text-center shadow-soft">
+                          <span className="text-sm font-bold text-warning">
                             🔥 {stats.current_streak} win streak!
                           </span>
                         </div>
@@ -202,8 +202,8 @@ const Statistics = () => {
 
               {/* No games played message */}
               {allStats.total_games === 0 && (
-                <div className="text-center py-16 text-gray-500">
-                  <BarChart3 className="w-20 h-20 mx-auto text-gray-300 mb-4" fill="currentColor" />
+                <div className="text-center py-16 text-text-muted">
+                  <BarChart3 className="w-20 h-20 mx-auto text-text-disabled mb-4" fill="currentColor" />
                   <p className="text-xl font-semibold mb-2">You haven't played any games yet!</p>
                   <p className="text-sm mt-2">Start playing to see your statistics here.</p>
                 </div>

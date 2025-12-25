@@ -165,30 +165,30 @@ export default function Tournaments() {
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-surface-2 text-text-secondary';
       case 'in_progress':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-warning-soft text-warning';
       case 'complete':
-        return 'bg-green-100 text-green-800';
+        return 'bg-success-soft text-success';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return 'bg-danger-soft text-danger';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-surface-2 text-text-secondary';
     }
   };
 
   const getGameIcon = (gameType: string) => {
     switch (gameType) {
       case 'tictactoe':
-        return { Icon: X, color: 'text-blue-500' };
+        return { Icon: X, color: 'text-tictactoe-x' };
       case 'connect4':
-        return { Icon: Circle, color: 'text-red-500' };
+        return { Icon: Circle, color: 'text-connect4-red' };
       case 'rps':
-        return { Icon: Gamepad2, color: 'text-purple-500' };
+        return { Icon: Gamepad2, color: 'text-rps-icon' };
       case 'dotsandboxes':
-        return { Icon: Circle, color: 'text-indigo-500' };
+        return { Icon: Circle, color: 'text-dots-a' };
       default:
-        return { Icon: Gamepad2, color: 'text-gray-500' };
+        return { Icon: Gamepad2, color: 'text-text-muted' };
     }
   };
 
@@ -209,13 +209,13 @@ export default function Tournaments() {
 
   return (
     <>
-      <div className="bg-white shadow-elevated rounded-xl p-8">
+      <div className="bg-surface-1 shadow-floating rounded-xl p-8 border border-border-subtle">
         {/* Header */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <h1 className="text-3xl font-bold text-text-primary mb-6 flex items-center gap-2">
           <Trophy className="w-8 h-8" fill="currentColor" />
           Tournaments
         </h1>
-        <p className="text-gray-600 mb-6">
+        <p className="text-text-secondary mb-6">
           Join or create competitive tournaments
         </p>
 
@@ -225,7 +225,7 @@ export default function Tournaments() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-5 py-3 border-2 border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-soft font-medium"
+              className="px-5 py-3 border border-border-subtle rounded-xl bg-surface-2 focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-accent-primary shadow-soft font-medium text-text-primary"
             >
               <option value="all">All Tournaments</option>
               <option value="pending">Open for Join</option>
@@ -236,7 +236,7 @@ export default function Tournaments() {
             
             <button
               onClick={loadTournaments}
-              className="px-5 py-3 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-all shadow-soft hover:shadow-elevated flex items-center gap-2 font-medium"
+              className="px-5 py-3 bg-surface-2 border border-border-subtle rounded-xl hover:bg-surface-3 transition-all shadow-soft hover:shadow-elevated flex items-center gap-2 font-medium text-text-primary"
             >
               <RefreshCw className="w-5 h-5" fill="currentColor" />
               Refresh
@@ -245,7 +245,7 @@ export default function Tournaments() {
 
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-8 py-4 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-all shadow-elevated hover:shadow-lifted flex items-center gap-2"
+            className="px-8 py-4 bg-accent-primary text-bg-main rounded-xl font-semibold hover:bg-accent-hover transition-all shadow-elevated hover:shadow-lifted flex items-center gap-2"
           >
             <Plus className="w-6 h-6" fill="currentColor" />
             Create Tournament
@@ -254,7 +254,7 @@ export default function Tournaments() {
 
         {/* Error Message */}
         {error && (
-          <div className="p-5 bg-red-50 border-2 border-red-200 text-red-700 rounded-xl shadow-soft">
+          <div className="p-5 bg-danger-soft border border-danger text-danger rounded-xl shadow-soft">
             {error}
           </div>
         )}
@@ -262,17 +262,17 @@ export default function Tournaments() {
         {/* Loading State */}
         {loading && (
           <div className="py-16 text-center">
-            <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-indigo-600"></div>
-            <p className="mt-6 text-gray-600 text-lg font-medium">Loading tournaments...</p>
+            <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-accent-primary"></div>
+            <p className="mt-6 text-text-secondary text-lg font-medium">Loading tournaments...</p>
           </div>
         )}
 
         {/* Tournaments Grid */}
         {!loading && tournaments.length === 0 && (
           <div className="py-16 text-center">
-            <Trophy className="w-24 h-24 mx-auto text-gray-300 mb-6" fill="currentColor" />
-            <p className="text-gray-600 text-xl font-semibold mb-2">No tournaments found</p>
-            <p className="text-gray-500">Create one to get started!</p>
+            <Trophy className="w-24 h-24 mx-auto text-text-disabled mb-6" fill="currentColor" />
+            <p className="text-text-secondary text-xl font-semibold mb-2">No tournaments found</p>
+            <p className="text-text-muted">Create one to get started!</p>
           </div>
         )}
 
@@ -281,7 +281,7 @@ export default function Tournaments() {
             {tournaments.map((tournament) => (
               <div
                 key={tournament.id}
-                className="bg-gray-50 rounded-xl shadow-soft hover:shadow-elevated transition-all p-6 cursor-pointer border border-gray-200"
+                className="bg-surface-2 rounded-xl shadow-soft hover:shadow-elevated transition-all p-6 cursor-pointer border border-border-subtle"
                 onClick={() => navigate(`/tournament/${tournament.id}`)}
               >
                 {/* Tournament Header */}
@@ -293,17 +293,17 @@ export default function Tournaments() {
                     })()}
                     <div className="flex-1 min-w-0">
                       <h3 
-                        className="font-bold text-xl text-gray-900 truncate cursor-default mb-1" 
+                        className="font-bold text-xl text-text-primary truncate cursor-default mb-1" 
                         title={tournament.name}
                       >
                         {tournament.name}
                       </h3>
-                      <p className="text-sm text-gray-500">{getGameName(tournament.game_type)}</p>
+                      <p className="text-sm text-text-muted">{getGameName(tournament.game_type)}</p>
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2 flex-shrink-0 ml-3">
                     {tournament.is_private && (
-                      <span className="text-xs px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg flex items-center gap-1.5 font-semibold shadow-soft">
+                      <span className="text-xs px-3 py-1.5 bg-surface-3 text-text-secondary rounded-lg flex items-center gap-1.5 font-semibold shadow-soft">
                         <Lock className="w-3.5 h-3.5" fill="currentColor" />
                         Private
                       </span>
@@ -317,15 +317,15 @@ export default function Tournaments() {
                 {/* Tournament Info */}
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
-                    <span className="text-gray-600 font-medium">Participants:</span>
-                    <span className="font-bold text-gray-900">
+                    <span className="text-text-secondary font-medium">Participants:</span>
+                    <span className="font-bold text-text-primary">
                       {tournament.participants?.length || 0} / {tournament.max_participants || 0}
                     </span>
                   </div>
 
                   <div className="flex justify-between">
-                    <span className="text-gray-600 font-medium">Format:</span>
-                    <span className="font-bold text-gray-900">Single Elimination</span>
+                    <span className="text-text-secondary font-medium">Format:</span>
+                    <span className="font-bold text-text-primary">Single Elimination</span>
                   </div>
                 </div>
 
@@ -341,8 +341,8 @@ export default function Tournaments() {
                   }}
                   className={`w-full py-3.5 rounded-xl font-bold transition-all shadow-soft hover:shadow-elevated flex items-center justify-center gap-2 ${
                     tournament.status === 'pending'
-                      ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-accent-primary text-bg-main hover:bg-accent-hover'
+                      : 'bg-surface-2 text-text-secondary hover:bg-surface-3'
                   }`}
                 >
                   {tournament.status === 'pending' ? (
@@ -373,14 +373,14 @@ export default function Tournaments() {
       {/* Create Tournament Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6 my-8 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">Create Tournament</h2>
+          <div className="bg-surface-1 rounded-lg shadow-floating border border-border-subtle max-w-md w-full p-6 my-8 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-4 text-text-primary">Create Tournament</h2>
             
             <form onSubmit={handleCreateTournament}>
               <div className="space-y-4">
                 {/* Tournament Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-text-secondary mb-1">
                     Tournament Name
                   </label>
                   <input
@@ -388,20 +388,20 @@ export default function Tournaments() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g., Friday Night Championship"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 border border-border-subtle rounded-lg bg-surface-3 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                     required
                   />
                 </div>
 
                 {/* Game Type */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-text-secondary mb-1">
                     Game Type
                   </label>
                   <select
                     value={gameType}
                     onChange={(e) => setGameType(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 border border-border-subtle rounded-lg bg-surface-3 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                   >
                     <option value="tictactoe">Tic-Tac-Toe</option>
                     <option value="connect4">Connect-4</option>
@@ -412,13 +412,13 @@ export default function Tournaments() {
 
                 {/* Max Participants */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-text-secondary mb-1">
                     Max Participants (Power of 2)
                   </label>
                   <select
                     value={maxParticipants}
                     onChange={(e) => setMaxParticipants(parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-3 py-2 border border-border-subtle rounded-lg bg-surface-3 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                   >
                     <option value="4">4 Players</option>
                     <option value="8">8 Players</option>
@@ -429,7 +429,7 @@ export default function Tournaments() {
 
                 {/* Privacy Toggle */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-text-secondary mb-2">
                     Tournament Privacy
                   </label>
                   <div className="flex gap-4">
@@ -441,7 +441,7 @@ export default function Tournaments() {
                         onChange={() => setIsPrivate(false)}
                         className="mr-2"
                       />
-                      <span className="text-sm">🌍 Public (Anyone can join)</span>
+                      <span className="text-sm text-text-primary">🌍 Public (Anyone can join)</span>
                     </label>
                     <label className="flex items-center cursor-pointer">
                       <input
@@ -451,7 +451,7 @@ export default function Tournaments() {
                         onChange={() => setIsPrivate(true)}
                         className="mr-2"
                       />
-                      <span className="text-sm">🔒 Private (Requires code)</span>
+                      <span className="text-sm text-text-primary">🔒 Private (Requires code)</span>
                     </label>
                   </div>
                 </div>
@@ -459,13 +459,13 @@ export default function Tournaments() {
                 {/* Game-Specific Settings */}
                 {gameType === 'tictactoe' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-text-secondary mb-1">
                       Grid Size
                     </label>
                     <select
                       value={tictactoeGridSize}
                       onChange={(e) => setTictactoeGridSize(parseInt(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-border-subtle rounded-lg bg-surface-3 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                     >
                       <option value="3">3×3 (Classic)</option>
                       <option value="4">4×4</option>
@@ -477,36 +477,36 @@ export default function Tournaments() {
                 {gameType === 'connect4' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-text-secondary mb-1">
                         Board Size
                       </label>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="text-xs text-gray-500">Rows</label>
+                          <label className="text-xs text-text-muted">Rows</label>
                           <input
                             type="number"
                             min="4"
                             max="10"
                             value={connect4Rows}
                             onChange={(e) => setConnect4Rows(parseInt(e.target.value) || 6)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full px-3 py-2 border border-border-subtle rounded-lg bg-surface-3 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                           />
                         </div>
                         <div>
-                          <label className="text-xs text-gray-500">Columns</label>
+                          <label className="text-xs text-text-muted">Columns</label>
                           <input
                             type="number"
                             min="4"
                             max="10"
                             value={connect4Cols}
                             onChange={(e) => setConnect4Cols(parseInt(e.target.value) || 7)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full px-3 py-2 border border-border-subtle rounded-lg bg-surface-3 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                           />
                         </div>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-text-secondary mb-1">
                         Win Length
                       </label>
                       <input
@@ -515,7 +515,7 @@ export default function Tournaments() {
                         max="7"
                         value={connect4WinLength}
                         onChange={(e) => setConnect4WinLength(parseInt(e.target.value) || 4)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-3 py-2 border border-border-subtle rounded-lg bg-surface-3 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                       />
                     </div>
                   </>
@@ -523,13 +523,13 @@ export default function Tournaments() {
 
                 {gameType === 'rps' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-text-secondary mb-1">
                       Best Of
                     </label>
                     <select
                       value={rpsBestOf}
                       onChange={(e) => setRpsBestOf(parseInt(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-border-subtle rounded-lg bg-surface-3 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                     >
                       <option value="3">Best of 3</option>
                       <option value="5">Best of 5 (Recommended)</option>
@@ -541,13 +541,13 @@ export default function Tournaments() {
 
                 {gameType === 'dotsandboxes' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-text-secondary mb-1">
                       Grid Size (Dots)
                     </label>
                     <select
                       value={dotsGridSize}
                       onChange={(e) => setDotsGridSize(parseInt(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-3 py-2 border border-border-subtle rounded-lg bg-surface-3 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary"
                     >
                       <option value="4">4×4 dots (3×3 boxes)</option>
                       <option value="5">5×5 dots (4×4 boxes) - Classic</option>
@@ -568,14 +568,14 @@ export default function Tournaments() {
                     setName('');
                     setError('');
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                  className="flex-1 px-4 py-2 border border-border-subtle rounded-lg hover:bg-surface-2 transition text-text-primary"
                   disabled={creating}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition disabled:bg-gray-400"
+                  className="flex-1 px-4 py-2 bg-accent-primary text-bg-main rounded-lg hover:bg-accent-hover transition disabled:bg-text-disabled"
                   disabled={creating}
                 >
                   {creating ? 'Creating...' : 'Create'}
@@ -589,13 +589,13 @@ export default function Tournaments() {
       {/* Join Code Modal */}
       {showJoinCodeModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">🔒 Enter Join Code</h2>
-            <p className="text-gray-600 mb-4">This is a private tournament. Please enter the join code to participate.</p>
+          <div className="bg-surface-1 rounded-lg shadow-floating border border-border-subtle max-w-md w-full p-6">
+            <h2 className="text-2xl font-bold mb-4 text-text-primary">🔒 Enter Join Code</h2>
+            <p className="text-text-secondary mb-4">This is a private tournament. Please enter the join code to participate.</p>
             
             <form onSubmit={handleJoinWithCode}>
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-text-secondary mb-1">
                   Join Code
                 </label>
                 <input
@@ -603,14 +603,14 @@ export default function Tournaments() {
                   value={joinCode}
                   onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                   placeholder="Enter code..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-lg tracking-wider uppercase"
+                  className="w-full px-4 py-3 border border-border-subtle rounded-lg bg-surface-3 text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary font-mono text-lg tracking-wider uppercase"
                   required
                   autoFocus
                 />
               </div>
 
               {error && (
-                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                <div className="mb-4 p-3 bg-danger-soft border border-danger text-danger rounded-lg text-sm">
                   {error}
                 </div>
               )}
@@ -623,13 +623,13 @@ export default function Tournaments() {
                     setJoinCode('');
                     setError('');
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                  className="flex-1 px-4 py-2 border border-border-subtle rounded-lg hover:bg-surface-2 transition text-text-primary"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition font-semibold"
+                  className="flex-1 px-4 py-2 bg-accent-primary text-bg-main rounded-lg hover:bg-accent-hover transition font-semibold"
                 >
                   Join Tournament
                 </button>

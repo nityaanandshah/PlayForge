@@ -23,10 +23,10 @@ export default function CreateRoom() {
   const [connect4WinLength, setConnect4WinLength] = useState<number>(4);
 
   const games = [
-    { id: 'tictactoe', name: 'Tic-Tac-Toe', players: 2, Icon: X, iconColor: 'text-blue-500' },
-    { id: 'connect4', name: 'Connect 4', players: 2, Icon: Circle, iconColor: 'text-red-500' },
-    { id: 'rps', name: 'Rock Paper Scissors', players: 2, Icon: Gamepad2, iconColor: 'text-purple-500' },
-    { id: 'dotsandboxes', name: 'Dots & Boxes', players: 2, Icon: Circle, iconColor: 'text-indigo-500' },
+    { id: 'tictactoe', name: 'Tic-Tac-Toe', players: 2, Icon: X, iconColor: 'text-accent-primary' },
+    { id: 'connect4', name: 'Connect 4', players: 2, Icon: Circle, iconColor: 'text-accent-primary' },
+    { id: 'rps', name: 'Rock Paper Scissors', players: 2, Icon: Gamepad2, iconColor: 'text-accent-primary' },
+    { id: 'dotsandboxes', name: 'Dots & Boxes', players: 2, Icon: Circle, iconColor: 'text-accent-primary' },
   ];
 
   const createRoom = async () => {
@@ -87,7 +87,7 @@ export default function CreateRoom() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-10">Rooms</h1>
+      <h1 className="text-3xl font-bold mb-10 text-text-primary">Rooms</h1>
 
       {/* Mode Toggle */}
       <div className="flex gap-4 mb-8">
@@ -95,8 +95,8 @@ export default function CreateRoom() {
           onClick={() => setMode('create')}
           className={`flex-1 py-4 px-6 rounded-xl font-semibold transition-all ${
             mode === 'create'
-              ? 'bg-blue-600 text-white shadow-elevated'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300 shadow-soft'
+              ? 'bg-accent-primary text-bg-main shadow-elevated'
+              : 'bg-surface-2 text-text-secondary border border-border-subtle hover:bg-surface-3 shadow-soft'
           }`}
         >
           Create Room
@@ -105,8 +105,8 @@ export default function CreateRoom() {
           onClick={() => setMode('join')}
           className={`flex-1 py-4 px-6 rounded-xl font-semibold transition-all ${
             mode === 'join'
-              ? 'bg-blue-600 text-white shadow-elevated'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300 shadow-soft'
+              ? 'bg-accent-primary text-bg-main shadow-elevated'
+              : 'bg-surface-2 text-text-secondary border border-border-subtle hover:bg-surface-3 shadow-soft'
           }`}
         >
           Join by Code
@@ -114,7 +114,7 @@ export default function CreateRoom() {
       </div>
 
       {error && (
-        <div className="bg-red-100 border-2 border-red-400 text-red-700 px-6 py-4 rounded-xl mb-6 shadow-soft">
+        <div className="bg-danger-soft border-2 border-danger text-danger px-6 py-4 rounded-xl mb-6 shadow-soft">
           {error}
         </div>
       )}
@@ -123,7 +123,7 @@ export default function CreateRoom() {
         <div className="space-y-8">
           {/* Game Selection */}
           <div>
-            <label className="block text-base font-bold mb-4">Select Game</label>
+            <label className="block text-base font-bold mb-4 text-text-primary">Select Game</label>
             <div className="grid grid-cols-2 gap-4">
               {games.map((game) => (
                 <button
@@ -134,13 +134,13 @@ export default function CreateRoom() {
                   }}
                   className={`p-6 rounded-xl border-2 text-left transition-all cursor-pointer ${
                     gameType === game.id
-                      ? 'border-blue-500 bg-blue-50 shadow-elevated'
-                      : 'border-gray-300 hover:border-blue-400 shadow-soft'
+                      ? 'border-accent-primary bg-accent-soft shadow-elevated'
+                      : 'border-border-subtle bg-surface-2 hover:border-accent-primary shadow-soft'
                   }`}
                 >
                   <game.Icon className={`w-10 h-10 mb-2 ${game.iconColor}`} fill="currentColor" />
-                  <h3 className="font-bold mb-1">{game.name}</h3>
-                  <p className="text-sm text-gray-600 font-medium">
+                  <h3 className="font-bold mb-1 text-text-primary">{game.name}</h3>
+                  <p className="text-sm text-text-secondary font-medium">
                     {game.players} players
                   </p>
                 </button>
@@ -150,37 +150,37 @@ export default function CreateRoom() {
 
           {/* Room Type */}
           <div>
-            <label className="block text-base font-bold mb-4">Room Type</label>
+            <label className="block text-base font-bold mb-4 text-text-primary">Room Type</label>
             <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => setRoomType('private')}
                 className={`p-6 rounded-xl border-2 text-left transition-all ${
                   roomType === 'private'
-                    ? 'border-blue-500 bg-blue-50 shadow-elevated'
-                    : 'border-gray-300 hover:border-gray-400 shadow-soft'
+                    ? 'border-accent-primary bg-accent-soft shadow-elevated'
+                    : 'border-border-subtle bg-surface-2 hover:border-accent-primary shadow-soft'
                 }`}
               >
-                <h3 className="font-bold mb-2">Private</h3>
-                <p className="text-sm text-gray-600 font-medium">Invite friends with code</p>
+                <h3 className="font-bold mb-2 text-text-primary">Private</h3>
+                <p className="text-sm text-text-secondary font-medium">Invite friends with code</p>
               </button>
               <button
                 onClick={() => setRoomType('quickplay')}
                 className={`p-6 rounded-xl border-2 text-left transition-all ${
                   roomType === 'quickplay'
-                    ? 'border-blue-500 bg-blue-50 shadow-elevated'
-                    : 'border-gray-300 hover:border-gray-400 shadow-soft'
+                    ? 'border-accent-primary bg-accent-soft shadow-elevated'
+                    : 'border-border-subtle bg-surface-2 hover:border-accent-primary shadow-soft'
                 }`}
               >
-                <h3 className="font-bold mb-2">Quick Play</h3>
-                <p className="text-sm text-gray-600 font-medium">Open to anyone</p>
+                <h3 className="font-bold mb-2 text-text-primary">Quick Play</h3>
+                <p className="text-sm text-text-secondary font-medium">Open to anyone</p>
               </button>
             </div>
           </div>
 
           {/* Game-Specific Settings */}
           {gameType === 'rps' && (
-            <div className="bg-purple-50 p-4 rounded-lg border-2 border-purple-200">
-              <label className="block text-sm font-semibold mb-2">
+            <div className="bg-surface-2 p-4 rounded-lg border-2 border-accent-primary">
+              <label className="block text-sm font-semibold mb-2 text-text-primary">
                 ✊✋✌️ Best of: {rpsBestOf} rounds
               </label>
               <div className="flex gap-2">
@@ -190,23 +190,23 @@ export default function CreateRoom() {
                     onClick={() => setRpsBestOf(value)}
                     className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all ${
                       rpsBestOf === value
-                        ? 'bg-purple-600 text-white shadow-lg'
-                        : 'bg-white text-gray-700 hover:bg-purple-100 border-2 border-purple-300'
+                        ? 'bg-accent-primary text-bg-main shadow-lg'
+                        : 'bg-surface-3 text-text-primary hover:bg-surface-2 border-2 border-border-subtle'
                     }`}
                   >
                     {value}
                   </button>
                 ))}
               </div>
-              <p className="text-xs text-gray-600 mt-2">
+              <p className="text-xs text-text-muted mt-2">
                 First to win {Math.ceil(rpsBestOf / 2)} rounds wins the game
               </p>
             </div>
           )}
 
           {gameType === 'dotsandboxes' && (
-            <div className="bg-green-50 p-4 rounded-lg border-2 border-green-200">
-              <label className="block text-sm font-semibold mb-2">
+            <div className="bg-surface-2 p-4 rounded-lg border-2 border-accent-primary">
+              <label className="block text-sm font-semibold mb-2 text-text-primary">
                 ⚫📦 Grid Size: {dotsGridSize}x{dotsGridSize} ({(dotsGridSize-1) * (dotsGridSize-1)} boxes)
               </label>
               <input
@@ -215,9 +215,9 @@ export default function CreateRoom() {
                 max="8"
                 value={dotsGridSize}
                 onChange={(e) => setDotsGridSize(parseInt(e.target.value))}
-                className="w-full"
+                className="w-full accent-accent-primary"
               />
-              <div className="flex justify-between text-xs text-gray-600 mt-1">
+              <div className="flex justify-between text-xs text-text-muted mt-1">
                 <span>4x4 (9 boxes)</span>
                 <span>5x5 (16 boxes)</span>
                 <span>6x6 (25 boxes)</span>
@@ -228,8 +228,8 @@ export default function CreateRoom() {
           )}
 
           {gameType === 'tictactoe' && (
-            <div className="bg-indigo-50 p-4 rounded-lg border-2 border-indigo-200">
-              <label className="block text-sm font-semibold mb-2">
+            <div className="bg-surface-2 p-4 rounded-lg border-2 border-accent-primary">
+              <label className="block text-sm font-semibold mb-2 text-text-primary">
                 ❌⭕ Grid Size: {tictactoeGridSize}x{tictactoeGridSize}
               </label>
               <div className="flex gap-2">
@@ -239,25 +239,25 @@ export default function CreateRoom() {
                     onClick={() => setTictactoeGridSize(size)}
                     className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all ${
                       tictactoeGridSize === size
-                        ? 'bg-indigo-600 text-white shadow-lg'
-                        : 'bg-white text-gray-700 hover:bg-indigo-100 border-2 border-indigo-300'
+                        ? 'bg-accent-primary text-bg-main shadow-lg'
+                        : 'bg-surface-3 text-text-primary hover:bg-surface-2 border-2 border-border-subtle'
                     }`}
                   >
                     {size}x{size}
                   </button>
                 ))}
               </div>
-              <p className="text-xs text-gray-600 mt-2">
+              <p className="text-xs text-text-muted mt-2">
                 Win by getting {tictactoeGridSize} in a row
               </p>
             </div>
           )}
 
           {gameType === 'connect4' && (
-            <div className="bg-orange-50 p-4 rounded-lg border-2 border-orange-200">
+            <div className="bg-surface-2 p-4 rounded-lg border-2 border-accent-primary">
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-semibold mb-2">
+                  <label className="block text-sm font-semibold mb-2 text-text-primary">
                     🔴🟡 Rows: {connect4Rows}
                   </label>
                   <input
@@ -273,11 +273,11 @@ export default function CreateRoom() {
                         setConnect4WinLength(Math.min(newRows, connect4Cols));
                       }
                     }}
-                    className="w-full"
+                    className="w-full accent-accent-primary"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-2">
+                  <label className="block text-sm font-semibold mb-2 text-text-primary">
                     🔴🟡 Columns: {connect4Cols}
                   </label>
                   <input
@@ -293,11 +293,11 @@ export default function CreateRoom() {
                         setConnect4WinLength(Math.min(connect4Rows, newCols));
                       }
                     }}
-                    className="w-full"
+                    className="w-full accent-accent-primary"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-2">
+                  <label className="block text-sm font-semibold mb-2 text-text-primary">
                     🎯 Win Length: {connect4WinLength} in a row
                   </label>
                   <input
@@ -306,11 +306,11 @@ export default function CreateRoom() {
                     max={Math.min(6, Math.min(connect4Rows, connect4Cols))}
                     value={connect4WinLength}
                     onChange={(e) => setConnect4WinLength(parseInt(e.target.value))}
-                    className="w-full"
+                    className="w-full accent-accent-primary"
                   />
                 </div>
               </div>
-              <p className="text-xs text-gray-600 mt-2">
+              <p className="text-xs text-text-muted mt-2">
                 Board: {connect4Rows}x{connect4Cols}, Win: {connect4WinLength} in a row
               </p>
             </div>
@@ -319,7 +319,7 @@ export default function CreateRoom() {
           <button
             onClick={createRoom}
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="w-full bg-accent-primary text-bg-main py-3 rounded-lg font-semibold hover:bg-accent-hover active:bg-accent-active disabled:bg-text-disabled disabled:cursor-not-allowed transition-all"
           >
             {loading ? 'Creating...' : 'Create Room'}
           </button>
@@ -327,16 +327,16 @@ export default function CreateRoom() {
       ) : (
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-semibold mb-2">Enter Join Code</label>
+            <label className="block text-sm font-semibold mb-2 text-text-primary">Enter Join Code</label>
             <input
               type="text"
               value={joinCode}
               onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
               maxLength={6}
               placeholder="ABC123"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-center text-2xl font-mono tracking-widest uppercase focus:border-blue-500 focus:outline-none"
+              className="w-full px-4 py-3 bg-surface-3 border-2 border-border-subtle rounded-lg text-center text-2xl font-mono tracking-widest uppercase text-text-primary placeholder-text-disabled focus:border-accent-primary focus:outline-none transition-colors"
             />
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-sm text-text-muted mt-2">
               Enter the 6-character code shared by the room host
             </p>
           </div>
@@ -344,7 +344,7 @@ export default function CreateRoom() {
           <button
             onClick={joinByCode}
             disabled={loading || joinCode.length !== 6}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="w-full bg-accent-primary text-bg-main py-3 rounded-lg font-semibold hover:bg-accent-hover active:bg-accent-active disabled:bg-text-disabled disabled:cursor-not-allowed transition-all"
           >
             {loading ? 'Joining...' : 'Join Room'}
           </button>
@@ -354,7 +354,7 @@ export default function CreateRoom() {
       <div className="mt-8">
         <button
           onClick={() => navigate('/dashboard')}
-          className="text-blue-600 hover:underline"
+          className="text-accent-primary hover:text-accent-hover"
         >
           ← Back to Dashboard
         </button>
@@ -362,4 +362,3 @@ export default function CreateRoom() {
     </div>
   );
 }
-

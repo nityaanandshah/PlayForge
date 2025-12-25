@@ -250,9 +250,15 @@ func (s *GameService) MakeMove(ctx context.Context, gameID, playerID uuid.UUID, 
 
 		// Save completed game to database for match history
 		if s.gameRepo != nil {
-			if err := s.gameRepo.SaveCompletedGame(ctx, g.ID, string(g.Type), g.Player1ID, g.Player2ID, g.WinnerID, g.CreatedAt, g.EndedAt); err != nil {
-				fmt.Printf("Error saving completed game to database: %v\n", err)
-				// Don't fail the move if database save fails
+			// Serialize the game state to JSON
+			gameStateData, err := json.Marshal(g.State.GetState())
+			if err != nil {
+				fmt.Printf("Error marshaling game state: %v\n", err)
+			} else {
+				if err := s.gameRepo.SaveCompletedGame(ctx, g.ID, string(g.Type), g.Player1ID, g.Player2ID, g.WinnerID, g.CreatedAt, g.EndedAt, gameStateData); err != nil {
+					fmt.Printf("Error saving completed game to database: %v\n", err)
+					// Don't fail the move if database save fails
+				}
 			}
 		}
 
@@ -282,14 +288,18 @@ func (s *GameService) MakeMove(ctx context.Context, gameID, playerID uuid.UUID, 
 	return g, nil
 }
 
-// GetGame retrieves a game from Redis
+// GetGame retrieves a game from Redis or falls back to the database
 func (s *GameService) GetGame(ctx context.Context, gameID uuid.UUID) (*game.Game, error) {
 	key := fmt.Sprintf("game:%s", gameID.String())
 	fmt.Printf("Getting game from Redis with key: %s\n", key)
 	data, err := s.redisClient.Get(ctx, key).Result()
 	if err != nil {
 		if err == redis.Nil {
-			fmt.Printf("Game not found in Redis for key: %s\n", key)
+			fmt.Printf("Game not found in Redis, checking database...\n")
+			// Fall back to database for completed games
+			if s.gameRepo != nil {
+				return s.getGameFromDatabase(ctx, gameID)
+			}
 			return nil, fmt.Errorf("game not found")
 		}
 		fmt.Printf("Redis error: %v\n", err)
@@ -305,43 +315,8 @@ func (s *GameService) GetGame(ctx context.Context, gameID uuid.UUID) (*game.Game
 	fmt.Printf("Game unmarshaled successfully, Type: %s, Status: %s\n", g.Type, g.Status)
 
 	// Deserialize game state based on type
-	switch g.Type {
-	case game.GameTypeTicTacToe:
-		fmt.Printf("Deserializing TicTacToe state from %d bytes...\n", len(g.StateData))
-		var state game.TicTacToeState
-		if err := json.Unmarshal(g.StateData, &state); err != nil {
-			fmt.Printf("Error unmarshaling TicTacToe state: %v\n", err)
-			return nil, fmt.Errorf("failed to unmarshal game state: %w", err)
-		}
-		g.State = &state
-		fmt.Printf("TicTacToe state deserialized successfully\n")
-	case game.GameTypeConnect4:
-		fmt.Printf("Deserializing Connect4 state from %d bytes...\n", len(g.StateData))
-		var state game.Connect4State
-		if err := json.Unmarshal(g.StateData, &state); err != nil {
-			fmt.Printf("Error unmarshaling Connect4 state: %v\n", err)
-			return nil, fmt.Errorf("failed to unmarshal game state: %w", err)
-		}
-		g.State = &state
-		fmt.Printf("Connect4 state deserialized successfully\n")
-	case game.GameTypeRockPaperScissors:
-		fmt.Printf("Deserializing RPS state from %d bytes...\n", len(g.StateData))
-		var state game.RPSState
-		if err := json.Unmarshal(g.StateData, &state); err != nil {
-			fmt.Printf("Error unmarshaling RPS state: %v\n", err)
-			return nil, fmt.Errorf("failed to unmarshal game state: %w", err)
-		}
-		g.State = &state
-		fmt.Printf("RPS state deserialized successfully\n")
-	case game.GameTypeDotsAndBoxes:
-		fmt.Printf("Deserializing DotsAndBoxes state from %d bytes...\n", len(g.StateData))
-		var state game.DotsAndBoxesState
-		if err := json.Unmarshal(g.StateData, &state); err != nil {
-			fmt.Printf("Error unmarshaling DotsAndBoxes state: %v\n", err)
-			return nil, fmt.Errorf("failed to unmarshal game state: %w", err)
-		}
-		g.State = &state
-		fmt.Printf("DotsAndBoxes state deserialized successfully\n")
+	if err := s.deserializeGameState(&g); err != nil {
+		return nil, err
 	}
 
 	// Ensure Spectators is never nil (initialize as empty slice if nil)
@@ -351,6 +326,90 @@ func (s *GameService) GetGame(ctx context.Context, gameID uuid.UUID) (*game.Game
 
 	fmt.Printf("Returning game %s\n", g.ID.String())
 	return &g, nil
+}
+
+// getGameFromDatabase retrieves a completed game from the database
+func (s *GameService) getGameFromDatabase(ctx context.Context, gameID uuid.UUID) (*game.Game, error) {
+	dbGame, err := s.gameRepo.GetByID(ctx, gameID)
+	if err != nil {
+		fmt.Printf("Game not found in database: %v\n", err)
+		return nil, fmt.Errorf("game not found")
+	}
+
+	// Reconstruct game object
+	g := &game.Game{
+		ID:          dbGame["id"].(uuid.UUID),
+		Type:        game.GameType(dbGame["game_type"].(string)),
+		Status:      game.GameStatus(dbGame["status"].(string)),
+		Player1ID:   dbGame["player1_id"].(uuid.UUID),
+		Player1Name: dbGame["player1_name"].(string),
+		Player2ID:   dbGame["player2_id"].(uuid.UUID),
+		Player2Name: dbGame["player2_name"].(string),
+		CurrentTurn: dbGame["player1_id"].(uuid.UUID), // Default to player1 for completed games
+		CreatedAt:   dbGame["created_at"].(time.Time),
+		StartedAt:   dbGame["started_at"].(*time.Time),
+		EndedAt:     dbGame["ended_at"].(*time.Time),
+		Spectators:  []game.Spectator{},
+	}
+
+	// Set winner ID if present
+	if winnerID, ok := dbGame["winner_id"].(*uuid.UUID); ok && winnerID != nil {
+		g.WinnerID = winnerID
+	}
+
+	// Deserialize game state
+	if gameStateData, ok := dbGame["game_state"].([]byte); ok && len(gameStateData) > 0 {
+		g.StateData = gameStateData
+		if err := s.deserializeGameState(g); err != nil {
+			return nil, err
+		}
+	}
+
+	fmt.Printf("Returning game from database: %s\n", g.ID.String())
+	return g, nil
+}
+
+// deserializeGameState deserializes the game state based on game type
+func (s *GameService) deserializeGameState(g *game.Game) error {
+	switch g.Type {
+	case game.GameTypeTicTacToe:
+		fmt.Printf("Deserializing TicTacToe state from %d bytes...\n", len(g.StateData))
+		var state game.TicTacToeState
+		if err := json.Unmarshal(g.StateData, &state); err != nil {
+			fmt.Printf("Error unmarshaling TicTacToe state: %v\n", err)
+			return fmt.Errorf("failed to unmarshal game state: %w", err)
+		}
+		g.State = &state
+		fmt.Printf("TicTacToe state deserialized successfully\n")
+	case game.GameTypeConnect4:
+		fmt.Printf("Deserializing Connect4 state from %d bytes...\n", len(g.StateData))
+		var state game.Connect4State
+		if err := json.Unmarshal(g.StateData, &state); err != nil {
+			fmt.Printf("Error unmarshaling Connect4 state: %v\n", err)
+			return fmt.Errorf("failed to unmarshal game state: %w", err)
+		}
+		g.State = &state
+		fmt.Printf("Connect4 state deserialized successfully\n")
+	case game.GameTypeRockPaperScissors:
+		fmt.Printf("Deserializing RPS state from %d bytes...\n", len(g.StateData))
+		var state game.RPSState
+		if err := json.Unmarshal(g.StateData, &state); err != nil {
+			fmt.Printf("Error unmarshaling RPS state: %v\n", err)
+			return fmt.Errorf("failed to unmarshal game state: %w", err)
+		}
+		g.State = &state
+		fmt.Printf("RPS state deserialized successfully\n")
+	case game.GameTypeDotsAndBoxes:
+		fmt.Printf("Deserializing DotsAndBoxes state from %d bytes...\n", len(g.StateData))
+		var state game.DotsAndBoxesState
+		if err := json.Unmarshal(g.StateData, &state); err != nil {
+			fmt.Printf("Error unmarshaling DotsAndBoxes state: %v\n", err)
+			return fmt.Errorf("failed to unmarshal game state: %w", err)
+		}
+		g.State = &state
+		fmt.Printf("DotsAndBoxes state deserialized successfully\n")
+	}
+	return nil
 }
 
 // SaveGame saves a game to Redis

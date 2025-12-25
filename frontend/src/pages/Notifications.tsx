@@ -142,8 +142,8 @@ export default function Notifications() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading notifications...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-primary mx-auto"></div>
+          <p className="mt-4 text-text-secondary">Loading notifications...</p>
         </div>
       </div>
     )
@@ -152,40 +152,40 @@ export default function Notifications() {
   return (
     <div className="max-w-4xl mx-auto">
       {/* Header */}
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
+      <div className="bg-surface-1 shadow-elevated rounded-lg p-6 mb-6 border border-border-subtle">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-              <Inbox className="w-8 h-8" fill="currentColor" />
+            <h1 className="text-3xl font-bold text-text-primary flex items-center gap-2">
+              <Inbox className="w-8 h-8 text-accent-primary" fill="currentColor" />
               All Notifications
               {unreadCount > 0 && (
-                <span className="ml-3 bg-blue-500 text-white text-sm font-bold px-3 py-1 rounded-full">
+                <span className="ml-3 bg-accent-primary text-bg-main text-sm font-bold px-3 py-1 rounded-full">
                   {unreadCount} unread
                 </span>
               )}
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-text-secondary mt-1">
               {notifications.length} total notification{notifications.length !== 1 ? 's' : ''}
             </p>
           </div>
           <button
             onClick={() => navigate('/dashboard')}
-            className="text-gray-600 hover:text-gray-800 font-medium"
+            className="text-accent-primary hover:text-accent-hover font-medium"
           >
             ← Back to Dashboard
           </button>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-4 pt-4 border-t">
+        <div className="flex items-center gap-4 pt-4 border-t border-border-subtle">
           {/* Filter */}
           <div className="flex gap-2">
             <button
               onClick={() => setFilter('all')}
               className={`px-4 py-2 rounded-lg font-medium transition ${
                 filter === 'all'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-accent-primary text-bg-main'
+                  : 'bg-surface-2 text-text-secondary hover:bg-surface-3'
               }`}
             >
               All ({notifications.length})
@@ -194,8 +194,8 @@ export default function Notifications() {
               onClick={() => setFilter('unread')}
               className={`px-4 py-2 rounded-lg font-medium transition ${
                 filter === 'unread'
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-accent-primary text-bg-main'
+                  : 'bg-surface-2 text-text-secondary hover:bg-surface-3'
               }`}
             >
               Unread ({unreadCount})
@@ -206,7 +206,7 @@ export default function Notifications() {
           {unreadCount > 0 && (
             <button
               onClick={handleMarkAllAsRead}
-              className="ml-auto px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium transition"
+              className="ml-auto px-4 py-2 bg-success text-text-primary rounded-lg hover:bg-success-soft font-medium transition"
             >
               Mark all as read
             </button>
@@ -216,7 +216,7 @@ export default function Notifications() {
 
       {/* Error Display */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+        <div className="bg-danger-soft border border-danger text-danger px-4 py-3 rounded-lg mb-6">
           {error}
         </div>
       )}
@@ -231,28 +231,28 @@ export default function Notifications() {
             return (
               <div
                 key={notification.id}
-                className={`bg-white shadow rounded-lg border p-5 transition-all ${
-                  notification.read ? 'border-gray-200 bg-gray-50' : 'border-blue-300 bg-blue-50'
+                className={`shadow rounded-lg border p-5 transition-all ${
+                  notification.read ? 'border-border-subtle bg-surface-1' : 'border-accent-primary bg-accent-soft'
                 } ${!isInvitation ? 'cursor-pointer hover:shadow-md' : ''}`}
                 onClick={() => !isInvitation && handleNotificationClick(notification)}
               >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        {notification.type === 'invitation_received' && <Gamepad2 className="w-6 h-6" fill="currentColor" />}
-                        {notification.type === 'tournament_started' && <Trophy className="w-6 h-6" fill="currentColor" />}
-                        {notification.type === 'player_joined' && <Check className="w-6 h-6" fill="currentColor" />}
-                        {notification.type === 'invitation_accepted' && <Check className="w-6 h-6 text-green-600" fill="currentColor" />}
-                        {notification.type === 'invitation_declined' && <X className="w-6 h-6 text-red-600" fill="currentColor" />}
-                        <h4 className="font-bold text-gray-800 text-lg">{notification.title}</h4>
+                        {notification.type === 'invitation_received' && <Gamepad2 className="w-6 h-6 text-accent-primary" fill="currentColor" />}
+                        {notification.type === 'tournament_started' && <Trophy className="w-6 h-6 text-accent-primary" fill="currentColor" />}
+                        {notification.type === 'player_joined' && <Check className="w-6 h-6 text-success" fill="currentColor" />}
+                        {notification.type === 'invitation_accepted' && <Check className="w-6 h-6 text-success" fill="currentColor" />}
+                        {notification.type === 'invitation_declined' && <X className="w-6 h-6 text-danger" fill="currentColor" />}
+                        <h4 className="font-bold text-text-primary text-lg">{notification.title}</h4>
                       {!notification.read && (
-                        <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                        <span className="bg-accent-primary text-bg-main text-xs px-2 py-1 rounded-full font-semibold">
                           New
                         </span>
                       )}
                     </div>
-                    <p className="text-gray-700 mt-2">{notification.message}</p>
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-text-primary mt-2">{notification.message}</p>
+                    <p className="text-xs text-text-muted mt-2">
                       {new Date(notification.created_at).toLocaleString()}
                     </p>
                   </div>
@@ -267,7 +267,7 @@ export default function Notifications() {
                             handleAcceptInvitation(invitation.id, invitation.tournament_id)
                           }}
                           disabled={processingInvite === invitation.id}
-                          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-4 py-2 bg-success text-text-primary rounded-lg hover:bg-success-soft transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {processingInvite === invitation.id ? 'Processing...' : 'Accept'}
                         </button>
@@ -277,7 +277,7 @@ export default function Notifications() {
                             handleDeclineInvitation(invitation.id)
                           }}
                           disabled={processingInvite === invitation.id}
-                          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-4 py-2 bg-danger text-text-primary rounded-lg hover:bg-danger-soft transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {processingInvite === invitation.id ? 'Processing...' : 'Decline'}
                         </button>
@@ -291,7 +291,7 @@ export default function Notifications() {
                           e.stopPropagation()
                           handleMarkAsRead(notification.id)
                         }}
-                        className="p-2 text-gray-400 hover:text-green-500 transition"
+                        className="p-2 text-text-muted hover:text-success transition"
                         title="Mark as read"
                       >
                         <Check className="w-5 h-5" fill="currentColor" />
@@ -304,7 +304,7 @@ export default function Notifications() {
                         e.stopPropagation()
                         handleDeleteNotification(notification.id)
                       }}
-                      className="p-2 text-gray-400 hover:text-red-500 transition"
+                      className="p-2 text-text-muted hover:text-danger transition"
                       title="Delete notification"
                     >
                       <Trash2 className="w-5 h-5" fill="currentColor" />
@@ -316,12 +316,12 @@ export default function Notifications() {
           })}
         </div>
       ) : (
-        <div className="bg-white shadow rounded-lg p-12 text-center">
-          <Bell className="w-24 h-24 mb-4 mx-auto text-gray-400" fill="currentColor" />
-          <p className="text-xl font-medium text-gray-900">
+        <div className="bg-surface-1 shadow-elevated rounded-lg p-12 text-center border border-border-subtle">
+          <Bell className="w-24 h-24 mb-4 mx-auto text-text-muted" fill="currentColor" />
+          <p className="text-xl font-medium text-text-primary">
             {filter === 'unread' ? 'No unread notifications' : 'No new notifications'}
           </p>
-          <p className="text-gray-600 mt-2">
+          <p className="text-text-secondary mt-2">
             {filter === 'unread' 
               ? 'All caught up! Great job staying on top of things.'
               : 'Tournament invites and game activity will appear here'}

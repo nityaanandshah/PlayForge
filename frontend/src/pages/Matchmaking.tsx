@@ -14,10 +14,10 @@ export default function Matchmaking() {
   const [queueTime, setQueueTime] = useState(0);
 
   const games = [
-    { id: 'tictactoe', name: 'Tic-Tac-Toe', description: 'Classic 3×3 grid', Icon: X, iconColor: 'text-blue-500' },
-    { id: 'connect4', name: 'Connect 4', description: 'Standard 6×7 board', Icon: Circle, iconColor: 'text-red-500' },
-    { id: 'rps', name: 'Rock Paper Scissors', description: 'Best of 5 rounds', Icon: Gamepad2, iconColor: 'text-purple-500' },
-    { id: 'dotsandboxes', name: 'Dots & Boxes', description: 'Classic 5×5 grid', Icon: Circle, iconColor: 'text-indigo-500' },
+    { id: 'tictactoe', name: 'Tic-Tac-Toe', description: 'Classic 3×3 grid', Icon: X, iconColor: 'text-accent-primary' },
+    { id: 'connect4', name: 'Connect 4', description: 'Standard 6×7 board', Icon: Circle, iconColor: 'text-accent-primary' },
+    { id: 'rps', name: 'Rock Paper Scissors', description: 'Best of 5 rounds', Icon: Gamepad2, iconColor: 'text-accent-primary' },
+    { id: 'dotsandboxes', name: 'Dots & Boxes', description: 'Classic 5×5 grid', Icon: Circle, iconColor: 'text-accent-primary' },
   ];
 
   // Check queue status on mount
@@ -132,24 +132,24 @@ export default function Matchmaking() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">Quick Play Matchmaking</h1>
+      <h1 className="text-3xl font-bold mb-8 text-text-primary">Quick Play Matchmaking</h1>
       
-      <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
-        <p className="text-sm text-blue-800">
+      <div className="bg-accent-soft border-2 border-accent-primary rounded-lg p-4 mb-6">
+        <p className="text-sm text-text-primary">
           <strong>ℹ️ Standard Rules:</strong> All games use default settings (3×3 for Tic-Tac-Toe, 6×7 for Connect 4, Best of 5 for RPS, etc.). 
-          Want custom settings? Use <button onClick={() => navigate('/rooms')} className="underline font-semibold">Custom Game Rooms</button> instead.
+          Want custom settings? Use <button onClick={() => navigate('/rooms')} className="underline font-semibold text-accent-primary">Custom Game Rooms</button> instead.
         </p>
       </div>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-danger-soft border border-danger text-danger px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
 
       {!inQueue ? (
         <div>
-          <h2 className="text-xl font-semibold mb-4">Select a Game</h2>
+          <h2 className="text-xl font-semibold mb-4 text-text-primary">Select a Game</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {games.map((game) => {
               const IconComponent = game.Icon
@@ -159,13 +159,13 @@ export default function Matchmaking() {
                   onClick={() => setSelectedGame(game.id)}
                   className={`p-6 rounded-lg border-2 text-left transition-all cursor-pointer ${
                     selectedGame === game.id
-                      ? 'border-blue-500 bg-blue-50 shadow-lg scale-105'
-                      : 'border-gray-300 hover:border-blue-400 hover:shadow-md'
+                      ? 'border-accent-primary bg-accent-soft shadow-lg scale-105'
+                      : 'border-border-subtle bg-surface-2 hover:border-accent-primary hover:shadow-md'
                   }`}
                 >
                   <IconComponent className={`w-12 h-12 mb-2 ${game.iconColor}`} fill="currentColor" />
-                  <h3 className="text-lg font-semibold mb-1">{game.name}</h3>
-                  <p className="text-sm text-gray-600">{game.description}</p>
+                  <h3 className="text-lg font-semibold mb-1 text-text-primary">{game.name}</h3>
+                  <p className="text-sm text-text-secondary">{game.description}</p>
                 </button>
               )
             })}
@@ -174,25 +174,25 @@ export default function Matchmaking() {
           <button
             onClick={joinQueue}
             disabled={!selectedGame || loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="w-full bg-accent-primary text-bg-main py-3 rounded-lg font-semibold hover:bg-accent-hover active:bg-accent-active disabled:bg-text-disabled disabled:cursor-not-allowed transition-all"
           >
             {loading ? 'Joining...' : 'Find Match'}
           </button>
         </div>
       ) : (
         <div className="text-center">
-          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-8 mb-6">
+          <div className="bg-surface-1 border-2 border-accent-primary rounded-lg p-8 mb-6">
             <div className="animate-pulse mb-4">
-              <div className="w-16 h-16 bg-blue-600 rounded-full mx-auto mb-4"></div>
+              <div className="w-16 h-16 bg-warning rounded-full mx-auto mb-4"></div>
             </div>
-            <h2 className="text-2xl font-bold mb-2">Finding Opponent...</h2>
-            <p className="text-gray-600 mb-4">
+            <h2 className="text-2xl font-bold mb-2 text-text-primary">Finding Opponent...</h2>
+            <p className="text-text-secondary mb-4">
               {games.find(g => g.id === selectedGame)?.name}
             </p>
-            <div className="text-3xl font-mono text-blue-600 mb-4">
+            <div className="text-3xl font-mono text-warning mb-4">
               {formatTime(queueTime)}
             </div>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-text-muted">
               Rating: {queueEntry?.rating || 1200}
             </p>
           </div>
@@ -200,7 +200,7 @@ export default function Matchmaking() {
           <button
             onClick={leaveQueue}
             disabled={loading}
-            className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 disabled:bg-gray-400"
+            className="w-full bg-danger text-text-primary py-3 rounded-lg font-semibold hover:bg-danger/80 disabled:bg-text-disabled transition-all"
           >
             {loading ? 'Leaving...' : 'Cancel'}
           </button>
@@ -210,7 +210,7 @@ export default function Matchmaking() {
       <div className="mt-8">
         <button
           onClick={() => navigate('/dashboard')}
-          className="text-blue-600 hover:underline"
+          className="text-accent-primary hover:text-accent-hover"
         >
           ← Back to Dashboard
         </button>
@@ -218,4 +218,3 @@ export default function Matchmaking() {
     </div>
   );
 }
-

@@ -56,35 +56,35 @@ export default function Profile() {
   const getRankBadge = (elo: number) => {
     if (elo >= 2000) return { 
       name: 'Grandmaster', 
-      color: 'bg-yellow-500', 
+      color: 'bg-accent-primary', 
       Icon: Crown,
       description: '2000+ ELO - Highest rank! Legendary player',
       nextRank: null
     }
     if (elo >= 1800) return { 
       name: 'Master', 
-      color: 'bg-purple-500', 
+      color: 'bg-accent-hover', 
       Icon: Gem,
       description: '1800-1999 ELO - Elite player',
       nextRank: 'Grandmaster (2000 ELO)'
     }
     if (elo >= 1600) return { 
       name: 'Expert', 
-      color: 'bg-blue-500', 
+      color: 'bg-warning', 
       Icon: Star,
       description: '1600-1799 ELO - Skilled player',
       nextRank: 'Master (1800 ELO)'
     }
     if (elo >= 1400) return { 
       name: 'Advanced', 
-      color: 'bg-green-500', 
+      color: 'bg-success', 
       Icon: Target,
       description: '1400-1599 ELO - Proficient player',
       nextRank: 'Expert (1600 ELO)'
     }
     return { 
       name: 'Intermediate', 
-      color: 'bg-gray-500', 
+      color: 'bg-surface-3', 
       Icon: Gamepad2,
       description: 'Below 1400 ELO - Keep playing to rank up!',
       nextRank: 'Advanced (1400 ELO)'
@@ -164,16 +164,16 @@ export default function Profile() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="text-xl text-gray-600">Loading profile...</div>
+        <div className="text-xl text-text-secondary">Loading profile...</div>
       </div>
     )
   }
 
   if (error || !profile) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-        <h2 className="text-xl font-bold text-red-800 mb-2">Error</h2>
-        <p className="text-red-600">{error || 'Profile not found'}</p>
+      <div className="bg-danger-soft border border-danger rounded-lg p-6">
+        <h2 className="text-xl font-bold text-danger mb-2">Error</h2>
+        <p className="text-danger">{error || 'Profile not found'}</p>
       </div>
     )
   }
@@ -185,19 +185,19 @@ export default function Profile() {
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <div className="bg-indigo-600 rounded-xl shadow-elevated p-10 text-white">
+      <div className="bg-surface-1 rounded-xl shadow-elevated p-10 border border-border-subtle">
         <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
             <div 
-              className="w-28 h-28 bg-white rounded-full flex items-center justify-center cursor-help shadow-lifted"
+              className="w-28 h-28 bg-surface-3 rounded-full flex items-center justify-center cursor-help shadow-lifted border-2 border-border-subtle"
               title={`${rank.name} - ${rank.description}${rank.nextRank ? `\nNext rank: ${rank.nextRank}` : ''}`}
             >
-              <rank.Icon className="w-14 h-14 text-indigo-600" fill="currentColor" />
+              <rank.Icon className="w-14 h-14 text-accent-primary" fill="currentColor" />
             </div>
             <div>
-              <h1 className="text-5xl font-bold mb-4">{profile.username}</h1>
+              <h1 className="text-5xl font-bold mb-4 text-text-primary">{profile.username}</h1>
               <div 
-                className={`inline-block px-6 py-3 ${rank.color} rounded-full text-white font-bold cursor-help shadow-soft`}
+                className={`inline-block px-6 py-3 ${rank.color} rounded-full text-bg-main font-bold cursor-help shadow-soft`}
                 title={`${rank.description}${rank.nextRank ? `\nNext rank: ${rank.nextRank}` : ''}`}
               >
                 {rank.name}
@@ -207,7 +207,7 @@ export default function Profile() {
           {isOwnProfile && (
             <button
               onClick={() => navigate('/settings')}
-              className="bg-white text-indigo-600 px-8 py-4 rounded-xl font-bold hover:bg-gray-50 transition shadow-soft flex items-center gap-2"
+              className="bg-accent-primary text-bg-main px-8 py-4 rounded-xl font-bold hover:bg-accent-hover transition shadow-soft flex items-center gap-2"
             >
               <Settings className="w-5 h-5" fill="currentColor" />
               Settings
@@ -218,59 +218,59 @@ export default function Profile() {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl shadow-elevated p-8 text-center hover:shadow-lifted transition-shadow">
-          <div className="text-4xl font-bold text-indigo-600 mb-3">{profile.elo_rating}</div>
-          <div className="text-sm text-gray-600 font-medium">ELO Rating</div>
+        <div className="bg-surface-1 rounded-xl shadow-elevated p-8 text-center hover:shadow-lifted transition-shadow border border-border-subtle">
+          <div className="text-4xl font-bold text-accent-primary mb-3">{profile.elo_rating}</div>
+          <div className="text-sm text-text-secondary font-medium">ELO Rating</div>
         </div>
-        <div className="bg-white rounded-xl shadow-elevated p-8 text-center hover:shadow-lifted transition-shadow">
-          <div className="text-4xl font-bold text-green-600 mb-3">{stats?.wins || 0}</div>
-          <div className="text-sm text-gray-600 font-medium">Wins</div>
+        <div className="bg-surface-1 rounded-xl shadow-elevated p-8 text-center hover:shadow-lifted transition-shadow border border-border-subtle">
+          <div className="text-4xl font-bold text-success mb-3">{stats?.wins || 0}</div>
+          <div className="text-sm text-text-secondary font-medium">Wins</div>
         </div>
-        <div className="bg-white rounded-xl shadow-elevated p-8 text-center hover:shadow-lifted transition-shadow">
-          <div className="text-4xl font-bold text-blue-600 mb-3">{winRate}%</div>
-          <div className="text-sm text-gray-600 font-medium">Win Rate</div>
+        <div className="bg-surface-1 rounded-xl shadow-elevated p-8 text-center hover:shadow-lifted transition-shadow border border-border-subtle">
+          <div className="text-4xl font-bold text-warning mb-3">{winRate}%</div>
+          <div className="text-sm text-text-secondary font-medium">Win Rate</div>
         </div>
-        <div className="bg-white rounded-xl shadow-elevated p-8 text-center hover:shadow-lifted transition-shadow">
-          <div className="text-4xl font-bold text-orange-600 mb-3">{stats?.total_games || 0}</div>
-          <div className="text-sm text-gray-600 font-medium">Total Games</div>
+        <div className="bg-surface-1 rounded-xl shadow-elevated p-8 text-center hover:shadow-lifted transition-shadow border border-border-subtle">
+          <div className="text-4xl font-bold text-accent-hover mb-3">{stats?.total_games || 0}</div>
+          <div className="text-sm text-text-secondary font-medium">Total Games</div>
         </div>
       </div>
 
       {/* Performance Details */}
-      <div className="bg-white rounded-xl shadow-elevated p-8">
-        <h2 className="text-3xl font-bold mb-8">Performance</h2>
+      <div className="bg-surface-1 rounded-xl shadow-elevated p-8 border border-border-subtle">
+        <h2 className="text-3xl font-bold mb-8 text-text-primary">Performance</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div>
-            <h3 className="font-bold text-xl mb-6">Overall Record</h3>
+            <h3 className="font-bold text-xl mb-6 text-text-primary">Overall Record</h3>
             <div className="space-y-4">
-              <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                <span className="text-gray-600 font-medium">Wins:</span>
-                <span className="font-bold text-green-600 text-xl">{stats?.wins || 0}</span>
+              <div className="flex justify-between items-center p-4 bg-surface-2 rounded-lg border border-border-subtle">
+                <span className="text-text-secondary font-medium">Wins:</span>
+                <span className="font-bold text-success text-xl">{stats?.wins || 0}</span>
               </div>
-              <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                <span className="text-gray-600 font-medium">Losses:</span>
-                <span className="font-bold text-red-600 text-xl">{stats?.losses || 0}</span>
+              <div className="flex justify-between items-center p-4 bg-surface-2 rounded-lg border border-border-subtle">
+                <span className="text-text-secondary font-medium">Losses:</span>
+                <span className="font-bold text-danger text-xl">{stats?.losses || 0}</span>
               </div>
-              <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                <span className="text-gray-600 font-medium">Draws:</span>
-                <span className="font-bold text-gray-600 text-xl">{stats?.draws || 0}</span>
+              <div className="flex justify-between items-center p-4 bg-surface-2 rounded-lg border border-border-subtle">
+                <span className="text-text-secondary font-medium">Draws:</span>
+                <span className="font-bold text-text-muted text-xl">{stats?.draws || 0}</span>
               </div>
             </div>
           </div>
           <div>
-            <h3 className="font-bold text-xl mb-6">Streaks</h3>
+            <h3 className="font-bold text-xl mb-6 text-text-primary">Streaks</h3>
             <div className="space-y-4">
-              <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                <span className="text-gray-600 font-medium">Current Streak:</span>
-                <span className="font-bold flex items-center gap-2 text-xl">
+              <div className="flex justify-between items-center p-4 bg-surface-2 rounded-lg border border-border-subtle">
+                <span className="text-text-secondary font-medium">Current Streak:</span>
+                <span className="font-bold flex items-center gap-2 text-xl text-text-primary">
                   {stats?.current_streak || 0} 
-                  {stats && stats.current_streak > 0 && <Flame className="w-5 h-5 text-orange-500" fill="currentColor" />}
+                  {stats && stats.current_streak > 0 && <Flame className="w-5 h-5 text-warning" fill="currentColor" />}
                 </span>
               </div>
-              <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                <span className="text-gray-600 font-medium">Best Streak:</span>
-                <span className="font-bold flex items-center gap-2 text-xl">
-                  {stats?.best_streak || 0} <Zap className="w-5 h-5 text-yellow-500" fill="currentColor" />
+              <div className="flex justify-between items-center p-4 bg-surface-2 rounded-lg border border-border-subtle">
+                <span className="text-text-secondary font-medium">Best Streak:</span>
+                <span className="font-bold flex items-center gap-2 text-xl text-text-primary">
+                  {stats?.best_streak || 0} <Zap className="w-5 h-5 text-accent-primary" fill="currentColor" />
                 </span>
               </div>
             </div>
@@ -279,9 +279,9 @@ export default function Profile() {
       </div>
 
       {/* Achievements */}
-      <div className="bg-white rounded-xl shadow-elevated p-8">
-        <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
-          <Trophy className="w-9 h-9" fill="currentColor" />
+      <div className="bg-surface-1 rounded-xl shadow-elevated p-8 border border-border-subtle">
+        <h2 className="text-3xl font-bold mb-8 flex items-center gap-3 text-text-primary">
+          <Trophy className="w-9 h-9 text-accent-primary" fill="currentColor" />
           Achievements ({achievements.filter(a => a.unlocked).length}/{achievements.length})
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-6">
@@ -292,15 +292,15 @@ export default function Profile() {
                 key={achievement.name}
                 className={`border-2 rounded-xl p-5 text-center transition cursor-help ${
                   achievement.unlocked
-                    ? 'border-yellow-400 bg-yellow-50 shadow-soft hover:shadow-elevated'
-                    : 'border-gray-300 bg-gray-50 opacity-60 hover:opacity-80'
+                    ? 'border-accent-primary bg-accent-soft shadow-soft hover:shadow-elevated text-accent-primary'
+                    : 'border-border-subtle bg-surface-2 opacity-60 hover:opacity-80 text-text-muted'
                 }`}
                 title={`${achievement.name}\n${achievement.requirement}\nProgress: ${achievement.progress}`}
               >
                 <IconComponent className="w-10 h-10 mb-3 mx-auto" fill="currentColor" />
                 <div className="text-xs font-bold">{achievement.name}</div>
                 {!achievement.unlocked && (
-                  <div className="text-xs text-gray-500 mt-2">
+                  <div className="text-xs mt-2">
                     <Lock className="w-4 h-4 mx-auto" />
                   </div>
                 )}
@@ -458,11 +458,11 @@ function ContributionGraph({ userId }: ContributionGraphProps) {
   }
 
   const getContributionColor = (count: number) => {
-    if (count === 0) return 'bg-gray-100'
-    if (count === 1) return 'bg-green-200'
-    if (count <= 3) return 'bg-green-400'
-    if (count <= 5) return 'bg-green-600'
-    return 'bg-green-800'
+    if (count === 0) return 'bg-surface-2'
+    if (count === 1) return 'bg-success-soft'
+    if (count <= 3) return 'bg-success'
+    if (count <= 5) return 'bg-accent-active'
+    return 'bg-accent-primary'
   }
 
   const { currentStreak, longestStreak } = calculateStreaks()
@@ -471,24 +471,24 @@ function ContributionGraph({ userId }: ContributionGraphProps) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow-elevated p-8">
+      <div className="bg-surface-1 rounded-xl shadow-elevated p-8 border border-border-subtle">
         <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-primary mx-auto"></div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="bg-gray-900 rounded-xl shadow-lifted p-10 text-white">
+    <div className="bg-surface-1 rounded-xl shadow-lifted p-10 border border-border-subtle">
       <div className="flex items-center justify-between mb-10">
-        <h2 className="text-3xl font-bold flex items-center gap-3">
-          <Gamepad2 className="w-9 h-9" fill="currentColor" />
+        <h2 className="text-3xl font-bold flex items-center gap-3 text-text-primary">
+          <Gamepad2 className="w-9 h-9 text-accent-primary" fill="currentColor" />
           Game Activity
         </h2>
         <button
           onClick={() => navigate('/history')}
-          className="text-sm text-blue-300 hover:text-blue-200 font-medium px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
+          className="text-sm text-accent-primary hover:text-accent-hover font-medium px-4 py-2 rounded-lg bg-surface-2 hover:bg-surface-3 transition-colors border border-border-subtle"
         >
           View Details →
         </button>
@@ -496,30 +496,30 @@ function ContributionGraph({ userId }: ContributionGraphProps) {
 
       {/* Contribution Stats */}
       <div className="grid grid-cols-3 gap-8 mb-10">
-        <div className="bg-gray-800 rounded-xl p-6 text-center border-2 border-gray-700 hover:border-green-500 transition-all shadow-soft hover:shadow-elevated">
-          <div className="text-5xl font-bold text-green-400 mb-2">{totalGames}</div>
-          <div className="text-sm text-gray-400 font-medium">games in last year</div>
+        <div className="bg-surface-2 rounded-xl p-6 text-center border-2 border-border-subtle hover:border-success transition-all shadow-soft hover:shadow-elevated">
+          <div className="text-5xl font-bold text-success mb-2">{totalGames}</div>
+          <div className="text-sm text-text-secondary font-medium">games in last year</div>
         </div>
-        <div className="bg-gray-800 rounded-xl p-6 text-center border-2 border-gray-700 hover:border-orange-500 transition-all shadow-soft hover:shadow-elevated">
-          <div className="text-5xl font-bold text-orange-400 flex items-center justify-center gap-3 mb-2">
+        <div className="bg-surface-2 rounded-xl p-6 text-center border-2 border-border-subtle hover:border-warning transition-all shadow-soft hover:shadow-elevated">
+          <div className="text-5xl font-bold text-warning flex items-center justify-center gap-3 mb-2">
             {currentStreak} <Flame className="w-10 h-10" fill="currentColor" />
           </div>
-          <div className="text-sm text-gray-400 font-medium">day streak</div>
+          <div className="text-sm text-text-secondary font-medium">day streak</div>
         </div>
-        <div className="bg-gray-800 rounded-xl p-6 text-center border-2 border-gray-700 hover:border-purple-500 transition-all shadow-soft hover:shadow-elevated">
-          <div className="text-5xl font-bold text-purple-400 flex items-center justify-center gap-3 mb-2">
+        <div className="bg-surface-2 rounded-xl p-6 text-center border-2 border-border-subtle hover:border-accent-primary transition-all shadow-soft hover:shadow-elevated">
+          <div className="text-5xl font-bold text-accent-primary flex items-center justify-center gap-3 mb-2">
             {longestStreak} <Trophy className="w-10 h-10" fill="currentColor" />
           </div>
-          <div className="text-sm text-gray-400 font-medium">longest streak</div>
+          <div className="text-sm text-text-secondary font-medium">longest streak</div>
         </div>
       </div>
 
       {/* Contribution Graph */}
       {totalGames > 0 ? (
-        <div className="w-full">
+          <div className="w-full">
           <div className="flex items-start gap-2">
             {/* Day labels */}
-            <div className="flex flex-col gap-[2px] text-xs text-gray-400 pt-6 flex-shrink-0">
+            <div className="flex flex-col gap-[2px] text-xs text-text-muted pt-6 flex-shrink-0">
               <div style={{ height: '11px' }}></div>
               <div style={{ height: '11px', lineHeight: '11px' }}>Mon</div>
               <div style={{ height: '11px' }}></div>
@@ -532,7 +532,7 @@ function ContributionGraph({ userId }: ContributionGraphProps) {
             {/* Weeks grid */}
             <div className="flex-1">
               {/* Month labels */}
-              <div className="flex justify-between mb-2 text-xs text-gray-400 h-6 pr-1">
+              <div className="flex justify-between mb-2 text-xs text-text-muted h-6 pr-1">
                 <div>Jan</div>
                 <div>Feb</div>
                 <div>Mar</div>
@@ -553,7 +553,7 @@ function ContributionGraph({ userId }: ContributionGraphProps) {
                     {week.map((day, dayIndex) => (
                       <div
                         key={dayIndex}
-                        className={`h-[11px] rounded-sm ${getContributionColor(day.count)} hover:ring-2 hover:ring-blue-400 transition-all cursor-pointer`}
+                        className={`h-[11px] rounded-sm ${getContributionColor(day.count)} hover:ring-2 hover:ring-accent-primary transition-all cursor-pointer border border-border-subtle`}
                         title={`${day.date.toDateString()}: ${day.count} game${day.count !== 1 ? 's' : ''}`}
                       />
                     ))}
@@ -564,21 +564,21 @@ function ContributionGraph({ userId }: ContributionGraphProps) {
           </div>
 
           {/* Legend */}
-          <div className="flex items-center justify-end gap-2 mt-6 text-xs text-gray-400">
+          <div className="flex items-center justify-end gap-2 mt-6 text-xs text-text-muted">
             <span>Less</span>
-            <div className="w-[11px] h-[11px] bg-gray-100 rounded-sm"></div>
-            <div className="w-[11px] h-[11px] bg-green-200 rounded-sm"></div>
-            <div className="w-[11px] h-[11px] bg-green-400 rounded-sm"></div>
-            <div className="w-[11px] h-[11px] bg-green-600 rounded-sm"></div>
-            <div className="w-[11px] h-[11px] bg-green-800 rounded-sm"></div>
+            <div className="w-[11px] h-[11px] bg-surface-2 rounded-sm border border-border-subtle"></div>
+            <div className="w-[11px] h-[11px] bg-success-soft rounded-sm border border-border-subtle"></div>
+            <div className="w-[11px] h-[11px] bg-success rounded-sm border border-border-subtle"></div>
+            <div className="w-[11px] h-[11px] bg-accent-active rounded-sm border border-border-subtle"></div>
+            <div className="w-[11px] h-[11px] bg-accent-primary rounded-sm border border-border-subtle"></div>
             <span>More</span>
           </div>
         </div>
       ) : (
         <div className="text-center py-12">
-          <Gamepad2 className="w-24 h-24 mb-4 mx-auto text-gray-400" fill="currentColor" />
-          <p className="text-gray-400">No games played yet</p>
-          <p className="text-sm text-gray-500 mt-2">Start playing to build your streak!</p>
+          <Gamepad2 className="w-24 h-24 mb-4 mx-auto text-text-muted" fill="currentColor" />
+          <p className="text-text-secondary">No games played yet</p>
+          <p className="text-sm text-text-muted mt-2">Start playing to build your streak!</p>
         </div>
       )}
     </div>

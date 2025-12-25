@@ -66,9 +66,9 @@ const Leaderboard = () => {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white shadow-elevated rounded-xl p-8 mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-2">
-            <Trophy className="w-8 h-8" fill="currentColor" />
+        <div className="bg-surface-1 shadow-elevated rounded-xl p-8 mb-8 border border-border-subtle">
+          <h1 className="text-3xl font-bold text-text-primary mb-8 flex items-center gap-2">
+            <Trophy className="w-8 h-8 text-accent-primary" fill="currentColor" />
             Leaderboard
           </h1>
           
@@ -83,12 +83,12 @@ const Leaderboard = () => {
                   onClick={() => setSelectedGame(game.id)}
                   className={`px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${
                     isSelected
-                      ? 'bg-blue-600 text-white shadow-elevated'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 shadow-soft'
+                      ? 'bg-accent-primary text-bg-main shadow-elevated'
+                      : 'bg-surface-2 text-text-secondary border border-border-subtle hover:bg-surface-3 shadow-soft'
                   }`}
                 >
                   <IconComponent 
-                    className={`w-5 h-5 ${isSelected ? '' : game.color}`} 
+                    className={`w-5 h-5 ${isSelected ? '' : 'text-accent-primary'}`} 
                     fill="currentColor" 
                   />
                   {game.name}
@@ -100,14 +100,14 @@ const Leaderboard = () => {
           {/* Loading/Error States */}
           {loading && (
             <div className="text-center py-16">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
-              <p className="text-gray-600 mt-6 text-lg font-medium">Loading leaderboard...</p>
+              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-accent-primary mx-auto"></div>
+              <p className="text-text-secondary mt-6 text-lg font-medium">Loading leaderboard...</p>
             </div>
           )}
 
           {error && (
-            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6 mb-8 shadow-soft">
-              <p className="text-red-600 font-medium">{error}</p>
+            <div className="bg-danger-soft border-2 border-danger rounded-xl p-6 mb-8 shadow-soft">
+              <p className="text-danger font-medium">{error}</p>
             </div>
           )}
 
@@ -115,81 +115,81 @@ const Leaderboard = () => {
           {!loading && !error && (
             <>
               {leaderboard.length === 0 ? (
-                <div className="text-center py-16 text-gray-500">
-                  <Trophy className="w-20 h-20 mx-auto text-gray-300 mb-4" fill="currentColor" />
-                  <p className="text-xl font-semibold mb-2">No players found for this game type yet.</p>
+                <div className="text-center py-16 text-text-muted">
+                  <Trophy className="w-20 h-20 mx-auto text-text-disabled mb-4" fill="currentColor" />
+                  <p className="text-xl font-semibold mb-2 text-text-secondary">No players found for this game type yet.</p>
                   <p className="text-sm mt-2">Be the first to play and claim the top spot!</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                  <table className="min-w-full divide-y divide-border-subtle">
+                    <thead className="bg-surface-2">
                       <tr>
-                        <th className="px-8 py-5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        <th className="px-8 py-5 text-left text-xs font-bold text-text-secondary uppercase tracking-wider">
                           Rank
                         </th>
-                        <th className="px-8 py-5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        <th className="px-8 py-5 text-left text-xs font-bold text-text-secondary uppercase tracking-wider">
                           Player
                         </th>
-                        <th className="px-8 py-5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        <th className="px-8 py-5 text-left text-xs font-bold text-text-secondary uppercase tracking-wider">
                           ELO Rating
                         </th>
-                        <th className="px-8 py-5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        <th className="px-8 py-5 text-left text-xs font-bold text-text-secondary uppercase tracking-wider">
                           Games
                         </th>
-                        <th className="px-8 py-5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        <th className="px-8 py-5 text-left text-xs font-bold text-text-secondary uppercase tracking-wider">
                           Record
                         </th>
-                        <th className="px-8 py-5 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                        <th className="px-8 py-5 text-left text-xs font-bold text-text-secondary uppercase tracking-wider">
                           Win Rate
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="divide-y divide-border-subtle">
                       {leaderboard.map((entry, index) => (
                         <tr
                           key={entry.user_id}
-                          className={`transition-all hover:shadow-elevated ${
-                            index < 3 ? 'bg-yellow-50' : ''
+                          className={`transition-all hover:bg-surface-2 ${
+                            index === 0 ? 'bg-accent-soft' : index % 2 === 0 ? 'bg-surface-1' : 'bg-surface-2'
                           }`}
                         >
                           <td className="px-8 py-6 whitespace-nowrap">
-                            <span className="text-2xl font-bold">
+                            <span className={`text-2xl font-bold ${index === 0 ? 'text-accent-primary' : 'text-text-primary'}`}>
                               {getRankMedal(index + 1)}
                             </span>
                           </td>
                           <td className="px-8 py-6 whitespace-nowrap">
-                            <div className="text-base font-semibold text-gray-900">
+                            <div className={`text-base font-semibold ${index === 0 ? 'text-accent-primary' : 'text-text-primary'}`}>
                               {entry.username}
                             </div>
                           </td>
                           <td className="px-8 py-6 whitespace-nowrap">
                             <div className="flex items-center">
-                              <span className="text-2xl font-bold text-blue-600">
+                              <span className={`text-2xl font-bold ${index === 0 ? 'text-accent-primary' : 'text-text-primary'}`}>
                                 {entry.elo_rating}
                               </span>
                             </div>
                           </td>
                           <td className="px-8 py-6 whitespace-nowrap">
-                            <span className="text-base font-medium text-gray-900">
+                            <span className="text-base font-medium text-text-primary">
                               {entry.total_games}
                             </span>
                           </td>
                           <td className="px-8 py-6 whitespace-nowrap">
-                            <span className="text-base text-gray-900">
-                              <span className="text-green-600 font-bold">{entry.wins}W</span>
+                            <span className="text-base text-text-primary">
+                              <span className="text-success font-bold">{entry.wins}W</span>
                               {' / '}
-                              <span className="text-red-600 font-bold">{entry.losses}L</span>
+                              <span className="text-danger font-bold">{entry.losses}L</span>
                               {entry.draws > 0 && (
                                 <>
                                   {' / '}
-                                  <span className="text-gray-600 font-bold">{entry.draws}D</span>
+                                  <span className="text-text-muted font-bold">{entry.draws}D</span>
                                 </>
                               )}
                             </span>
                           </td>
                           <td className="px-8 py-6 whitespace-nowrap">
-                            <span className="text-base font-bold text-gray-900">
+                            <span className="text-base font-bold text-text-primary">
                               {calculateWinRate(entry.wins, entry.total_games)}
                             </span>
                           </td>

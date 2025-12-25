@@ -50,12 +50,16 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
   }
 
   const getChoiceColor = (choice: RPSChoice) => {
-    switch (choice) {
-      case 'rock': return 'from-gray-500 to-gray-700'
-      case 'paper': return 'from-blue-500 to-blue-700'
-      case 'scissors': return 'from-red-500 to-red-700'
-      default: return 'from-gray-400 to-gray-600'
-    }
+    // All choices use wood surface background (game isolated)
+    return '#2E2A25' // surface-3
+  }
+  
+  const getIconColor = () => {
+    return '#7A6F5B' // RPS game-specific icon color
+  }
+  
+  const getHighlightColor = () => {
+    return '#B8A77A' // RPS game-specific highlight color
   }
 
   const getRoundResult = () => {
@@ -65,18 +69,19 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
     if (!lastRound) return null
     
     if (!lastRound.winner_id) {
-      return { text: "It's a Draw!", color: 'text-yellow-600' }
+      return { text: "It's a Draw!", color: 'text-warning', borderColor: 'border-warning' }
     } else if (isSpectator) {
       // For spectators, show neutral message
       const winnerIsPlayer1 = lastRound.winner_id === state.player1_id
       return { 
         text: winnerIsPlayer1 ? 'Player 1 Won!' : 'Player 2 Won!', 
-        color: 'text-green-600' 
+        color: 'text-success',
+        borderColor: 'border-success'
       }
     } else if (lastRound.winner_id === currentUserId) {
-      return { text: 'You Won This Round!', color: 'text-green-600' }
+      return { text: 'You Won This Round!', color: 'text-success', borderColor: 'border-success' }
     } else {
-      return { text: 'You Lost This Round', color: 'text-red-600' }
+      return { text: 'You Lost This Round', color: 'text-danger', borderColor: 'border-danger' }
     }
   }
 
@@ -85,44 +90,41 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
   return (
     <div className="flex flex-col items-center space-y-8 max-w-4xl mx-auto">
       {/* Score Board */}
-      <div className="w-full bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-6 shadow-xl">
+      <div className="w-full bg-surface-1 rounded-2xl p-6 shadow-elevated border border-border-subtle">
         <div className="flex justify-between items-center">
           <div className="text-center">
-            <div className="text-sm text-gray-600 mb-1">Your Score</div>
-            <div className="text-5xl font-bold text-purple-600">{myScore}</div>
+            <div className="text-sm text-text-secondary mb-1">Your Score</div>
+            <div className="text-5xl font-bold text-accent-primary">{myScore}</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-gray-700 mb-2">Best of 5</div>
-            <div className="text-lg text-gray-600">Round {state.current_round}</div>
+            <div className="text-3xl font-bold text-text-primary mb-2">Best of 5</div>
+            <div className="text-lg text-text-secondary">Round {state.current_round}</div>
           </div>
           <div className="text-center">
-            <div className="text-sm text-gray-600 mb-1">Opponent Score</div>
-            <div className="text-5xl font-bold text-pink-600">{opponentScore}</div>
+            <div className="text-sm text-text-secondary mb-1">Opponent Score</div>
+            <div className="text-5xl font-bold text-danger">{opponentScore}</div>
           </div>
         </div>
       </div>
 
       {/* Round Result */}
       {showResult && result && (
-        <div className={`w-full bg-white rounded-2xl p-8 shadow-2xl border-4 ${
-          result.color === 'text-green-600' ? 'border-green-400' :
-          result.color === 'text-red-600' ? 'border-red-400' : 'border-yellow-400'
-        } animate-[scale-in_0.5s_ease-out]`}>
+        <div className={`w-full bg-surface-1 rounded-2xl p-8 shadow-elevated border-4 ${result.borderColor} animate-[scale-in_0.5s_ease-out]`}>
           <div className="flex justify-center items-center gap-8 mb-4">
             <div className="text-center">
               {(() => {
                 const MyChoiceIcon = getChoiceIcon(myChoice)
-                return <MyChoiceIcon className="w-24 h-24 mb-2 mx-auto" fill="currentColor" />
+                return <MyChoiceIcon className="w-24 h-24 mb-2 mx-auto" style={{ color: getIconColor() }} fill="currentColor" />
               })()}
-              <div className="text-lg font-semibold text-gray-700">You</div>
+              <div className="text-lg font-semibold text-text-primary">You</div>
             </div>
-            <div className="text-4xl text-gray-400">VS</div>
+            <div className="text-4xl text-text-muted">VS</div>
             <div className="text-center">
               {(() => {
                 const OpponentChoiceIcon = getChoiceIcon(opponentChoice)
-                return <OpponentChoiceIcon className="w-24 h-24 mb-2 mx-auto" fill="currentColor" />
+                return <OpponentChoiceIcon className="w-24 h-24 mb-2 mx-auto" style={{ color: getIconColor() }} fill="currentColor" />
               })()}
-              <div className="text-lg font-semibold text-gray-700">Opponent</div>
+              <div className="text-lg font-semibold text-text-primary">Opponent</div>
             </div>
           </div>
           <div className={`text-3xl font-bold text-center ${result.color}`}>
@@ -136,11 +138,11 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
         <div className="w-full">
           <div className="text-center mb-6">
             {myChoice === '' ? (
-              <div className="text-2xl font-bold text-gray-700 animate-pulse">
+              <div className="text-2xl font-bold text-text-secondary animate-pulse">
                 Make Your Choice!
               </div>
             ) : (
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-success">
                 ✓ Choice Made! Waiting for opponent...
               </div>
             )}
@@ -149,28 +151,30 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
           <div className="grid grid-cols-3 gap-6">
             {(['rock', 'paper', 'scissors'] as RPSChoice[]).map((choice) => {
               const ChoiceIcon = getChoiceIcon(choice)
+              const isSelected = myChoice === choice
               return (
                 <button
                   key={choice}
                   onClick={() => handleChoice(choice)}
                   disabled={disabled || myChoice !== ''}
                   className={`relative group ${
-                    myChoice === choice
-                      ? 'scale-110 ring-4 ring-green-400'
+                    isSelected
+                      ? 'scale-110'
                       : myChoice !== ''
                       ? 'opacity-30 cursor-not-allowed'
                       : 'hover:scale-110 cursor-pointer'
                   } transition-all duration-300`}
+                  style={{
+                    boxShadow: isSelected ? `0 0 0 4px ${getHighlightColor()}` : undefined
+                  }}
                 >
-                  <div className={`bg-gradient-to-br ${getChoiceColor(choice)} rounded-3xl p-8 shadow-2xl ${
-                    myChoice === '' && !disabled ? 'group-hover:shadow-3xl' : ''
-                  }`}>
-                    <ChoiceIcon className="w-32 h-32 mb-4 mx-auto text-white" fill="currentColor" />
-                    <div className="text-2xl font-bold text-white capitalize">{choice}</div>
+                  <div className="rounded-3xl p-8 shadow-elevated border border-border-subtle" style={{ backgroundColor: getChoiceColor(choice) }}>
+                    <ChoiceIcon className="w-32 h-32 mb-4 mx-auto" style={{ color: getIconColor() }} fill="currentColor" />
+                    <div className="text-2xl font-bold text-text-primary capitalize">{choice}</div>
                     </div>
-                  {myChoice === choice && (
-                    <div className="absolute top-4 right-4 bg-green-500 text-white rounded-full p-2">
-                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  {isSelected && (
+                    <div className="absolute top-4 right-4 rounded-full p-2" style={{ backgroundColor: getHighlightColor() }}>
+                      <svg className="w-6 h-6 text-bg-main" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
@@ -184,8 +188,8 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
 
       {/* Round History */}
       {state.rounds.length > 0 && (
-        <div className="w-full bg-white rounded-2xl p-6 shadow-xl">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">Round History</h3>
+        <div className="w-full bg-surface-1 rounded-2xl p-6 shadow-elevated border border-border-subtle">
+          <h3 className="text-xl font-bold text-text-primary mb-4">Round History</h3>
           <div className="space-y-2">
             {state.rounds.map((round) => {
               const isDraw = !round.winner_id
@@ -200,16 +204,16 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
                 
                 if (isDraw) {
                   resultText = 'Draw'
-                  bgColor = 'bg-yellow-50 border-2 border-yellow-300'
-                  textColor = 'text-yellow-600'
+                  bgColor = 'bg-warning-soft border-2 border-warning'
+                  textColor = 'text-warning'
                 } else if (player1Won) {
                   resultText = 'Won'
-                  bgColor = 'bg-green-50 border-2 border-green-300'
-                  textColor = 'text-green-600'
+                  bgColor = 'bg-success-soft border-2 border-success'
+                  textColor = 'text-success'
                 } else {
                   resultText = 'Lost'
-                  bgColor = 'bg-red-50 border-2 border-red-300'
-                  textColor = 'text-red-600'
+                  bgColor = 'bg-danger-soft border-2 border-danger'
+                  textColor = 'text-danger'
                 }
               } else {
                 // For participants, show from their perspective
@@ -219,16 +223,16 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
                 
                 if (isDraw) {
                   resultText = 'Draw'
-                  bgColor = 'bg-yellow-50 border-2 border-yellow-300'
-                  textColor = 'text-yellow-600'
+                  bgColor = 'bg-warning-soft border-2 border-warning'
+                  textColor = 'text-warning'
                 } else if (isWinner) {
                   resultText = 'Won'
-                  bgColor = 'bg-green-50 border-2 border-green-300'
-                  textColor = 'text-green-600'
+                  bgColor = 'bg-success-soft border-2 border-success'
+                  textColor = 'text-success'
                 } else {
                   resultText = 'Lost'
-                  bgColor = 'bg-red-50 border-2 border-red-300'
-                  textColor = 'text-red-600'
+                  bgColor = 'bg-danger-soft border-2 border-danger'
+                  textColor = 'text-danger'
                 }
               }
               
@@ -238,16 +242,16 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
                   className={`flex items-center justify-between p-4 rounded-xl ${bgColor}`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="text-lg font-bold text-gray-600">R{round.round_number}</div>
+                    <div className="text-lg font-bold text-text-secondary">R{round.round_number}</div>
                     <div className="flex items-center gap-2">
                       {(() => {
                         const MyRoundChoiceIcon = getChoiceIcon(myRoundChoice)
                         const OpponentRoundChoiceIcon = getChoiceIcon(opponentRoundChoice)
                         return (
                           <>
-                            <MyRoundChoiceIcon className="w-8 h-8" fill="currentColor" />
-                            <span className="text-gray-400">vs</span>
-                            <OpponentRoundChoiceIcon className="w-8 h-8" fill="currentColor" />
+                            <MyRoundChoiceIcon className="w-8 h-8" style={{ color: getIconColor() }} fill="currentColor" />
+                            <span className="text-text-muted">vs</span>
+                            <OpponentRoundChoiceIcon className="w-8 h-8" style={{ color: getIconColor() }} fill="currentColor" />
                           </>
                         )
                       })()}
@@ -264,8 +268,8 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
       )}
 
       {/* Game Rules */}
-      <div className="w-full bg-blue-50 rounded-xl p-4 border border-blue-200">
-        <div className="text-sm text-gray-700 text-center">
+      <div className="w-full bg-surface-2 rounded-xl p-4 border border-border-subtle">
+        <div className="text-sm text-text-secondary text-center">
           <span className="font-semibold">Rules:</span> Rock beats Scissors, Scissors beats Paper, Paper beats Rock
         </div>
       </div>

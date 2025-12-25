@@ -378,8 +378,23 @@ func (s *DotsAndBoxesState) getAdjacentBoxes(row, col int, orientation LineOrien
 	return boxes
 }
 
-// CheckWinner checks if there's a winner (all boxes filled)
+// CheckWinner checks if there's a winner
+// Game ends when:
+// 1. A player has more than half the boxes (mathematically won)
+// 2. All boxes are filled
 func (s *DotsAndBoxesState) CheckWinner() (winner *uuid.UUID, gameOver bool) {
+	halfBoxes := s.TotalBoxes / 2
+	
+	// Check if either player has won by getting more than half the boxes
+	if s.Player1Score > halfBoxes {
+		fmt.Printf("Player 1 wins with %d boxes (more than half of %d)\n", s.Player1Score, s.TotalBoxes)
+		return &s.Player1ID, true
+	}
+	if s.Player2Score > halfBoxes {
+		fmt.Printf("Player 2 wins with %d boxes (more than half of %d)\n", s.Player2Score, s.TotalBoxes)
+		return &s.Player2ID, true
+	}
+	
 	// Game is over when all boxes are filled
 	if len(s.Boxes) >= s.TotalBoxes {
 		if s.Player1Score > s.Player2Score {
@@ -387,7 +402,7 @@ func (s *DotsAndBoxesState) CheckWinner() (winner *uuid.UUID, gameOver bool) {
 		} else if s.Player2Score > s.Player1Score {
 			return &s.Player2ID, true
 		}
-		// Draw
+		// Draw (exactly half each)
 		return nil, true
 	}
 

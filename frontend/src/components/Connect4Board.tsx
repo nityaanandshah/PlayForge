@@ -38,14 +38,14 @@ export default function Connect4Board({ state, currentUserId, onMove, disabled }
   }
 
   const getPieceColor = (value: string) => {
-    if (value === 'R') return 'bg-red-500'
-    if (value === 'Y') return 'bg-yellow-400'
-    return 'bg-white'
+    if (value === 'R') return '#9E2F3B' // Game-specific red
+    if (value === 'Y') return '#E1B84C' // Game-specific yellow
+    return '#3A342D' // Empty slot (dark wood border color)
   }
 
   const getPieceShadow = (value: string) => {
-    if (value === 'R') return 'shadow-red-300'
-    if (value === 'Y') return 'shadow-yellow-300'
+    if (value === 'R') return 'shadow-md'
+    if (value === 'Y') return 'shadow-md'
     return ''
   }
 
@@ -66,19 +66,18 @@ export default function Connect4Board({ state, currentUserId, onMove, disabled }
   return (
     <div className="flex flex-col items-center space-y-6">
       {/* Game Board */}
-      <div className="bg-gradient-to-br from-blue-600 to-blue-800 p-6 rounded-3xl shadow-2xl">
+      <div className="p-6 rounded-3xl shadow-elevated" style={{ backgroundColor: '#2B2621' }}>
         <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))` }}>
           {Array.from({ length: COLS }).map((_, col) => (
             <div key={col} className="flex flex-col gap-3">
               {/* Column hover indicator */}
               <div
-                className={`h-3 rounded-full transition-all duration-200 ${
-                  hoveredCol === col && isMyTurn && !disabled && !isColumnFull(col)
-                    ? mySymbol === 'R'
-                      ? 'bg-red-400 shadow-lg shadow-red-300'
-                      : 'bg-yellow-300 shadow-lg shadow-yellow-200'
-                    : 'bg-transparent'
-                }`}
+                className="h-3 rounded-full transition-all duration-200"
+                style={{
+                  backgroundColor: hoveredCol === col && isMyTurn && !disabled && !isColumnFull(col)
+                    ? mySymbol === 'R' ? '#9E2F3B' : '#E1B84C'
+                    : 'transparent'
+                }}
               />
               
               {/* Column cells */}
@@ -91,20 +90,20 @@ export default function Connect4Board({ state, currentUserId, onMove, disabled }
                   <button
                     key={`${row}-${col}`}
                     className={`${cellSize} rounded-full transition-all duration-200 ${
-                      value === ''
-                        ? 'bg-white'
-                        : `${getPieceColor(value)} shadow-lg ${getPieceShadow(value)} animate-[scale-in_0.3s_ease-out]`
+                      value !== '' ? `${getPieceShadow(value)} animate-[scale-in_0.3s_ease-out]` : ''
                     } ${
                       isMyTurn && !disabled && !isColumnFull(col)
                         ? 'cursor-pointer'
                         : 'cursor-not-allowed'
-                    } ${
-                      isPreview
-                        ? mySymbol === 'R'
-                          ? 'ring-4 ring-red-400 ring-opacity-50'
-                          : 'ring-4 ring-yellow-300 ring-opacity-50'
-                        : ''
                     }`}
+                    style={{
+                      backgroundColor: getPieceColor(value),
+                      boxShadow: isPreview
+                        ? mySymbol === 'R'
+                          ? '0 0 0 3px rgba(158, 47, 59, 0.4)'
+                          : '0 0 0 3px rgba(225, 184, 76, 0.4)'
+                        : undefined
+                    }}
                     onClick={() => handleColumnClick(col)}
                     onMouseEnter={() => setHoveredCol(col)}
                     onMouseLeave={() => setHoveredCol(null)}
@@ -112,7 +111,7 @@ export default function Connect4Board({ state, currentUserId, onMove, disabled }
                   >
                     {/* Piece shine effect */}
                     {value !== '' && (
-                      <div className="w-full h-full rounded-full bg-gradient-to-br from-white/30 to-transparent" />
+                      <div className="w-full h-full rounded-full opacity-20" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 100%)' }} />
                     )}
                   </button>
                 )
@@ -125,24 +124,24 @@ export default function Connect4Board({ state, currentUserId, onMove, disabled }
       {/* Turn Indicator */}
       <div className="text-center">
         {isMyTurn && !disabled && (
-          <div className="flex items-center gap-3 bg-green-100 px-6 py-3 rounded-full border-2 border-green-400 shadow-md animate-pulse">
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-ping"></div>
-            <p className="text-lg font-bold text-green-700">
-              Your Turn! ({mySymbol === 'R' ? '🔴 Red' : '🟡 Yellow'})
+          <div className="flex items-center gap-3 bg-warning-soft px-6 py-3 rounded-full border-2 shadow-md animate-pulse" style={{ borderColor: '#C8A14A' }}>
+            <div className="w-3 h-3 rounded-full animate-ping" style={{ backgroundColor: '#C8A14A' }}></div>
+            <p className="text-lg font-bold text-bg-main">
+              Your Turn! ({mySymbol === 'R' ? 'Red' : 'Yellow'})
             </p>
           </div>
         )}
         {!isMyTurn && !disabled && (
-          <div className="flex items-center gap-3 bg-gray-100 px-6 py-3 rounded-full border-2 border-gray-300 shadow-md">
-            <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-            <p className="text-lg font-semibold text-gray-600">Opponent's Turn...</p>
+          <div className="flex items-center gap-3 bg-surface-2 px-6 py-3 rounded-full border-2 border-border-subtle shadow-md">
+            <div className="w-3 h-3 bg-text-muted rounded-full"></div>
+            <p className="text-lg font-semibold text-text-secondary">Opponent's Turn...</p>
           </div>
         )}
       </div>
 
       {/* Instructions */}
       {isMyTurn && !disabled && (
-        <div className="text-center text-sm text-gray-600 bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
+        <div className="text-center text-sm text-text-secondary bg-surface-2 px-4 py-2 rounded-lg border border-border-subtle">
           💡 Click on any column to drop your piece
         </div>
       )}

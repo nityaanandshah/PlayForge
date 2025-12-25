@@ -93,7 +93,7 @@ export default function RoomLobby() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="text-xl">Loading room...</div>
+        <div className="text-xl text-text-primary">Loading room...</div>
       </div>
     );
   }
@@ -101,12 +101,12 @@ export default function RoomLobby() {
   if (error || !room) {
     return (
       <div className="max-w-4xl mx-auto">
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-danger-soft border border-danger text-danger px-4 py-3 rounded mb-4">
           {error || 'Room not found'}
         </div>
         <button
           onClick={() => navigate('/dashboard')}
-          className="text-blue-600 hover:underline"
+          className="text-accent-primary hover:text-accent-hover"
         >
           ← Back to Dashboard
         </button>
@@ -140,37 +140,37 @@ export default function RoomLobby() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Room Lobby</h1>
+        <h1 className="text-3xl font-bold mb-2 text-text-primary">Room Lobby</h1>
         <div className="flex items-center gap-4">
-          <span className="text-gray-600">{getGameTypeName(room.game_type)}</span>
-          <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+          <span className="text-text-secondary">{getGameTypeName(room.game_type)}</span>
+          <span className="px-3 py-1 bg-accent-soft text-accent-primary border border-accent-primary rounded-full text-sm">
             {getRoomTypeLabel(room.type)}
           </span>
         </div>
       </div>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-danger-soft border border-danger text-danger px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
 
       {/* Join Code */}
       {room.type === 'private' && (
-        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 mb-6">
+        <div className="bg-surface-1 border-2 border-accent-primary rounded-lg p-4 mb-6 shadow-soft">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-gray-700 mb-1">Join Code</p>
-              <p className="text-3xl font-mono font-bold text-gray-900">{room.join_code}</p>
+              <p className="text-sm font-semibold text-text-secondary mb-1">Join Code</p>
+              <p className="text-3xl font-mono font-bold text-accent-primary">{room.join_code}</p>
             </div>
             <button
               onClick={copyJoinCode}
-              className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
+              className="px-4 py-2 bg-accent-primary text-bg-main rounded-lg hover:bg-accent-hover transition-all"
             >
               Copy Code
             </button>
           </div>
-          <p className="text-sm text-gray-600 mt-2">
+          <p className="text-sm text-text-muted mt-2">
             Share this code with friends to invite them
           </p>
         </div>
@@ -178,37 +178,37 @@ export default function RoomLobby() {
 
       {/* Game Settings */}
       {room.game_settings && (
-        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
-          <p className="text-sm font-semibold text-gray-700 mb-2">🎮 Game Settings</p>
+        <div className="bg-surface-1 border-2 border-border-subtle rounded-lg p-4 mb-6 shadow-soft">
+          <p className="text-sm font-semibold text-text-primary mb-2">🎮 Game Settings</p>
           <div className="space-y-1">
             {room.game_type === 'tictactoe' && room.game_settings.tictactoe_grid_size && (
-              <p className="text-gray-700">
-                <span className="font-semibold">Grid Size:</span> {room.game_settings.tictactoe_grid_size}x{room.game_settings.tictactoe_grid_size}
-                <span className="text-sm text-gray-600 ml-2">
+              <p className="text-text-secondary">
+                <span className="font-semibold text-text-primary">Grid Size:</span> {room.game_settings.tictactoe_grid_size}x{room.game_settings.tictactoe_grid_size}
+                <span className="text-sm text-text-muted ml-2">
                   (Get {room.game_settings.tictactoe_win_length || room.game_settings.tictactoe_grid_size} in a row to win)
                 </span>
               </p>
             )}
             {room.game_type === 'connect4' && (room.game_settings.connect4_rows || room.game_settings.connect4_cols) && (
-              <p className="text-gray-700">
-                <span className="font-semibold">Board:</span> {room.game_settings.connect4_rows || 6}x{room.game_settings.connect4_cols || 7}
-                <span className="text-sm text-gray-600 ml-2">
+              <p className="text-text-secondary">
+                <span className="font-semibold text-text-primary">Board:</span> {room.game_settings.connect4_rows || 6}x{room.game_settings.connect4_cols || 7}
+                <span className="text-sm text-text-muted ml-2">
                   (Get {room.game_settings.connect4_win_length || 4} in a row to win)
                 </span>
               </p>
             )}
             {room.game_type === 'rps' && room.game_settings.rps_best_of && (
-              <p className="text-gray-700">
-                <span className="font-semibold">Best of:</span> {room.game_settings.rps_best_of} rounds
-                <span className="text-sm text-gray-600 ml-2">
+              <p className="text-text-secondary">
+                <span className="font-semibold text-text-primary">Best of:</span> {room.game_settings.rps_best_of} rounds
+                <span className="text-sm text-text-muted ml-2">
                   (First to {Math.ceil(room.game_settings.rps_best_of / 2)} wins)
                 </span>
               </p>
             )}
             {room.game_type === 'dotsandboxes' && room.game_settings.dots_grid_size && (
-              <p className="text-gray-700">
-                <span className="font-semibold">Grid Size:</span> {room.game_settings.dots_grid_size}x{room.game_settings.dots_grid_size}
-                <span className="text-sm text-gray-600 ml-2">
+              <p className="text-text-secondary">
+                <span className="font-semibold text-text-primary">Grid Size:</span> {room.game_settings.dots_grid_size}x{room.game_settings.dots_grid_size}
+                <span className="text-sm text-text-muted ml-2">
                   ({(room.game_settings.dots_grid_size - 1) * (room.game_settings.dots_grid_size - 1)} boxes)
                 </span>
               </p>
@@ -218,42 +218,42 @@ export default function RoomLobby() {
       )}
 
       {/* Participants */}
-      <div className="bg-white border-2 border-gray-200 rounded-lg p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">
+      <div className="bg-surface-1 border-2 border-border-subtle rounded-lg p-6 mb-6 shadow-soft">
+        <h2 className="text-xl font-semibold mb-4 text-text-primary">
           Players ({room.participants.length}/{room.max_players})
         </h2>
         <div className="space-y-3">
           {room.participants.map((participant: Participant) => (
             <div
               key={participant.user_id}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              className="flex items-center justify-between p-3 bg-surface-2 rounded-lg border border-border-subtle"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                <div className="w-10 h-10 bg-accent-primary rounded-full flex items-center justify-center text-bg-main font-bold">
                   {participant.username.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <p className="font-semibold">
+                  <p className="font-semibold text-text-primary">
                     {participant.username}
                     {participant.role === 'host' && (
-                      <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                      <span className="ml-2 text-xs bg-accent-soft text-accent-primary border border-accent-primary px-2 py-1 rounded">
                         Host
                       </span>
                     )}
                     {participant.user_id === user?.id && (
-                      <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                      <span className="ml-2 text-xs bg-success-soft text-success border border-success px-2 py-1 rounded">
                         You
                       </span>
                     )}
                   </p>
-                  <p className="text-sm text-gray-500 capitalize">{participant.role}</p>
+                  <p className="text-sm text-text-muted capitalize">{participant.role}</p>
                 </div>
               </div>
               <div>
                 {participant.is_ready ? (
-                  <span className="text-green-600 font-semibold">✓ Ready</span>
+                  <span className="text-success font-semibold">✓ Ready</span>
                 ) : (
-                  <span className="text-gray-400">Not Ready</span>
+                  <span className="text-text-disabled">Not Ready</span>
                 )}
               </div>
             </div>
@@ -263,12 +263,12 @@ export default function RoomLobby() {
           {Array.from({ length: room.max_players - room.participants.length }).map((_, i) => (
             <div
               key={`empty-${i}`}
-              className="flex items-center p-3 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300"
+              className="flex items-center p-3 bg-surface-2 rounded-lg border-2 border-dashed border-border-subtle"
             >
-              <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-gray-500">
+              <div className="w-10 h-10 bg-surface-3 rounded-full flex items-center justify-center text-text-disabled">
                 ?
               </div>
-              <span className="ml-3 text-gray-500">Waiting for player...</span>
+              <span className="ml-3 text-text-muted">Waiting for player...</span>
             </div>
           ))}
         </div>
@@ -280,8 +280,8 @@ export default function RoomLobby() {
           onClick={toggleReady}
           className={`w-full py-3 rounded-lg font-semibold transition-colors ${
             isReady
-              ? 'bg-gray-600 text-white hover:bg-gray-700'
-              : 'bg-green-600 text-white hover:bg-green-700'
+              ? 'bg-text-muted text-bg-main hover:bg-text-disabled'
+              : 'bg-success text-text-primary hover:bg-success/80'
           }`}
         >
           {isReady ? 'Not Ready' : 'Ready'}
@@ -291,7 +291,7 @@ export default function RoomLobby() {
           <button
             onClick={startGame}
             disabled={!canStart}
-            className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="w-full bg-accent-primary text-bg-main py-3 rounded-lg font-semibold hover:bg-accent-hover active:bg-accent-active disabled:bg-text-disabled disabled:cursor-not-allowed transition-all"
           >
             {!allReady
               ? 'Waiting for all players to be ready...'
@@ -303,7 +303,7 @@ export default function RoomLobby() {
 
         <button
           onClick={leaveRoom}
-          className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700"
+          className="w-full bg-danger text-text-primary py-3 rounded-lg font-semibold hover:bg-danger/80 transition-all"
         >
           Leave Room
         </button>
@@ -312,7 +312,7 @@ export default function RoomLobby() {
       <div className="mt-6">
         <button
           onClick={() => navigate('/dashboard')}
-          className="text-blue-600 hover:underline"
+          className="text-accent-primary hover:text-accent-hover"
         >
           ← Back to Dashboard
         </button>
@@ -320,4 +320,3 @@ export default function RoomLobby() {
     </div>
   );
 }
-

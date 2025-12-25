@@ -73,77 +73,77 @@ export default function Settings() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div className="bg-white shadow rounded-lg p-6">
+      <div className="bg-surface-1 shadow-elevated rounded-lg p-6 border border-border-subtle">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Settings</h1>
+          <h1 className="text-2xl font-bold text-text-primary">Settings</h1>
           <button
             onClick={() => navigate('/profile')}
-            className="text-indigo-600 hover:text-indigo-800 font-medium"
+            className="text-accent-primary hover:text-accent-hover font-medium"
           >
             ← Back to Profile
           </button>
         </div>
 
         {success && (
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md text-green-800">
+          <div className="mb-4 p-3 bg-success-soft border border-success rounded-md text-success">
             {success}
           </div>
         )}
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-800">
+          <div className="mb-4 p-3 bg-danger-soft border border-danger rounded-md text-danger">
             {error}
           </div>
         )}
 
         {/* Profile Settings */}
-        <div className="border-b pb-6 mb-6">
-          <h2 className="text-xl font-bold mb-4">Profile Information</h2>
+        <div className="border-b border-border-subtle pb-6 mb-6">
+          <h2 className="text-xl font-bold mb-4 text-text-primary">Profile Information</h2>
           <form onSubmit={handleUpdateProfile} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-text-secondary mb-1">
                 Username
               </label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-border-subtle rounded-lg bg-surface-3 text-text-primary focus:ring-2 focus:ring-accent-primary focus:border-accent-primary"
                 required
                 minLength={3}
                 maxLength={20}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-text-muted mt-1">
                 3-20 characters. This will be visible to other players.
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-text-secondary mb-1">
                 Email
               </label>
               <input
                 type="email"
                 value={user?.email || ''}
                 disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+                className="w-full px-4 py-2 border border-border-subtle rounded-lg bg-surface-2 text-text-muted cursor-not-allowed"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-text-muted mt-1">
                 Email cannot be changed.
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-text-secondary mb-1">
                 ELO Rating
               </label>
               <input
                 type="text"
                 value={user?.elo_rating || 1200}
                 disabled
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+                className="w-full px-4 py-2 border border-border-subtle rounded-lg bg-surface-2 text-text-muted cursor-not-allowed"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-text-muted mt-1">
                 Your rating is determined by your game performance.
               </p>
             </div>
@@ -151,7 +151,7 @@ export default function Settings() {
             <button
               type="submit"
               disabled={loading || username === user?.username}
-              className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              className="bg-accent-primary text-bg-main px-6 py-2 rounded-lg hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {loading ? 'Updating...' : 'Update Profile'}
             </button>
@@ -160,47 +160,47 @@ export default function Settings() {
 
         {/* Password Settings */}
         <div>
-          <h2 className="text-xl font-bold mb-4">Change Password</h2>
+          <h2 className="text-xl font-bold mb-4 text-text-primary">Change Password</h2>
           <form onSubmit={handleChangePassword} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-text-secondary mb-1">
                 Current Password
               </label>
               <input
                 type="password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-border-subtle rounded-lg bg-surface-3 text-text-primary focus:ring-2 focus:ring-accent-primary focus:border-accent-primary"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-text-secondary mb-1">
                 New Password
               </label>
               <input
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-border-subtle rounded-lg bg-surface-3 text-text-primary focus:ring-2 focus:ring-accent-primary focus:border-accent-primary"
                 required
                 minLength={8}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-text-muted mt-1">
                 At least 8 characters.
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-text-secondary mb-1">
                 Confirm New Password
               </label>
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-border-subtle rounded-lg bg-surface-3 text-text-primary focus:ring-2 focus:ring-accent-primary focus:border-accent-primary"
                 required
                 minLength={8}
               />
@@ -209,7 +209,7 @@ export default function Settings() {
             <button
               type="submit"
               disabled={loading}
-              className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              className="bg-danger text-text-primary px-6 py-2 rounded-lg hover:bg-danger-soft disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {loading ? 'Changing...' : 'Change Password'}
             </button>
@@ -218,18 +218,18 @@ export default function Settings() {
       </div>
 
       {/* Account Information */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-xl font-bold mb-4">Account Information</h2>
+      <div className="bg-surface-1 shadow-elevated rounded-lg p-6 border border-border-subtle">
+        <h2 className="text-xl font-bold mb-4 text-text-primary">Account Information</h2>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-600">Member Since:</span>
-            <span className="font-medium">
+            <span className="text-text-secondary">Member Since:</span>
+            <span className="font-medium text-text-primary">
               {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Account ID:</span>
-            <span className="font-mono text-xs">{user?.id}</span>
+            <span className="text-text-secondary">Account ID:</span>
+            <span className="font-mono text-xs text-text-muted">{user?.id}</span>
           </div>
         </div>
       </div>

@@ -7,7 +7,8 @@ body {
   font-family: 'Source Sans Pro', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  @apply bg-gray-50;
+  background-color: #141210;
+  color: #E6E2DC;
 }
 
 /* Serif font for all headings */
@@ -20,22 +21,23 @@ code {
     monospace;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - Wood palette */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100;
+  background-color: #1E1B18;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-400 rounded;
+  background-color: #C08A3E;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-500;
+  background-color: #D6A35C;
 }
 
 /* Tic-Tac-Toe animations */
