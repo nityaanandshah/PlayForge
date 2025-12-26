@@ -25,11 +25,11 @@ const Leaderboard = () => {
   const [error, setError] = useState<string>('')
 
   const games = [
-    { id: 'all', name: 'Overall', Icon: Trophy, color: 'text-yellow-500' },
-    { id: 'tictactoe', name: 'Tic-Tac-Toe', Icon: X, color: 'text-blue-500' },
-    { id: 'connect4', name: 'Connect 4', Icon: Circle, color: 'text-red-500' },
-    { id: 'rps', name: 'Rock Paper Scissors', Icon: Gamepad2, color: 'text-purple-500' },
-    { id: 'dotsandboxes', name: 'Dots & Boxes', Icon: Circle, color: 'text-indigo-500' },
+    { id: 'all', name: 'Overall', icons: [{ Icon: Trophy, color: 'text-accent-primary' }] },
+    { id: 'tictactoe', name: 'Tic-Tac-Toe', icons: [{ Icon: X, color: 'text-accent-primary' }, { Icon: Circle, color: 'text-accent-primary' }] },
+    { id: 'connect4', name: 'Connect 4', icons: [{ Icon: Circle, color: 'text-accent-primary' }, { Icon: Circle, color: 'text-warning' }] },
+    { id: 'rps', name: 'Rock Paper Scissors', icons: [{ Icon: Gamepad2, color: 'text-accent-primary' }] },
+    { id: 'dotsandboxes', name: 'Dots & Boxes', icons: [{ Icon: Circle, color: 'text-accent-primary' }, { Icon: Circle, color: 'text-text-muted' }] },
   ]
 
   useEffect(() => {
@@ -75,7 +75,6 @@ const Leaderboard = () => {
           {/* Game Type Selector */}
           <div className="flex flex-wrap gap-3 mb-8">
             {games.map((game) => {
-              const IconComponent = game.Icon
               const isSelected = selectedGame === game.id
               return (
                 <button
@@ -87,10 +86,18 @@ const Leaderboard = () => {
                       : 'bg-surface-2 text-text-secondary border border-border-subtle hover:bg-surface-3 shadow-soft'
                   }`}
                 >
-                  <IconComponent 
-                    className={`w-5 h-5 ${isSelected ? '' : 'text-accent-primary'}`} 
-                    fill="currentColor" 
-                  />
+                  <div className="flex gap-1">
+                    {game.icons.map((iconData, idx) => {
+                      const IconComponent = iconData.Icon
+                      return (
+                        <IconComponent 
+                          key={idx}
+                          className={`w-5 h-5 ${isSelected ? '' : iconData.color}`} 
+                          fill="currentColor" 
+                        />
+                      )
+                    })}
+                  </div>
                   {game.name}
                 </button>
               )
