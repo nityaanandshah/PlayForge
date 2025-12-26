@@ -187,7 +187,7 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
       )}
 
       {/* Round History */}
-      {state.rounds.length > 0 && (
+      {state.rounds && state.rounds.length > 0 ? (
         <div className="w-full bg-surface-1 rounded-2xl p-6 shadow-elevated border border-border-subtle">
           <h3 className="text-xl font-bold text-text-primary mb-4">Round History</h3>
           <div className="space-y-2">
@@ -263,6 +263,14 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
                 </div>
               )
             })}
+          </div>
+        </div>
+      ) : disabled && (
+        <div className="w-full bg-surface-2 rounded-2xl p-6 shadow-soft border border-border-subtle">
+          <h3 className="text-xl font-bold text-text-primary mb-4">Round History</h3>
+          <div className="text-center py-8 text-text-muted">
+            <p className="text-sm">Round history not available for this game.</p>
+            <p className="text-xs mt-2 text-text-disabled">Game state was not recorded.</p>
           </div>
         </div>
       )}

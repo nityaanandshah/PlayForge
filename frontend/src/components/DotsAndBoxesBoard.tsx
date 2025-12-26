@@ -121,9 +121,9 @@ export default function DotsAndBoxesBoard({ state, currentUserId, onMove, disabl
 
         {/* Turn Indicator */}
         {isMyTurn && !disabled && (
-          <div className="flex flex-col items-center gap-2 bg-warning-soft px-4 py-3 rounded-xl border-2 shadow-md animate-pulse" style={{ borderColor: '#C8A14A' }}>
-            <div className="w-3 h-3 rounded-full animate-ping" style={{ backgroundColor: '#C8A14A' }}></div>
-            <p className="text-sm font-bold text-bg-main">Your Turn!</p>
+          <div className="flex flex-col items-center gap-2 bg-gradient-to-r from-accent-primary to-accent-hover px-4 py-3 rounded-xl border-2 shadow-lg animate-pulse" style={{ borderColor: '#FFD700' }}>
+            <div className="w-3 h-3 rounded-full animate-ping bg-white"></div>
+            <p className="text-sm font-bold text-white drop-shadow-md">Your Turn!</p>
           </div>
         )}
         {!isMyTurn && !disabled && (

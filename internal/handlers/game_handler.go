@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 
@@ -14,14 +15,16 @@ import (
 )
 
 type GameHandler struct {
-	gameService *services.GameService
-	hub         *ws.Hub
+	gameService       *services.GameService
+	tournamentService *services.TournamentService
+	hub               *ws.Hub
 }
 
-func NewGameHandler(gameService *services.GameService, hub *ws.Hub) *GameHandler {
+func NewGameHandler(gameService *services.GameService, tournamentService *services.TournamentService, hub *ws.Hub) *GameHandler {
 	handler := &GameHandler{
-		gameService: gameService,
-		hub:         hub,
+		gameService:       gameService,
+		tournamentService: tournamentService,
+		hub:               hub,
 	}
 	// Start Redis event listener
 	go handler.listenToGameEvents()
@@ -185,7 +188,7 @@ func (h *GameHandler) JoinGame(c *fiber.Ctx) error {
 	return c.JSON(g)
 }
 
-// GetGame retrieves a game by ID
+// GetGame retrieves a game by ID (creates it on-demand if it's a tournament match)
 func (h *GameHandler) GetGame(c *fiber.Ctx) error {
 	gameID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -194,6 +197,52 @@ func (h *GameHandler) GetGame(c *fiber.Ctx) error {
 
 	g, err := h.gameService.GetGame(c.Context(), gameID)
 	if err != nil {
+		log.Printf("Game %s not found (error: %v), attempting to create tournament game...", gameID, err)
+		
+		// Try to create this tournament game on-demand
+		if h.tournamentService != nil {
+			// Get all active tournaments and search for this match_id
+			tournaments, err := h.tournamentService.ListTournaments(c.Context(), nil, 100)
+			log.Printf("Found %d tournaments to search for match_id %s", len(tournaments), gameID)
+			if err == nil {
+				for _, tournament := range tournaments {
+					log.Printf("Checking tournament %s (status: %s, has bracket: %v)", tournament.ID, tournament.Status, tournament.BracketData != nil)
+					if tournament.BracketData != nil {
+						// Search through all rounds and matches
+						for roundIdx, round := range tournament.BracketData.Rounds {
+							for matchIdx, match := range round.Matches {
+								log.Printf("  Round %d, Match %d: match_id=%v", roundIdx+1, matchIdx+1, match.MatchID)
+								if match.MatchID != nil && *match.MatchID == gameID {
+									// Found it! This game belongs to this tournament
+									log.Printf("✓ Found match_id %s in tournament %s, creating game now...", gameID, tournament.ID)
+									
+									// Create games for this tournament
+									err := h.tournamentService.CreateGamesForNextRound(c.Context(), tournament.ID)
+									if err != nil {
+										log.Printf("ERROR creating tournament games: %v", err)
+										return fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("Failed to create game: %v", err))
+									}
+									
+									// Try fetching the game again
+									g, err = h.gameService.GetGame(c.Context(), gameID)
+									if err == nil {
+										log.Printf("✓ Successfully created and fetched game %s", gameID)
+										return c.JSON(g)
+									} else {
+										log.Printf("ERROR: Game %s still not found after creation: %v", gameID, err)
+										return fiber.NewError(fiber.StatusInternalServerError, "Game created but could not be retrieved")
+									}
+								}
+							}
+						}
+					}
+				}
+			} else {
+				log.Printf("ERROR listing tournaments: %v", err)
+			}
+		}
+		
+		log.Printf("Game %s not found and could not be created", gameID)
 		return fiber.NewError(fiber.StatusNotFound, "Game not found")
 	}
 

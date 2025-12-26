@@ -416,6 +416,13 @@ func (s *DotsAndBoxesState) GetCurrentPlayer() uuid.UUID {
 
 // GetState returns the current game state for serialization
 func (s *DotsAndBoxesState) GetState() interface{} {
+	// Defensive: Ensure slices are never nil
+	if s.Lines == nil {
+		s.Lines = []Line{}
+	}
+	if s.Boxes == nil {
+		s.Boxes = []Box{}
+	}
 	return s
 }
 

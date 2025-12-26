@@ -58,8 +58,14 @@ export default function Game() {
   }, [id, user])
 
   const loadGame = async (spectateMode: boolean) => {
+    console.log('=== LOAD GAME CALLED ===');
+    console.log('Game ID:', id);
+    console.log('Spectate mode:', spectateMode);
+    console.log('User:', user);
     try {
+      console.log('Fetching game from API:', `/games/${id}`);
       const response = await api.get<GameType>(`/games/${id}`)
+      console.log('Game API response:', response.data);
       const gameData = response.data
       
       // Check if user is a player
@@ -97,6 +103,11 @@ export default function Game() {
       
       setLoading(false)
     } catch (err: any) {
+      console.error('=== GAME LOAD ERROR ===');
+      console.error('Error object:', err);
+      console.error('Error response:', err.response);
+      console.error('Error status:', err.response?.status);
+      console.error('Error data:', err.response?.data);
       setError(err.response?.data?.error || 'Failed to load game')
       setLoading(false)
     }
@@ -323,7 +334,6 @@ export default function Game() {
                 <div className="font-bold">{isPlayer1 ? user?.username : game.player1_name}</div>
                 <div className="text-sm opacity-80">{playerSymbols.player1}</div>
               </div>
-              {isPlayer1 && <span className="ml-2 text-xs bg-surface-3 px-2 py-1 rounded-full">You</span>}
             </div>
             
             {/* VS */}
@@ -338,7 +348,6 @@ export default function Game() {
                 <div className="font-bold">{isPlayer2 ? user?.username : game.player2_name || 'Waiting...'}</div>
                 <div className="text-sm opacity-80">{playerSymbols.player2}</div>
               </div>
-              {isPlayer2 && <span className="ml-2 text-xs bg-surface-3 px-2 py-1 rounded-full">You</span>}
             </div>
           </div>
         </div>

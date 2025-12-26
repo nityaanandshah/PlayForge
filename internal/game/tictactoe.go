@@ -263,6 +263,13 @@ func (s *TicTacToeState) GetCurrentPlayer() uuid.UUID {
 
 // GetState returns the current game state for serialization
 func (s *TicTacToeState) GetState() interface{} {
+	// Defensive: Ensure board is never nil
+	if s.Board == nil {
+		s.Board = make([][]string, s.GridSize)
+		for i := range s.Board {
+			s.Board[i] = make([]string, s.GridSize)
+		}
+	}
 	return s
 }
 

@@ -239,6 +239,10 @@ func (s *RPSState) GetCurrentPlayer() uuid.UUID {
 
 // GetState returns the current game state for serialization
 func (s *RPSState) GetState() interface{} {
+	// Defensive: Ensure Rounds is never nil
+	if s.Rounds == nil {
+		s.Rounds = []RPSRound{}
+	}
 	return s
 }
 

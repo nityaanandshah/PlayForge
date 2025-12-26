@@ -415,38 +415,76 @@ func (s *TournamentService) createTournamentMatches(ctx context.Context, tournam
 // createGamesForReadyMatches creates actual game instances for matches that are ready to play
 func (s *TournamentService) createGamesForReadyMatches(ctx context.Context, tournament *domain.Tournament) error {
 	if tournament.BracketData == nil {
+		log.Printf("WARNING: Tournament %s has no bracket data", tournament.ID)
 		return nil
 	}
 
+	log.Printf("=== Creating games for tournament %s ===", tournament.ID)
+	log.Printf("Tournament has %d rounds", len(tournament.BracketData.Rounds))
+	
 	gamesCreated := 0
 	
 	// Iterate through all rounds and matches
 	for roundIdx, round := range tournament.BracketData.Rounds {
+		log.Printf("Round %d (%s): %d matches", round.RoundNumber, round.RoundName, len(round.Matches))
+		
 		for matchIdx, match := range round.Matches {
-			// Only create games for matches that are ready and don't have a game yet
-			if match.Status == domain.TournamentMatchStatusReady && match.MatchID == nil {
+			log.Printf("  Match %d: Status=%s, MatchID=%v, Player1=%v, Player2=%v", 
+				match.MatchNumber, match.Status, match.MatchID, match.Player1ID, match.Player2ID)
+			
+			// Check if match is ready and needs a game
+			if match.Status == domain.TournamentMatchStatusReady {
 				if match.Player1ID == nil || match.Player2ID == nil {
+					log.Printf("  Skipping match %d: missing players", match.MatchNumber)
 					continue
 				}
 
-				// Create a game for this match
-				gameType := game.GameType(tournament.GameType)
-				gameID := uuid.New()
+				// Check if game already exists (either no MatchID set, or game doesn't exist in Redis/DB)
+				needsGame := match.MatchID == nil
+				if !needsGame && match.MatchID != nil {
+					// MatchID is set, but verify game actually exists
+					_, err := s.gameService.GetGame(ctx, *match.MatchID)
+					if err != nil {
+						// Game doesn't exist, need to create it
+						log.Printf("  MatchID set but game doesn't exist, will recreate")
+						needsGame = true
+					}
+				}
 
-				// Initialize the game with both players
-				gameInstance, err := s.gameService.CreateGameForTournament(
-					ctx,
-					gameID,
-					gameType,
-					*match.Player1ID,
-					match.Player1Name,
-					*match.Player2ID,
-					match.Player2Name,
-					tournament.ID,           // Tournament ID
-					round.RoundNumber,       // Tournament round
-				)
+				if !needsGame {
+					log.Printf("  Skipping match %d: game already exists", match.MatchNumber)
+					continue
+				}
+
+			log.Printf("  Creating game for match %d: %s vs %s", match.MatchNumber, match.Player1Name, match.Player2Name)
+
+			// Create a game for this match
+			gameType := game.GameType(tournament.GameType)
+			
+			// Use existing match ID if available, otherwise generate a new one
+			var gameID uuid.UUID
+			if match.MatchID != nil {
+				gameID = *match.MatchID
+				log.Printf("  Using existing match ID: %s", gameID)
+			} else {
+				gameID = uuid.New()
+				log.Printf("  Generated new game ID: %s", gameID)
+			}
+
+			// Initialize the game with both players
+			gameInstance, err := s.gameService.CreateGameForTournament(
+				ctx,
+				gameID,
+				gameType,
+				*match.Player1ID,
+				match.Player1Name,
+				*match.Player2ID,
+				match.Player2Name,
+				tournament.ID,           // Tournament ID
+				round.RoundNumber,       // Tournament round
+			)
 				if err != nil {
-					log.Printf("Failed to create game for match %d in round %d: %v", match.MatchNumber, round.RoundNumber, err)
+					log.Printf("ERROR: Failed to create game for match %d in round %d: %v", match.MatchNumber, round.RoundNumber, err)
 					continue
 				}
 
@@ -455,7 +493,7 @@ func (s *TournamentService) createGamesForReadyMatches(ctx context.Context, tour
 				tournament.BracketData.Rounds[roundIdx].Matches[matchIdx].Status = domain.TournamentMatchStatusReady
 
 				gamesCreated++
-				log.Printf("Created game %s for tournament %s, round %d (%s), match %d", 
+				log.Printf("✓ Successfully created game %s for tournament %s, round %d (%s), match %d", 
 					gameInstance.ID, tournament.ID, round.RoundNumber, round.RoundName, match.MatchNumber)
 			}
 		}
@@ -633,6 +671,14 @@ func (s *TournamentService) GetTournament(ctx context.Context, tournamentID uuid
 	// Try cache first
 	tournament, err := s.getTournamentFromCache(ctx, tournamentID)
 	if err == nil && tournament != nil {
+		log.Printf("Tournament %s loaded from cache, status: %s, participants: %d", tournamentID, tournament.Status, len(tournament.Participants))
+		// If loaded from cache and has no participants but has bracket data, populate them
+		if len(tournament.Participants) == 0 && tournament.BracketData != nil && (tournament.Status == domain.TournamentStatusInProgress || tournament.Status == domain.TournamentStatusComplete) {
+			log.Printf("Populating participants from bracket data for cached tournament %s", tournamentID)
+			tournament = s.populateParticipantsFromBracket(tournament)
+			// Update cache with populated participants
+			s.saveTournamentToCache(ctx, tournament)
+		}
 		return tournament, nil
 	}
 
@@ -643,45 +689,86 @@ func (s *TournamentService) GetTournament(ctx context.Context, tournamentID uuid
 		return nil, err
 	}
 
+	log.Printf("Tournament %s loaded from DB, status: %s", tournamentID, tournament.Status)
+
 	// Initialize participants to empty slice if nil
 	if tournament.Participants == nil {
 		tournament.Participants = []domain.TournamentParticipant{}
 	}
 
-	// Populate participants from room
-	room, err := s.roomService.GetRoom(ctx, tournament.RoomID)
-	if err == nil {
-		for _, roomParticipant := range room.Participants {
-			// Check if participant already in tournament
-			found := false
-			for _, tournamentParticipant := range tournament.Participants {
-				if tournamentParticipant.UserID == roomParticipant.UserID {
-					found = true
-					break
-				}
-			}
-			if !found {
-				user, err := s.userRepo.GetByID(ctx, roomParticipant.UserID)
-				if err == nil {
-					tournament.Participants = append(tournament.Participants, domain.TournamentParticipant{
-						UserID:       roomParticipant.UserID,
-						Username:     roomParticipant.Username,
-						Seed:         len(tournament.Participants) + 1,
-						EloRating:    user.EloRating,
-						IsEliminated: false,
-						JoinedAt:     roomParticipant.JoinedAt,
-					})
-				}
-			}
-		}
+	// If tournament is in progress or completed, populate participants from bracket data
+	if (tournament.Status == domain.TournamentStatusInProgress || tournament.Status == domain.TournamentStatusComplete) && tournament.BracketData != nil {
+		tournament = s.populateParticipantsFromBracket(tournament)
 	} else {
-		log.Printf("Warning: Failed to get room for tournament %s: %v", tournamentID, err)
+		// Populate participants from room for pending tournaments
+		room, err := s.roomService.GetRoom(ctx, tournament.RoomID)
+		if err == nil {
+			for _, roomParticipant := range room.Participants {
+				// Check if participant already in tournament
+				found := false
+				for _, tournamentParticipant := range tournament.Participants {
+					if tournamentParticipant.UserID == roomParticipant.UserID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					user, err := s.userRepo.GetByID(ctx, roomParticipant.UserID)
+					if err == nil {
+						tournament.Participants = append(tournament.Participants, domain.TournamentParticipant{
+							UserID:       roomParticipant.UserID,
+							Username:     roomParticipant.Username,
+							Seed:         len(tournament.Participants) + 1,
+							EloRating:    user.EloRating,
+							IsEliminated: false,
+							JoinedAt:     roomParticipant.JoinedAt,
+						})
+					}
+				}
+			}
+		} else {
+			log.Printf("Warning: Failed to get room for tournament %s: %v", tournamentID, err)
+		}
 	}
 
 	// Cache it
 	s.saveTournamentToCache(ctx, tournament)
 
 	return tournament, nil
+}
+
+// Helper function to populate participants from bracket data
+func (s *TournamentService) populateParticipantsFromBracket(tournament *domain.Tournament) *domain.Tournament {
+	log.Printf("Populating participants from bracket data for tournament %s", tournament.ID)
+	participantMap := make(map[uuid.UUID]bool)
+	
+	// Extract unique participants from all matches in the bracket
+	for _, round := range tournament.BracketData.Rounds {
+		for _, match := range round.Matches {
+			// Add player 1 if exists
+			if match.Player1ID != nil && !participantMap[*match.Player1ID] {
+				tournament.Participants = append(tournament.Participants, domain.TournamentParticipant{
+					UserID:       *match.Player1ID,
+					Username:     match.Player1Name,
+					Seed:         len(tournament.Participants) + 1,
+					IsEliminated: false,
+				})
+				participantMap[*match.Player1ID] = true
+			}
+			// Add player 2 if exists
+			if match.Player2ID != nil && !participantMap[*match.Player2ID] {
+				tournament.Participants = append(tournament.Participants, domain.TournamentParticipant{
+					UserID:       *match.Player2ID,
+					Username:     match.Player2Name,
+					Seed:         len(tournament.Participants) + 1,
+					IsEliminated: false,
+				})
+				participantMap[*match.Player2ID] = true
+			}
+		}
+	}
+	log.Printf("Found %d participants from bracket data", len(tournament.Participants))
+	return tournament
 }
 
 // ListTournaments retrieves all tournaments

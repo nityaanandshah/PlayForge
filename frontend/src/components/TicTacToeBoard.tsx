@@ -107,9 +107,9 @@ export default function TicTacToeBoard({ state, currentUserId, onMove, disabled 
       {/* Turn Indicator */}
       <div className="text-center">
         {isMyTurn && !disabled && (
-          <div className="flex items-center gap-2 bg-[#C08A3E] px-6 py-3 rounded-full border-2 border-[#D6A35C] shadow-md animate-pulse">
-            <div className="w-3 h-3 bg-[#D6A35C] rounded-full animate-ping"></div>
-            <p className="text-lg font-bold text-[#141210]">Your Turn!</p>
+          <div className="flex items-center gap-2 bg-[#C08A3E] px-6 py-3 rounded-full border-2 border-[#D6A35C] shadow-lg animate-pulse">
+            <div className="w-3 h-3 bg-white rounded-full animate-ping"></div>
+            <p className="text-lg font-bold text-white drop-shadow-md">Your Turn!</p>
           </div>
         )}
         {!isMyTurn && !disabled && (

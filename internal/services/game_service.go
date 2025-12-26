@@ -7,6 +7,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/arenamatch/playforge/internal/domain"
 	"github.com/arenamatch/playforge/internal/game"
 	"github.com/arenamatch/playforge/internal/repository"
 	"github.com/google/uuid"
@@ -24,6 +25,7 @@ type GameService struct {
 type TournamentServiceInterface interface {
 	AdvanceWinner(ctx context.Context, tournamentID uuid.UUID, matchID uuid.UUID, winnerID uuid.UUID) error
 	CreateGamesForNextRound(ctx context.Context, tournamentID uuid.UUID) error
+	ListTournaments(ctx context.Context, status *domain.TournamentStatus, limit int) ([]domain.Tournament, error)
 }
 
 func NewGameService(redisClient *redis.Client, statsService *StatsService, gameRepo *repository.GameRepository) *GameService {
@@ -116,6 +118,9 @@ func (s *GameService) CreateGameWithSettings(ctx context.Context, gameType game.
 
 // CreateGameForTournament creates a game with both players already assigned for tournament matches
 func (s *GameService) CreateGameForTournament(ctx context.Context, gameID uuid.UUID, gameType game.GameType, player1ID uuid.UUID, player1Name string, player2ID uuid.UUID, player2Name string, tournamentID uuid.UUID, tournamentRound int) (*game.Game, error) {
+	log.Printf("CreateGameForTournament called: gameID=%s, type=%s, player1=%s(%s), player2=%s(%s), tournament=%s, round=%d",
+		gameID, gameType, player1Name, player1ID, player2Name, player2ID, tournamentID, tournamentRound)
+	
 	now := time.Now()
 
 	var gameState game.GameState
@@ -151,10 +156,32 @@ func (s *GameService) CreateGameForTournament(ctx context.Context, gameID uuid.U
 
 	// Save to Redis
 	if err := s.SaveGame(ctx, g); err != nil {
-		return nil, fmt.Errorf("failed to save tournament game: %w", err)
+		return nil, fmt.Errorf("failed to save tournament game to Redis: %w", err)
 	}
 
-	log.Printf("Created tournament game %s: %s vs %s", gameID, player1Name, player2Name)
+	// Save to database for persistence
+	gameStateObj := gameState.GetState()
+	if gameStateObj == nil {
+		log.Printf("WARNING: Game state is nil during creation for game %s (type: %s)", gameID, gameType)
+	}
+	
+	stateData, err := json.Marshal(gameStateObj)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal game state: %w", err)
+	}
+	
+	if len(stateData) == 0 {
+		log.Printf("WARNING: Marshaled game state is empty during creation for game %s", gameID)
+	}
+
+	if err := s.gameRepo.CreateGame(ctx, gameID, string(gameType), player1ID, player2ID, now, stateData); err != nil {
+		log.Printf("ERROR: Failed to save tournament game to database: %v", err)
+		// Don't fail if DB save fails - Redis is the primary store
+	} else {
+		log.Printf("Successfully saved initial game state for %s (%d bytes)", gameID, len(stateData))
+	}
+
+	log.Printf("Created tournament game %s: %s vs %s (saved to Redis and DB)", gameID, player1Name, player2Name)
 
 	return g, nil
 }
@@ -251,13 +278,39 @@ func (s *GameService) MakeMove(ctx context.Context, gameID, playerID uuid.UUID, 
 		// Save completed game to database for match history
 		if s.gameRepo != nil {
 			// Serialize the game state to JSON
-			gameStateData, err := json.Marshal(g.State.GetState())
-			if err != nil {
-				fmt.Printf("Error marshaling game state: %v\n", err)
+			gameState := g.State.GetState()
+			if gameState == nil {
+				log.Printf("CRITICAL ERROR: Game state is nil for completed game %s (type: %s)", g.ID, g.Type)
+				// This should never happen - log detailed debug info
+				log.Printf("Game details - Player1: %s, Player2: %s, Winner: %v, Status: %s", 
+					g.Player1ID, g.Player2ID, g.WinnerID, g.Status)
 			} else {
-				if err := s.gameRepo.SaveCompletedGame(ctx, g.ID, string(g.Type), g.Player1ID, g.Player2ID, g.WinnerID, g.CreatedAt, g.EndedAt, gameStateData); err != nil {
-					fmt.Printf("Error saving completed game to database: %v\n", err)
-					// Don't fail the move if database save fails
+				gameStateData, err := json.Marshal(gameState)
+				if err != nil {
+					log.Printf("CRITICAL ERROR: Failed to marshal game state for game %s: %v", g.ID, err)
+					log.Printf("Game state type: %T, value: %+v", gameState, gameState)
+				} else if len(gameStateData) == 0 {
+					log.Printf("CRITICAL ERROR: Marshaled game state is empty for game %s", g.ID)
+				} else {
+					log.Printf("Saving completed game %s to database with %d bytes of game state", g.ID, len(gameStateData))
+					
+					// Retry logic: Try to save 3 times before giving up
+					var saveErr error
+					for attempt := 1; attempt <= 3; attempt++ {
+						saveErr = s.gameRepo.SaveCompletedGame(ctx, g.ID, string(g.Type), g.Player1ID, g.Player2ID, g.WinnerID, g.CreatedAt, g.EndedAt, gameStateData)
+						if saveErr == nil {
+							log.Printf("Successfully saved completed game %s to database on attempt %d", g.ID, attempt)
+							break
+						}
+						log.Printf("ERROR: Failed to save completed game %s to database (attempt %d/3): %v", g.ID, attempt, saveErr)
+						if attempt < 3 {
+							time.Sleep(time.Millisecond * 100 * time.Duration(attempt)) // Exponential backoff
+						}
+					}
+					
+					if saveErr != nil {
+						log.Printf("CRITICAL ERROR: Failed to save game state to database after 3 attempts for game %s", g.ID)
+					}
 				}
 			}
 		}
@@ -330,10 +383,33 @@ func (s *GameService) GetGame(ctx context.Context, gameID uuid.UUID) (*game.Game
 
 // getGameFromDatabase retrieves a completed game from the database
 func (s *GameService) getGameFromDatabase(ctx context.Context, gameID uuid.UUID) (*game.Game, error) {
+	log.Printf("Attempting to retrieve game %s from database...", gameID)
 	dbGame, err := s.gameRepo.GetByID(ctx, gameID)
 	if err != nil {
-		fmt.Printf("Game not found in database: %v\n", err)
+		log.Printf("Game %s not found in database: %v", gameID, err)
 		return nil, fmt.Errorf("game not found")
+	}
+	log.Printf("Game %s found in database", gameID)
+	log.Printf("Reconstructing game object from database fields...")
+
+	// Debug: Print all field types
+	for key, value := range dbGame {
+		log.Printf("  Field %s: type=%T, value=%v", key, value, value)
+	}
+
+	// Helper function to convert time fields (handles both time.Time and *time.Time)
+	getTimePtr := func(field interface{}) *time.Time {
+		if field == nil {
+			return nil
+		}
+		switch v := field.(type) {
+		case *time.Time:
+			return v
+		case time.Time:
+			return &v
+		default:
+			return nil
+		}
 	}
 
 	// Reconstruct game object
@@ -347,10 +423,11 @@ func (s *GameService) getGameFromDatabase(ctx context.Context, gameID uuid.UUID)
 		Player2Name: dbGame["player2_name"].(string),
 		CurrentTurn: dbGame["player1_id"].(uuid.UUID), // Default to player1 for completed games
 		CreatedAt:   dbGame["created_at"].(time.Time),
-		StartedAt:   dbGame["started_at"].(*time.Time),
-		EndedAt:     dbGame["ended_at"].(*time.Time),
+		StartedAt:   getTimePtr(dbGame["started_at"]),
+		EndedAt:     getTimePtr(dbGame["ended_at"]),
 		Spectators:  []game.Spectator{},
 	}
+	log.Printf("Game object reconstructed successfully")
 
 	// Set winner ID if present
 	if winnerID, ok := dbGame["winner_id"].(*uuid.UUID); ok && winnerID != nil {

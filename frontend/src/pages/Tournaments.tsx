@@ -177,18 +177,29 @@ export default function Tournaments() {
     }
   };
 
-  const getGameIcon = (gameType: string) => {
+  const getGameIcons = (gameType: string) => {
     switch (gameType) {
       case 'tictactoe':
-        return { Icon: X, color: 'text-tictactoe-x' };
+        return [
+          { Icon: X, color: 'text-accent-primary' },
+          { Icon: Circle, color: 'text-accent-primary' }
+        ];
       case 'connect4':
-        return { Icon: Circle, color: 'text-connect4-red' };
+        return [
+          { Icon: Circle, color: 'text-accent-primary' },
+          { Icon: Circle, color: 'text-warning' }
+        ];
       case 'rps':
-        return { Icon: Gamepad2, color: 'text-rps-icon' };
+        return [
+          { Icon: Gamepad2, color: 'text-accent-primary' }
+        ];
       case 'dotsandboxes':
-        return { Icon: Circle, color: 'text-dots-a' };
+        return [
+          { Icon: Circle, color: 'text-accent-primary' },
+          { Icon: Circle, color: 'text-text-muted' }
+        ];
       default:
-        return { Icon: Gamepad2, color: 'text-text-muted' };
+        return [{ Icon: Gamepad2, color: 'text-text-muted' }];
     }
   };
 
@@ -212,7 +223,7 @@ export default function Tournaments() {
       <div className="bg-surface-1 shadow-floating rounded-xl p-8 border border-border-subtle">
         {/* Header */}
         <h1 className="text-3xl font-bold text-text-primary mb-6 flex items-center gap-2">
-          <Trophy className="w-8 h-8" fill="currentColor" />
+          <Trophy className="w-8 h-8 text-accent-primary" fill="currentColor" />
           Tournaments
         </h1>
         <p className="text-text-secondary mb-6">
@@ -287,10 +298,18 @@ export default function Tournaments() {
                 {/* Tournament Header */}
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex items-center gap-4 flex-1 min-w-0">
-                    {(() => {
-                      const { Icon: GameIcon, color } = getGameIcon(tournament.game_type)
-                      return <GameIcon className={`w-10 h-10 flex-shrink-0 ${color}`} fill="currentColor" />
-                    })()}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {getGameIcons(tournament.game_type).map((iconConfig, index) => {
+                        const { Icon, color } = iconConfig;
+                        return (
+                          <Icon 
+                            key={index} 
+                            className={`w-8 h-8 ${color}`} 
+                            fill="currentColor"
+                          />
+                        );
+                      })}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <h3 
                         className="font-bold text-xl text-text-primary truncate cursor-default mb-1" 
@@ -441,7 +460,7 @@ export default function Tournaments() {
                         onChange={() => setIsPrivate(false)}
                         className="mr-2"
                       />
-                      <span className="text-sm text-text-primary">🌍 Public (Anyone can join)</span>
+                      <span className="text-sm text-text-primary">Public (Anyone can join)</span>
                     </label>
                     <label className="flex items-center cursor-pointer">
                       <input
@@ -451,7 +470,7 @@ export default function Tournaments() {
                         onChange={() => setIsPrivate(true)}
                         className="mr-2"
                       />
-                      <span className="text-sm text-text-primary">🔒 Private (Requires code)</span>
+                      <span className="text-sm text-text-primary">Private (Requires code)</span>
                     </label>
                   </div>
                 </div>
@@ -590,7 +609,7 @@ export default function Tournaments() {
       {showJoinCodeModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-surface-1 rounded-lg shadow-floating border border-border-subtle max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold mb-4 text-text-primary">🔒 Enter Join Code</h2>
+            <h2 className="text-2xl font-bold mb-4 text-text-primary">Enter Join Code</h2>
             <p className="text-text-secondary mb-4">This is a private tournament. Please enter the join code to participate.</p>
             
             <form onSubmit={handleJoinWithCode}>

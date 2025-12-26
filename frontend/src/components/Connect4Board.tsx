@@ -124,9 +124,9 @@ export default function Connect4Board({ state, currentUserId, onMove, disabled }
       {/* Turn Indicator */}
       <div className="text-center">
         {isMyTurn && !disabled && (
-          <div className="flex items-center gap-3 bg-warning-soft px-6 py-3 rounded-full border-2 shadow-md animate-pulse" style={{ borderColor: '#C8A14A' }}>
-            <div className="w-3 h-3 rounded-full animate-ping" style={{ backgroundColor: '#C8A14A' }}></div>
-            <p className="text-lg font-bold text-bg-main">
+          <div className="flex items-center gap-3 bg-gradient-to-r from-accent-primary to-accent-hover px-6 py-3 rounded-full border-2 shadow-lg animate-pulse" style={{ borderColor: '#FFD700' }}>
+            <div className="w-3 h-3 rounded-full animate-ping bg-white"></div>
+            <p className="text-lg font-bold text-white drop-shadow-md">
               Your Turn! ({mySymbol === 'R' ? 'Red' : 'Yellow'})
             </p>
           </div>

@@ -91,7 +91,7 @@ func main() {
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(authService)
-	gameHandler := handlers.NewGameHandler(gameService, hub)
+	gameHandler := handlers.NewGameHandler(gameService, tournamentService, hub)
 	statsHandler := handlers.NewStatsHandler(statsService, authService)
 	roomHandler := handlers.NewRoomHandler(roomService, gameService)
 	matchmakingHandler := handlers.NewMatchmakingHandler(matchmakingService)

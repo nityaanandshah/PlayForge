@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import { Tournament, BracketMatch, BracketRound } from '../types/tournament';
 import { useAuth } from '../hooks/useAuth';
-import { Lock, Copy, Mail, Trophy, Rocket, Play, Eye } from 'lucide-react';
+import { Lock, Copy, Mail, Trophy, Rocket, Play, Eye, Clock, Plus, Loader2, Circle, Check, AlertTriangle } from 'lucide-react';
 
 export default function TournamentLobby() {
   const { id } = useParams<{ id: string }>();
@@ -34,13 +34,27 @@ export default function TournamentLobby() {
     if (!id) return;
     
     try {
+      console.log('=== LOADING TOURNAMENT ===');
+      console.log('Tournament ID:', id);
       const response = await api.get<{ tournament: Tournament }>(`/tournaments/${id}`);
+      console.log('Tournament API response:', response.data);
       
       // Ensure participants is always an array
       const tournamentData = {
         ...response.data.tournament,
         participants: response.data.tournament.participants || []
       };
+      
+      console.log('Tournament data:', tournamentData);
+      console.log('Bracket data:', tournamentData.bracket_data);
+      if (tournamentData.bracket_data?.rounds) {
+        tournamentData.bracket_data.rounds.forEach((round: any, idx: number) => {
+          console.log(`Round ${idx}:`, round);
+          round.matches?.forEach((match: any, mIdx: number) => {
+            console.log(`  Match ${mIdx}:`, match);
+          });
+        });
+      }
       
       setTournament(tournamentData);
       setError('');
@@ -151,10 +165,10 @@ export default function TournamentLobby() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center">
+      <div className="min-h-screen bg-bg-main flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-600 mb-4"></div>
-          <p className="text-gray-600">Loading tournament...</p>
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-accent-primary mb-4"></div>
+          <p className="text-text-secondary">Loading tournament...</p>
         </div>
       </div>
     );
@@ -162,14 +176,16 @@ export default function TournamentLobby() {
 
   if (error && !tournament) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
-          <div className="text-red-500 text-5xl mb-4 text-center">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">Error</h2>
-          <p className="text-gray-600 text-center mb-4">{error}</p>
+      <div className="min-h-screen bg-bg-main flex items-center justify-center p-4">
+        <div className="bg-surface-1 rounded-lg shadow-floating border border-border-subtle p-8 max-w-md w-full">
+          <div className="flex justify-center mb-4">
+            <AlertTriangle className="w-16 h-16 text-danger" />
+          </div>
+          <h2 className="text-2xl font-bold text-text-primary mb-2 text-center">Error</h2>
+          <p className="text-text-secondary text-center mb-4">{error}</p>
           <button
             onClick={() => navigate('/tournaments')}
-            className="w-full px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition"
+            className="w-full px-4 py-2 bg-accent-primary text-bg-main rounded-lg hover:bg-accent-hover transition"
           >
             Back to Tournaments
           </button>
@@ -195,8 +211,9 @@ export default function TournamentLobby() {
             </span>
           </div>
 
-          {/* Join Code for Private Tournaments */}
-          {tournament.is_private && tournament.join_code && (isHost || isParticipant) && (
+          {/* Join Code for Private Tournaments - Only show if tournament is not full or not started */}
+          {tournament.is_private && tournament.join_code && (isHost || isParticipant) && 
+           (tournament.status === 'pending' && (tournament.participants?.length || 0) < tournament.max_participants) && (
             <div className="mt-4 p-4 bg-warning-soft border border-warning rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -219,7 +236,7 @@ export default function TournamentLobby() {
                   {isHost && tournament.status === 'pending' && (
                     <button
                       onClick={() => setShowInviteModal(true)}
-                      className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition text-sm font-semibold flex items-center gap-1"
+                      className="px-4 py-2 bg-accent-primary text-bg-main rounded-lg hover:bg-accent-hover transition text-sm font-semibold flex items-center gap-1"
                     >
                       <Mail className="w-4 h-4" fill="currentColor" /> Invite Players
                     </button>
@@ -245,9 +262,9 @@ export default function TournamentLobby() {
             <div className="text-center p-3 bg-surface-2 rounded-lg border border-border-subtle">
               <p className="text-text-secondary text-sm">Status</p>
               <p className="text-2xl font-bold text-text-primary">
-                {tournament.status === 'complete' ? <Trophy className="w-8 h-8 mx-auto" fill="currentColor" /> : 
-                 tournament.status === 'in_progress' ? <Play className="w-8 h-8 mx-auto" fill="currentColor" /> : 
-                 <span>⏸️</span>}
+                {tournament.status === 'complete' ? <Trophy className="w-8 h-8 mx-auto text-accent-primary" fill="currentColor" /> : 
+                 tournament.status === 'in_progress' ? <Play className="w-8 h-8 mx-auto text-accent-primary" fill="currentColor" /> : 
+                 <Clock className="w-8 h-8 mx-auto text-accent-primary" />}
               </p>
             </div>
           </div>
@@ -273,7 +290,7 @@ export default function TournamentLobby() {
                 onClick={handleJoinTournament}
                 className="flex-1 px-6 py-2 bg-accent-primary text-bg-main rounded-lg hover:bg-accent-hover transition font-semibold flex items-center justify-center gap-2"
               >
-                {tournament.is_private ? <><Lock className="w-5 h-5" fill="currentColor" /> Join with Code</> : '➕ Join Tournament'}
+                {tournament.is_private ? <><Lock className="w-5 h-5" fill="currentColor" /> Join with Code</> : <><Plus className="w-5 h-5" /> Join Tournament</>}
               </button>
             )}
 
@@ -283,7 +300,7 @@ export default function TournamentLobby() {
                 disabled={starting || (tournament.participants?.length || 0) < tournament.max_participants}
                 className="flex-1 px-6 py-2 bg-success text-text-primary rounded-lg hover:bg-success-soft transition font-semibold disabled:bg-text-disabled disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {starting ? '⏳ Starting...' : <><Rocket className="w-5 h-5" fill="currentColor" /> Start Tournament</>}
+                {starting ? <><Loader2 className="w-5 h-5 animate-spin" /> Starting...</> : <><Rocket className="w-5 h-5" fill="currentColor" /> Start Tournament</>}
               </button>
             )}
           </div>
@@ -369,7 +386,7 @@ export default function TournamentLobby() {
                             <span className="text-sm flex-1">
                               {match.player1_name || 'TBD'}
                             </span>
-                            {match.winner_id === match.player1_id && <span>🏆</span>}
+                            {match.winner_id === match.player1_id && <Trophy className="w-4 h-4 text-warning" fill="currentColor" />}
                           </div>
                           
                           <div className="text-center text-text-muted text-xs my-1">vs</div>
@@ -380,13 +397,13 @@ export default function TournamentLobby() {
                               ? 'bg-success-soft font-bold'
                               : 'bg-surface-2'
                           }`}>
-                            <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs">
+                            <div className="w-6 h-6 bg-danger text-bg-main rounded-full flex items-center justify-center text-xs">
                               {match.player2_name ? match.player2_name.charAt(0).toUpperCase() : '?'}
                             </div>
                             <span className="text-sm flex-1">
                               {match.player2_name || 'TBD'}
                             </span>
-                            {match.winner_id === match.player2_id && <span>🏆</span>}
+                            {match.winner_id === match.player2_id && <Trophy className="w-4 h-4 text-warning" fill="currentColor" />}
                           </div>
 
                           {/* Match Actions */}
@@ -395,7 +412,14 @@ export default function TournamentLobby() {
                               {/* Play button for match participants */}
                               {(match.player1_id === user?.id || match.player2_id === user?.id) ? (
                                 <button
-                                  onClick={() => navigate(`/game/${match.match_id}`)}
+                                  onClick={() => {
+                                    console.log('=== PLAY GAME CLICKED ===');
+                                    console.log('Match data:', match);
+                                    console.log('Match ID:', match.match_id);
+                                    console.log('Match status:', match.status);
+                                    console.log('Navigating to:', `/game/${match.match_id}`);
+                                    navigate(`/game/${match.match_id}`);
+                                  }}
                                   className="w-full mt-3 px-4 py-2 bg-accent-primary text-bg-main rounded-lg text-sm font-semibold hover:bg-accent-hover transition shadow-elevated flex items-center justify-center gap-2"
                                 >
                                   <Play className="w-4 h-4" fill="currentColor" /> Play Game
@@ -418,7 +442,7 @@ export default function TournamentLobby() {
                               onClick={() => navigate(`/game/${match.match_id}?spectate=true`)}
                               className="w-full mt-3 px-4 py-2 bg-warning text-text-primary rounded-lg text-sm font-semibold hover:bg-warning-soft transition shadow-elevated flex items-center justify-center gap-2"
                             >
-                              <span className="animate-pulse">🔴</span>
+                              <Circle className="w-3 h-3 text-danger animate-pulse" fill="currentColor" />
                               Watch Live
                             </button>
                           )}
@@ -444,10 +468,10 @@ export default function TournamentLobby() {
 
         {/* Winner Announcement */}
         {tournament.status === 'complete' && tournament.winner_id && (
-          <div className="mt-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg shadow-lg p-8 text-center">
-            <Trophy className="w-24 h-24 mb-4 mx-auto text-white" fill="currentColor" />
-            <h2 className="text-3xl font-bold text-white mb-2">Tournament Complete!</h2>
-            <p className="text-white text-xl">
+          <div className="mt-6 bg-success-soft border-2 border-success rounded-lg shadow-floating p-8 text-center">
+            <Trophy className="w-24 h-24 mb-4 mx-auto text-warning" fill="currentColor" />
+            <h2 className="text-3xl font-bold text-text-primary mb-2">Tournament Complete!</h2>
+            <p className="text-text-primary text-xl">
               Winner: {tournament.participants?.find(p => p.user_id === tournament.winner_id)?.username || 'Unknown'}
             </p>
           </div>
@@ -457,8 +481,8 @@ export default function TournamentLobby() {
       {/* Join Code Modal */}
       {showJoinCodeModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800 flex items-center gap-2">
+          <div className="bg-surface-1 rounded-lg shadow-floating border border-border-subtle max-w-md w-full p-6">
+            <h2 className="text-2xl font-bold mb-4 text-text-primary flex items-center gap-2">
               <Lock className="w-7 h-7" fill="currentColor" /> Enter Join Code
             </h2>
             <p className="text-text-secondary mb-4">This is a private tournament. Please enter the join code to participate.</p>
@@ -480,7 +504,7 @@ export default function TournamentLobby() {
               </div>
 
               {error && (
-                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                <div className="mb-4 p-3 bg-danger-soft border border-danger text-danger rounded-lg text-sm">
                   {error}
                 </div>
               )}
@@ -536,14 +560,14 @@ export default function TournamentLobby() {
               </div>
 
               {error && (
-                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                <div className="mb-4 p-3 bg-danger-soft border border-danger text-danger rounded-lg text-sm">
                   {error}
                 </div>
               )}
 
               {inviteSuccess && (
-                <div className="mb-4 p-3 bg-success-soft border border-success text-success rounded-lg text-sm">
-                  ✓ {inviteSuccess}
+                <div className="mb-4 p-3 bg-success-soft border border-success text-success rounded-lg text-sm flex items-center gap-2">
+                  <Check className="w-4 h-4" /> {inviteSuccess}
                 </div>
               )}
 

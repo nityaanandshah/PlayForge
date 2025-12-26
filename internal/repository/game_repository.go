@@ -16,6 +16,37 @@ func NewGameRepository(db *pgxpool.Pool) *GameRepository {
 	return &GameRepository{db: db}
 }
 
+// CreateGame saves a new active game to the database
+func (r *GameRepository) CreateGame(
+	ctx context.Context,
+	gameID uuid.UUID,
+	gameType string,
+	player1ID uuid.UUID,
+	player2ID uuid.UUID,
+	createdAt time.Time,
+	gameState []byte,
+) error {
+	query := `
+		INSERT INTO game_matches (id, game_type, player1_id, player2_id, status, started_at, created_at, game_state)
+		VALUES ($1, $2, $3, $4, 'active', $5, $6, $7)
+		ON CONFLICT (id) DO NOTHING
+	`
+
+	_, err := r.db.Exec(
+		ctx,
+		query,
+		gameID,
+		gameType,
+		player1ID,
+		player2ID,
+		createdAt,
+		createdAt,
+		gameState,
+	)
+
+	return err
+}
+
 // SaveCompletedGame saves a completed game to the database
 func (r *GameRepository) SaveCompletedGame(
 	ctx context.Context,
