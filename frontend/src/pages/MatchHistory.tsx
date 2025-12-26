@@ -34,11 +34,40 @@ const MatchHistory = () => {
   const matchesPerPage = 5
 
   const games = [
-    { id: 'all', name: 'All Games', Icon: Gamepad2, iconColor: 'text-text-muted' },
-    { id: 'tictactoe', name: 'Tic-Tac-Toe', Icon: X, iconColor: 'text-tictactoe-x' },
-    { id: 'connect4', name: 'Connect 4', Icon: Circle, iconColor: 'text-connect4-red' },
-    { id: 'rps', name: 'Rock Paper Scissors', Icon: Gamepad2, iconColor: 'text-rps-icon' },
-    { id: 'dotsandboxes', name: 'Dots & Boxes', Icon: Circle, iconColor: 'text-dots-a' },
+    { 
+      id: 'all', 
+      name: 'All Games', 
+      icons: [{ Icon: Gamepad2, color: 'text-accent-primary' }]
+    },
+    { 
+      id: 'tictactoe', 
+      name: 'Tic-Tac-Toe', 
+      icons: [
+        { Icon: X, color: 'text-accent-primary' }, 
+        { Icon: Circle, color: 'text-accent-primary' }
+      ]
+    },
+    { 
+      id: 'connect4', 
+      name: 'Connect 4', 
+      icons: [
+        { Icon: Circle, color: 'text-accent-primary' }, 
+        { Icon: Circle, color: 'text-warning' }
+      ]
+    },
+    { 
+      id: 'rps', 
+      name: 'Rock Paper Scissors', 
+      icons: [{ Icon: Gamepad2, color: 'text-accent-primary' }]
+    },
+    { 
+      id: 'dotsandboxes', 
+      name: 'Dots & Boxes', 
+      icons: [
+        { Icon: Circle, color: 'text-accent-primary' }, 
+        { Icon: Circle, color: 'text-text-muted' }
+      ]
+    },
   ]
 
   useEffect(() => {
@@ -107,29 +136,47 @@ const MatchHistory = () => {
     <Layout>
       <div className="space-y-8">
         <div className="bg-surface-1 shadow-floating rounded-xl p-8 border border-border-subtle">
-          <h1 className="text-4xl font-bold text-text-primary mb-8 flex items-center gap-3">
-            <ScrollText className="w-10 h-10" fill="currentColor" />
-            Match History
+          <h1 className="text-4xl font-bold mb-8 flex items-center gap-3">
+            <ScrollText className="w-10 h-10 text-accent-primary" fill="currentColor" />
+            <span 
+              style={{
+                background: 'linear-gradient(180deg, #D6A35C 0%, #C08A3E 50%, #A9742E 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                filter: 'drop-shadow(0px 1px 2px rgba(192, 138, 62, 0.4))'
+              }}
+            >
+              Match History
+            </span>
           </h1>
           
           {/* Game Type Selector */}
           <div className="flex flex-wrap gap-3 mb-8">
             {games.map((game) => {
-              const IconComponent = game.Icon
+              const isSelected = selectedGame === game.id
               return (
                 <button
                   key={game.id}
                   onClick={() => setSelectedGame(game.id)}
                   className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 ${
-                    selectedGame === game.id
+                    isSelected
                       ? 'bg-accent-primary text-bg-main shadow-elevated'
                       : 'bg-surface-2 border border-border-subtle text-text-secondary hover:bg-surface-3 hover:shadow-soft'
                   }`}
                 >
-                  <IconComponent 
-                    className={`w-5 h-5 ${selectedGame === game.id ? '' : game.iconColor}`} 
-                    fill="currentColor" 
-                  />
+                  <div className="flex gap-1">
+                    {game.icons.map((iconData, idx) => {
+                      const IconComponent = iconData.Icon
+                      return (
+                        <IconComponent 
+                          key={idx}
+                          className={`w-5 h-5 ${isSelected ? '' : iconData.color}`} 
+                          fill="currentColor" 
+                        />
+                      )
+                    })}
+                  </div>
                   {game.name}
                 </button>
               )
@@ -175,12 +222,22 @@ const MatchHistory = () => {
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-4 mb-2">
-                                {(() => {
-                                  const game = games.find(g => g.id === match.game_type)
-                                  const IconComponent = game?.Icon || Gamepad2
-                                  const iconColor = game?.iconColor || 'text-text-muted'
-                                  return <IconComponent className={`w-8 h-8 ${iconColor}`} fill="currentColor" />
-                                })()}
+                                <div className="flex gap-2">
+                                  {(() => {
+                                    const game = games.find(g => g.id === match.game_type)
+                                    const icons = game?.icons || [{ Icon: Gamepad2, color: 'text-text-muted' }]
+                                    return icons.map((iconData, idx) => {
+                                      const IconComponent = iconData.Icon
+                                      return (
+                                        <IconComponent 
+                                          key={idx}
+                                          className={`w-8 h-8 ${iconData.color}`} 
+                                          fill="currentColor" 
+                                        />
+                                      )
+                                    })
+                                  })()}
+                                </div>
                                 <div>
                                   <h3 className="font-bold text-lg text-text-primary">
                                     {games.find(g => g.id === match.game_type)?.name || match.game_type}
