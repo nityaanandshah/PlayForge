@@ -84,7 +84,7 @@ export default function Profile() {
     }
     return { 
       name: 'Intermediate', 
-      color: 'bg-surface-3', 
+      color: 'bg-text-secondary', 
       Icon: Gamepad2,
       description: 'Below 1400 ELO - Keep playing to rank up!',
       nextRank: 'Advanced (1400 ELO)'
@@ -189,10 +189,15 @@ export default function Profile() {
         <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
             <div 
-              className="w-28 h-28 bg-surface-3 rounded-full flex items-center justify-center cursor-help shadow-lifted border-2 border-border-subtle"
+              className="w-28 h-28 rounded-full flex items-center justify-center cursor-help shadow-lifted border-4 border-accent-primary"
+              style={{
+                background: 'linear-gradient(135deg, #D6A35C 0%, #C08A3E 50%, #A9742E 100%)'
+              }}
               title={`${rank.name} - ${rank.description}${rank.nextRank ? `\nNext rank: ${rank.nextRank}` : ''}`}
             >
-              <rank.Icon className="w-14 h-14 text-accent-primary" fill="currentColor" />
+              <span className="text-6xl font-bold text-bg-main">
+                {profile.username.charAt(0).toUpperCase()}
+              </span>
             </div>
             <div>
               <h1 className="text-5xl font-bold mb-4 text-text-primary">{profile.username}</h1>
@@ -531,20 +536,37 @@ function ContributionGraph({ userId }: ContributionGraphProps) {
 
             {/* Weeks grid */}
             <div className="flex-1">
-              {/* Month labels */}
-              <div className="flex justify-between mb-2 text-xs text-text-muted h-6 pr-1">
-                <div>Jan</div>
-                <div>Feb</div>
-                <div>Mar</div>
-                <div>Apr</div>
-                <div>May</div>
-                <div>Jun</div>
-                <div>Jul</div>
-                <div>Aug</div>
-                <div>Sep</div>
-                <div>Oct</div>
-                <div>Nov</div>
-                <div>Dec</div>
+              {/* Month labels - dynamically positioned */}
+              <div className="relative mb-2 text-xs text-text-muted h-6">
+                {(() => {
+                  const monthLabels: { label: string; position: number }[] = []
+                  let lastMonth = -1
+                  
+                  weeksData.forEach((week, weekIndex) => {
+                    if (week.length > 0) {
+                      const firstDay = week[0]
+                      const month = firstDay.date.getMonth()
+                      
+                      if (month !== lastMonth && weekIndex > 0) {
+                        monthLabels.push({
+                          label: firstDay.date.toLocaleDateString('en-US', { month: 'short' }),
+                          position: (weekIndex / weeksData.length) * 100
+                        })
+                      }
+                      lastMonth = month
+                    }
+                  })
+                  
+                  return monthLabels.map((label, idx) => (
+                    <div
+                      key={idx}
+                      className="absolute"
+                      style={{ left: `${label.position}%` }}
+                    >
+                      {label.label}
+                    </div>
+                  ))
+                })()}
               </div>
 
               <div className="flex gap-[2px] w-full">
