@@ -3,7 +3,7 @@ import api from '../lib/api'
 import { AxiosResponse } from 'axios'
 import Layout from '../components/Layout'
 import { useAuth } from '../hooks/useAuth'
-import { BarChart3, Trophy, X, Circle, Gamepad2 } from 'lucide-react'
+import { BarChart3, Trophy, X, Circle, Gamepad2, Flame } from 'lucide-react'
 
 interface GameStats {
   id: string
@@ -25,10 +25,41 @@ const Statistics = () => {
   const [error, setError] = useState<string>('')
 
   const games = [
-    { id: 'tictactoe', name: 'Tic-Tac-Toe', Icon: X, bgColor: 'bg-surface-2', iconColor: 'text-tictactoe-x' },
-    { id: 'connect4', name: 'Connect 4', Icon: Circle, bgColor: 'bg-surface-2', iconColor: 'text-connect4-red' },
-    { id: 'rps', name: 'Rock Paper Scissors', Icon: Gamepad2, bgColor: 'bg-surface-2', iconColor: 'text-rps-icon' },
-    { id: 'dotsandboxes', name: 'Dots & Boxes', Icon: Circle, bgColor: 'bg-surface-2', iconColor: 'text-dots-a' },
+    { 
+      id: 'tictactoe', 
+      name: 'Tic-Tac-Toe', 
+      icons: [
+        { Icon: X, color: 'text-accent-primary' }, 
+        { Icon: Circle, color: 'text-accent-primary' }
+      ],
+      bgColor: 'bg-surface-2'
+    },
+    { 
+      id: 'connect4', 
+      name: 'Connect 4', 
+      icons: [
+        { Icon: Circle, color: 'text-accent-primary' }, 
+        { Icon: Circle, color: 'text-warning' }
+      ],
+      bgColor: 'bg-surface-2'
+    },
+    { 
+      id: 'rps', 
+      name: 'Rock Paper Scissors', 
+      icons: [
+        { Icon: Gamepad2, color: 'text-accent-primary' }
+      ],
+      bgColor: 'bg-surface-2'
+    },
+    { 
+      id: 'dotsandboxes', 
+      name: 'Dots & Boxes', 
+      icons: [
+        { Icon: Circle, color: 'text-accent-primary' }, 
+        { Icon: Circle, color: 'text-text-muted' }
+      ],
+      bgColor: 'bg-surface-2'
+    },
   ]
 
   useEffect(() => {
@@ -71,9 +102,19 @@ const Statistics = () => {
     <Layout>
       <div className="max-w-7xl mx-auto">
         <div className="bg-surface-1 shadow-floating rounded-xl p-8 mb-8 border border-border-subtle">
-          <h1 className="text-3xl font-bold text-text-primary mb-8 flex items-center gap-2">
-            <BarChart3 className="w-8 h-8" fill="currentColor" />
-            My Statistics
+          <h1 className="text-3xl font-bold mb-8 flex items-center gap-3">
+            <BarChart3 className="w-8 h-8 text-accent-primary" fill="currentColor" />
+            <span 
+              style={{
+                background: 'linear-gradient(180deg, #D6A35C 0%, #C08A3E 50%, #A9742E 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                filter: 'drop-shadow(0px 1px 2px rgba(192, 138, 62, 0.4))'
+              }}
+            >
+              My Statistics
+            </span>
           </h1>
 
           {/* Loading/Error States */}
@@ -93,105 +134,116 @@ const Statistics = () => {
           {!loading && !error && allStats && (
             <>
               {/* Overall Stats Card */}
-              <div className="bg-accent-soft border border-accent-primary rounded-xl p-10 mb-10 shadow-elevated">
-                <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
-                  <Trophy className="w-9 h-9" fill="currentColor" />
+              <div className="bg-accent-soft border-2 border-accent-primary rounded-xl p-8 mb-10 shadow-elevated">
+                <h2 className="text-3xl font-bold mb-6 flex items-center gap-3 text-text-primary">
+                  <Trophy className="w-9 h-9 text-accent-primary" fill="currentColor" />
                   Overall Performance
                 </h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
-                    <div className="text-4xl font-bold mb-2">{allStats.total_games}</div>
-                    <div className="text-sm font-medium opacity-90">Total Games</div>
+                    <div className="text-3xl font-bold mb-2 text-text-primary">{allStats.total_games}</div>
+                    <div className="text-sm font-semibold text-text-secondary">Total Games</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-4xl font-bold mb-2">{user?.elo_rating || 1200}</div>
-                    <div className="text-sm font-medium opacity-90">ELO Rating</div>
+                    <div className="text-3xl font-bold mb-2 text-text-primary">{user?.elo_rating || 1200}</div>
+                    <div className="text-sm font-semibold text-text-secondary">ELO Rating</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-4xl font-bold mb-2">{allStats.current_streak}</div>
-                    <div className="text-sm font-medium opacity-90">Current Streak</div>
+                    <div className="text-3xl font-bold mb-2 text-text-primary">{allStats.current_streak}</div>
+                    <div className="text-sm font-semibold text-text-secondary">Current Streak</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-4xl font-bold mb-2">{allStats.best_streak}</div>
-                    <div className="text-sm font-medium opacity-90">Best Streak</div>
+                    <div className="text-3xl font-bold mb-2 text-text-primary">{allStats.best_streak}</div>
+                    <div className="text-sm font-semibold text-text-secondary">Best Streak</div>
                   </div>
                 </div>
 
-                <div className="mt-8 grid grid-cols-3 gap-6">
-                  <div className="text-center bg-white bg-opacity-20 rounded-xl p-5 shadow-soft">
-                    <div className="text-3xl font-bold mb-1">{allStats.wins}</div>
-                    <div className="text-sm font-medium opacity-90">Wins</div>
+                <div className="mt-8 grid grid-cols-3 gap-4">
+                  <div className="text-center bg-success-soft border-2 border-success rounded-xl p-4 shadow-soft">
+                    <div className="text-2xl font-bold text-success mb-1">{allStats.wins}</div>
+                    <div className="text-sm font-semibold text-success">Wins</div>
                   </div>
-                  <div className="text-center bg-white bg-opacity-20 rounded-xl p-5 shadow-soft">
-                    <div className="text-3xl font-bold mb-1">{allStats.losses}</div>
-                    <div className="text-sm font-medium opacity-90">Losses</div>
+                  <div className="text-center bg-danger-soft border-2 border-danger rounded-xl p-4 shadow-soft">
+                    <div className="text-2xl font-bold text-danger mb-1">{allStats.losses}</div>
+                    <div className="text-sm font-semibold text-danger">Losses</div>
                   </div>
-                  <div className="text-center bg-white bg-opacity-20 rounded-xl p-5 shadow-soft">
-                    <div className="text-3xl font-bold mb-1">{allStats.draws}</div>
-                    <div className="text-sm font-medium opacity-90">Draws</div>
+                  <div className="text-center bg-surface-1 border-2 border-border-subtle rounded-xl p-4 shadow-soft">
+                    <div className="text-2xl font-bold text-text-primary mb-1">{allStats.draws}</div>
+                    <div className="text-sm font-semibold text-text-secondary">Draws</div>
                   </div>
                 </div>
 
-                <div className="mt-8 text-center">
-                  <div className="text-sm font-medium opacity-90 mb-2">Win Rate</div>
-                  <div className="text-5xl font-bold">
+                <div className="mt-6 text-center">
+                  <div className="text-sm font-semibold text-text-primary mb-2">Win Rate</div>
+                  <div className="text-4xl font-bold text-accent-primary">
                     {calculateWinRate(allStats.wins, allStats.total_games)}%
                   </div>
                 </div>
               </div>
 
               {/* Per-Game Stats */}
-              <h2 className="text-3xl font-bold text-gray-900 mb-8">Game Breakdown</h2>
+              <h2 className="text-3xl font-bold text-text-primary mb-8">Game Breakdown</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {games.map((game, index) => {
                   const stats = gameStats[index]
                   const winRate = parseFloat(calculateWinRate(stats.wins, stats.total_games))
-                  const IconComponent = game.Icon
                   
                   return (
-                    <div key={game.id} className={`${game.bgColor} rounded-xl p-8 border-2 border-gray-200 shadow-elevated hover:shadow-lifted transition-shadow`}>
+                    <div key={game.id} className={`${game.bgColor} rounded-xl p-8 border-2 border-border-subtle shadow-elevated hover:shadow-lifted transition-shadow`}>
                       <div className="flex items-center gap-4 mb-6">
-                        <IconComponent className={`w-12 h-12 ${game.iconColor}`} fill="currentColor" />
+                        <div className="flex gap-2">
+                          {game.icons.map((iconData, idx) => {
+                            const IconComponent = iconData.Icon
+                            return (
+                              <IconComponent 
+                                key={idx}
+                                className={`w-10 h-10 ${iconData.color}`} 
+                                fill="currentColor" 
+                              />
+                            )
+                          })}
+                        </div>
                         <div>
-                          <h3 className="text-2xl font-bold text-gray-900">{game.name}</h3>
-                          <p className="text-sm text-gray-600 font-medium">{stats.total_games} games played</p>
+                          <h3 className="text-2xl font-bold text-text-primary">{game.name}</h3>
+                          <p className="text-sm text-text-secondary font-medium">{stats.total_games} games played</p>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-3 gap-4 mb-4">
-                        <div className="text-center bg-success-soft border border-success rounded-xl p-4 shadow-soft">
-                          <div className="text-2xl font-bold text-success mb-1">{stats.wins}</div>
-                          <div className="text-xs text-text-secondary font-medium">Wins</div>
+                        <div className="text-center bg-success-soft border-2 border-success rounded-xl p-4 shadow-soft">
+                          <div className="text-3xl font-bold text-success mb-1">{stats.wins}</div>
+                          <div className="text-sm text-success font-semibold">Wins</div>
                         </div>
-                        <div className="text-center bg-danger-soft border border-danger rounded-xl p-4 shadow-soft">
-                          <div className="text-2xl font-bold text-danger mb-1">{stats.losses}</div>
-                          <div className="text-xs text-text-secondary font-medium">Losses</div>
+                        <div className="text-center bg-danger-soft border-2 border-danger rounded-xl p-4 shadow-soft">
+                          <div className="text-3xl font-bold text-danger mb-1">{stats.losses}</div>
+                          <div className="text-sm text-danger font-semibold">Losses</div>
                         </div>
-                        <div className="text-center bg-surface-2 border border-border-subtle rounded-xl p-4 shadow-soft">
-                          <div className="text-2xl font-bold text-text-muted mb-1">{stats.draws}</div>
-                          <div className="text-xs text-text-secondary font-medium">Draws</div>
+                        <div className="text-center bg-surface-3 border-2 border-border-subtle rounded-xl p-4 shadow-soft">
+                          <div className="text-3xl font-bold text-text-primary mb-1">{stats.draws}</div>
+                          <div className="text-sm text-text-secondary font-semibold">Draws</div>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-surface-3 border border-border-subtle rounded-xl p-4 shadow-soft">
-                          <div className="text-sm text-text-secondary font-medium mb-1">Win Rate</div>
-                          <div className={`text-3xl font-bold ${getWinRateColor(winRate)}`}>
+                        <div className="bg-surface-1 border-2 border-border-subtle rounded-xl p-4 shadow-soft">
+                          <div className="text-sm text-text-secondary font-semibold mb-2">Win Rate</div>
+                          <div className={`text-4xl font-bold ${getWinRateColor(winRate)}`}>
                             {winRate}%
                           </div>
                         </div>
-                        <div className="bg-surface-3 border border-border-subtle rounded-xl p-4 shadow-soft">
-                          <div className="text-sm text-text-secondary font-medium mb-1">Best Streak</div>
-                          <div className="text-3xl font-bold text-accent-primary">
+                        <div className="bg-surface-1 border-2 border-border-subtle rounded-xl p-4 shadow-soft">
+                          <div className="text-sm text-text-secondary font-semibold mb-2">Best Streak</div>
+                          <div className="text-4xl font-bold text-accent-primary">
                             {stats.best_streak}
                           </div>
                         </div>
                       </div>
 
                       {stats.current_streak > 0 && (
-                        <div className="mt-4 bg-warning-soft border border-warning rounded-xl p-3 text-center shadow-soft">
-                          <span className="text-sm font-bold text-warning">
-                            🔥 {stats.current_streak} win streak!
+                        <div className="mt-4 bg-warning-soft border-2 border-warning rounded-xl p-4 text-center shadow-soft">
+                          <span className="text-base font-bold text-warning flex items-center justify-center gap-2">
+                            <Flame className="w-5 h-5" fill="currentColor" />
+                            {stats.current_streak} win streak!
                           </span>
                         </div>
                       )}

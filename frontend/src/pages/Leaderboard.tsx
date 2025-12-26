@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import api from '../lib/api'
 import Layout from '../components/Layout'
-import { Trophy, X, Circle, Gamepad2, Medal } from 'lucide-react'
+import { Trophy, X, Circle, Gamepad2, Medal, Crown } from 'lucide-react'
 
 interface LeaderboardEntry {
   user_id: string
@@ -68,7 +68,7 @@ const Leaderboard = () => {
       <div className="max-w-7xl mx-auto">
         <div className="bg-surface-1 shadow-elevated rounded-xl p-8 mb-8 border border-border-subtle">
           <h1 className="text-3xl font-bold text-text-primary mb-8 flex items-center gap-2">
-            <Trophy className="w-8 h-8 text-accent-primary" fill="currentColor" />
+            <Crown className="w-8 h-8 text-accent-primary" fill="currentColor" />
             Leaderboard
           </h1>
           
