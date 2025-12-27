@@ -24,3 +24,4 @@ CREATE INDEX IF NOT EXISTS idx_notifications_user_recent ON notifications(user_i
 
 
 
+
