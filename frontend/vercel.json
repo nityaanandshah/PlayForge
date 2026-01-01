@@ -21,11 +21,6 @@
         }
       ]
     }
-  ],
-  "env": {
-    "VITE_API_URL": "@vite_api_url",
-    "VITE_WS_URL": "@vite_ws_url",
-    "VITE_USE_MOCK_DATA": "@vite_use_mock_data"
-  }
+  ]
 }
 
