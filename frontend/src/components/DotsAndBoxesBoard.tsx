@@ -82,9 +82,9 @@ export default function DotsAndBoxesBoard({ state, currentUserId, onMove, disabl
     onMove({ row, col, orientation })
   }
 
-  const getPlayerColor = (ownerId: string | null) => {
-    if (!ownerId) return '#3A342D' // border-subtle
-    return ownerId === state.player1_id ? '#5A7F6E' : '#6B7C8A' // Player A : Player B
+  const getPlayerColor = (_ownerId: string | null) => {
+    if (!_ownerId) return '#3A342D' // border-subtle
+    return _ownerId === state.player1_id ? '#5A7F6E' : '#6B7C8A' // Player A : Player B
   }
 
   const getBoxFillColor = (ownerId: string | null) => {

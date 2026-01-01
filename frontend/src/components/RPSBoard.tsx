@@ -49,7 +49,7 @@ export default function RPSBoard({ state, currentUserId, onMove, disabled }: RPS
     }
   }
 
-  const getChoiceColor = (choice: RPSChoice) => {
+  const getChoiceColor = (_choice: RPSChoice) => {
     // All choices use wood surface background (game isolated)
     return '#2E2A25' // surface-3
   }

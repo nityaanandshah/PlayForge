@@ -4,8 +4,8 @@ import type { PlayerStats } from './api'
 import type { Room, CreateRoomRequest, JoinRoomRequest, RoomResponse } from '../types/room'
 import type { MatchmakingRequest, MatchmakingResponse, QueueStatusResponse } from '../types/matchmaking'
 
-// Mock Users
-const mockUsers: User[] = [
+// Mock Users (exported for potential use)
+export const mockUsers: User[] = [
   {
     id: 'user-1',
     username: 'GameMaster',
@@ -187,7 +187,7 @@ export const mockAuthApi = {
     }
   },
 
-  login: async (data: LoginRequest): Promise<AuthResponse> => {
+  login: async (_data: LoginRequest): Promise<AuthResponse> => {
     await delay(500)
     // For demo, accept any credentials
     return {
@@ -202,7 +202,7 @@ export const mockAuthApi = {
     // Nothing to do in mock
   },
 
-  refreshToken: async (refreshToken: string): Promise<AuthResponse> => {
+  refreshToken: async (_refreshToken: string): Promise<AuthResponse> => {
     await delay(400)
     return {
       user: currentUser,
@@ -258,16 +258,16 @@ export const mockGameApi = {
     return { game }
   },
 
-  joinAsSpectator: async (gameId: string) => {
+  joinAsSpectator: async (_gameId: string) => {
     await delay(200)
     return { success: true }
   },
 
-  leaveAsSpectator: async (gameId: string) => {
+  leaveAsSpectator: async (_gameId: string) => {
     await delay(200)
   },
 
-  getSpectators: async (gameId: string) => {
+  getSpectators: async (_gameId: string) => {
     await delay(200)
     return { spectators: [] }
   },
@@ -289,12 +289,21 @@ export const mockStatsApi = {
 
 // Mock Matchmaking API
 export const mockMatchmakingApi = {
-  joinQueue: async (data: MatchmakingRequest): Promise<MatchmakingResponse> => {
+  joinQueue: async (_data: MatchmakingRequest): Promise<MatchmakingResponse> => {
     await delay(500)
+    const queueEntry = {
+      id: generateId(),
+      user_id: currentUser.id,
+      username: currentUser.username,
+      game_type: _data.game_type,
+      rating: currentUser.elo_rating,
+      status: 'queued' as const,
+      queued_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+    }
     return {
+      queue_entry: queueEntry,
       message: 'Joined matchmaking queue',
-      queue_position: 1,
-      estimated_wait_time: 30,
     }
   },
 
@@ -306,8 +315,6 @@ export const mockMatchmakingApi = {
     await delay(200)
     return {
       in_queue: false,
-      queue_position: 0,
-      estimated_wait_time: 0,
     }
   },
 }

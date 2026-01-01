@@ -290,7 +290,7 @@ export default function Game() {
 
   const isPlayer1 = game.player1_id === user?.id
   const isPlayer2 = game.player2_id === user?.id
-  const opponent = isPlayer1 ? game.player2_name : game.player1_name
+  const _opponent = isPlayer1 ? game.player2_name : game.player1_name
   
   // Get player symbols based on game type
   const getPlayerSymbols = () => {
@@ -303,7 +303,7 @@ export default function Game() {
   }
   
   const playerSymbols = getPlayerSymbols()
-  const playerSymbol = isPlayer1 ? playerSymbols.player1 : playerSymbols.player2
+  const _playerSymbol = isPlayer1 ? playerSymbols.player1 : playerSymbols.player2
   
   // Get game title
   const getGameTitle = () => {
