@@ -11,8 +11,20 @@ import type {
   MatchmakingResponse, 
   QueueStatusResponse 
 } from '../types/matchmaking'
+import {
+  mockAuthApi,
+  mockGameApi,
+  mockStatsApi,
+  mockMatchmakingApi,
+  mockRoomApi,
+} from './mockApi'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1'
+const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === 'true'
+
+// Log current mode
+console.log('[PlayForge] API Mode:', USE_MOCK_DATA ? 'MOCK DATA' : 'REAL API')
+console.log('[PlayForge] API URL:', API_URL)
 
 const api = axios.create({
   baseURL: API_URL,
@@ -91,20 +103,24 @@ api.interceptors.response.use(
 
 export const authApi = {
   signup: async (data: SignupRequest): Promise<AuthResponse> => {
+    if (USE_MOCK_DATA) return mockAuthApi.signup(data)
     const response = await api.post<AuthResponse>('/auth/signup', data)
     return response.data
   },
 
   login: async (data: LoginRequest): Promise<AuthResponse> => {
+    if (USE_MOCK_DATA) return mockAuthApi.login(data)
     const response = await api.post<AuthResponse>('/auth/login', data)
     return response.data
   },
 
   logout: async (): Promise<void> => {
+    if (USE_MOCK_DATA) return mockAuthApi.logout()
     await api.post('/auth/logout')
   },
 
   refreshToken: async (refreshToken: string): Promise<AuthResponse> => {
+    if (USE_MOCK_DATA) return mockAuthApi.refreshToken(refreshToken)
     const response = await api.post<AuthResponse>('/auth/refresh', {
       refresh_token: refreshToken,
     })
@@ -112,6 +128,7 @@ export const authApi = {
   },
 
   getMe: async () => {
+    if (USE_MOCK_DATA) return mockAuthApi.getMe()
     const response = await api.get('/auth/me')
     return response.data
   },
@@ -119,30 +136,36 @@ export const authApi = {
 
 export const gameApi = {
   createGame: async (gameType: string) => {
+    if (USE_MOCK_DATA) return mockGameApi.createGame(gameType)
     const response = await api.post('/games/create', { game_type: gameType })
     return response.data
   },
 
   joinGame: async (gameId: string) => {
+    if (USE_MOCK_DATA) return mockGameApi.joinGame(gameId)
     const response = await api.post('/games/join', { game_id: gameId })
     return response.data
   },
 
   getGame: async (gameId: string) => {
+    if (USE_MOCK_DATA) return mockGameApi.getGame(gameId)
     const response = await api.get(`/games/${gameId}`)
     return response.data
   },
 
   joinAsSpectator: async (gameId: string) => {
+    if (USE_MOCK_DATA) return mockGameApi.joinAsSpectator(gameId)
     const response = await api.post(`/games/${gameId}/spectate`)
     return response.data
   },
 
   leaveAsSpectator: async (gameId: string) => {
+    if (USE_MOCK_DATA) return mockGameApi.leaveAsSpectator(gameId)
     await api.delete(`/games/${gameId}/spectate`)
   },
 
   getSpectators: async (gameId: string) => {
+    if (USE_MOCK_DATA) return mockGameApi.getSpectators(gameId)
     const response = await api.get(`/games/${gameId}/spectators`)
     return response.data
   },
@@ -164,11 +187,13 @@ export interface PlayerStats {
 
 export const statsApi = {
   getMyStats: async () => {
+    if (USE_MOCK_DATA) return mockStatsApi.getMyStats()
     const response = await api.get('/stats/')
     return response.data
   },
 
   getStatsByGameType: async (gameType: string) => {
+    if (USE_MOCK_DATA) return mockStatsApi.getStatsByGameType(gameType)
     const response = await api.get(`/stats/${gameType}`)
     return response.data
   },
@@ -176,15 +201,18 @@ export const statsApi = {
 
 export const matchmakingApi = {
   joinQueue: async (data: MatchmakingRequest): Promise<MatchmakingResponse> => {
+    if (USE_MOCK_DATA) return mockMatchmakingApi.joinQueue(data)
     const response = await api.post<MatchmakingResponse>('/matchmaking/queue', data)
     return response.data
   },
 
   leaveQueue: async (): Promise<void> => {
+    if (USE_MOCK_DATA) return mockMatchmakingApi.leaveQueue()
     await api.delete('/matchmaking/queue')
   },
 
   getQueueStatus: async (): Promise<QueueStatusResponse> => {
+    if (USE_MOCK_DATA) return mockMatchmakingApi.getQueueStatus()
     const response = await api.get<QueueStatusResponse>('/matchmaking/status')
     return response.data
   },
@@ -192,30 +220,36 @@ export const matchmakingApi = {
 
 export const roomApi = {
   createRoom: async (data: CreateRoomRequest): Promise<RoomResponse> => {
+    if (USE_MOCK_DATA) return mockRoomApi.createRoom(data)
     const response = await api.post<RoomResponse>('/rooms/create', data)
     return response.data
   },
 
   getRoom: async (roomId: string): Promise<Room> => {
+    if (USE_MOCK_DATA) return mockRoomApi.getRoom(roomId)
     const response = await api.get<Room>(`/rooms/${roomId}`)
     return response.data
   },
 
   joinRoom: async (roomId: string): Promise<RoomResponse> => {
+    if (USE_MOCK_DATA) return mockRoomApi.joinRoom(roomId)
     const response = await api.post<RoomResponse>(`/rooms/${roomId}/join`)
     return response.data
   },
 
   joinRoomByCode: async (data: JoinRoomRequest): Promise<RoomResponse> => {
+    if (USE_MOCK_DATA) return mockRoomApi.joinRoomByCode(data)
     const response = await api.post<RoomResponse>('/rooms/join', data)
     return response.data
   },
 
   leaveRoom: async (roomId: string): Promise<void> => {
+    if (USE_MOCK_DATA) return mockRoomApi.leaveRoom(roomId)
     await api.post(`/rooms/${roomId}/leave`)
   },
 
   setReady: async (roomId: string, isReady: boolean): Promise<RoomResponse> => {
+    if (USE_MOCK_DATA) return mockRoomApi.setReady(roomId, isReady)
     const response = await api.post<RoomResponse>(`/rooms/${roomId}/ready`, {
       is_ready: isReady,
     })
@@ -223,6 +257,7 @@ export const roomApi = {
   },
 
   startGame: async (roomId: string): Promise<RoomResponse> => {
+    if (USE_MOCK_DATA) return mockRoomApi.startGame(roomId)
     const response = await api.post<RoomResponse>(`/rooms/${roomId}/start`)
     return response.data
   },
