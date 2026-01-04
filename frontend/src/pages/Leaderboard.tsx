@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import api from '../lib/api'
+import { statsApi } from '../lib/api'
 import Layout from '../components/Layout'
 import { Trophy, X, Circle, Gamepad2, Medal, Crown } from 'lucide-react'
 
@@ -40,10 +40,8 @@ const Leaderboard = () => {
     setLoading(true)
     setError('')
     try {
-      const response = await api.get<LeaderboardResponse>(
-        `/stats/leaderboard?game_type=${selectedGame}&limit=50`
-      )
-      setLeaderboard(response.data.entries || [])
+      const response = await statsApi.getLeaderboard(selectedGame, 50)
+      setLeaderboard(response.entries || [])
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to load leaderboard')
     } finally {

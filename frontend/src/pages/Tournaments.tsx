@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../lib/api';
+import { tournamentApi } from '../lib/api';
 import { Tournament, TournamentListResponse, CreateTournamentRequest } from '../types/tournament';
 import { Trophy, RefreshCw, Plus, X, Circle, Gamepad2, Lock, Eye } from 'lucide-react';
 
@@ -47,10 +47,10 @@ export default function Tournaments() {
       }
       params.append('limit', '50');
       
-      const response = await api.get<TournamentListResponse>(`/tournaments?${params.toString()}`);
+      const response = await tournamentApi.getTournaments(params);
       
       // Ensure participants is always an array
-      let tournamentsData = (response.data.tournaments || []).map(tournament => ({
+      let tournamentsData = (response.tournaments || []).map((tournament: Tournament) => ({
         ...tournament,
         participants: tournament.participants || []
       }));
@@ -105,8 +105,8 @@ export default function Tournaments() {
         game_settings: Object.keys(gameSettings).length > 0 ? gameSettings : undefined,
       };
 
-      const response = await api.post('/tournaments/create', request);
-      const tournament = response.data.tournament;
+      const response = await tournamentApi.createTournament(request);
+      const tournament = response.tournament;
       
       // Close modal
       setShowCreateModal(false);
@@ -136,7 +136,7 @@ export default function Tournaments() {
     
     // Public tournament - join directly
     try {
-      await api.post(`/tournaments/${tournament.id}/join`);
+      await tournamentApi.joinTournament(tournament.id);
       navigate(`/tournament/${tournament.id}`);
     } catch (err: any) {
       console.error('Failed to join tournament:', err.response?.data?.error || err.message);
@@ -152,7 +152,7 @@ export default function Tournaments() {
     }
 
     try {
-      await api.post(`/tournaments/${selectedTournamentId}/join`, { join_code: joinCode });
+      await tournamentApi.joinTournament(selectedTournamentId, joinCode);
       setShowJoinCodeModal(false);
       setJoinCode('');
       navigate(`/tournament/${selectedTournamentId}`);

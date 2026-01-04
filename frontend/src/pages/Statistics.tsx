@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import api from '../lib/api'
-import { AxiosResponse } from 'axios'
+import { statsApi } from '../lib/api'
 import Layout from '../components/Layout'
 import { useAuth } from '../hooks/useAuth'
 import { BarChart3, Trophy, X, Circle, Gamepad2, Flame } from 'lucide-react'
@@ -71,15 +70,15 @@ const Statistics = () => {
     setError('')
     try {
       // Fetch overall stats
-      const overallResponse = await api.get<GameStats>('/stats/')
-      setAllStats(overallResponse.data)
+      const overallStats = await statsApi.getMyStats()
+      setAllStats(overallStats)
 
       // Fetch stats for each game type
       const gameStatsPromises = games.map(game =>
-        api.get<GameStats>(`/stats/${game.id}`)
+        statsApi.getStatsByGameType(game.id)
       )
       const gameStatsResults = await Promise.all(gameStatsPromises)
-      setGameStats(gameStatsResults.map((r: AxiosResponse<GameStats>) => r.data))
+      setGameStats(gameStatsResults)
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to load statistics')
     } finally {

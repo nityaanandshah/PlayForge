@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { statsApi, PlayerStats } from '../lib/api'
-import api from '../lib/api'
+import { statsApi, PlayerStats, profileApi } from '../lib/api'
 import { Crown, Gem, Star, Target, Gamepad2, PartyPopper, Trophy, Dumbbell, Flame, Zap, Medal, Settings, Lock } from 'lucide-react'
 
 interface PublicProfile {
@@ -40,8 +39,8 @@ export default function Profile() {
         setStats(playerStats)
       } else if (username) {
         // Load public profile
-        const response = await api.get<PublicProfile>(`/profile/${username}`)
-        setProfile(response.data)
+        const profileData = await profileApi.getProfile(username)
+        setProfile(profileData)
         // Note: Stats API doesn't have a public endpoint yet, using own stats as fallback
         const playerStats = await statsApi.getMyStats()
         setStats(playerStats)
@@ -346,8 +345,8 @@ function ContributionGraph({ userId }: ContributionGraphProps) {
 
   const loadMatchHistory = async () => {
     try {
-      const response = await api.get<{ matches: MatchHistoryEntry[] }>('/stats/history?game_type=all&limit=1000')
-      setMatches(response.data.matches || [])
+      const response = await statsApi.getMatchHistory('all', 1000)
+      setMatches(response.matches || [])
     } catch (err) {
       console.error('Failed to load match history:', err)
       setMatches([])

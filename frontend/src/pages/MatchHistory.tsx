@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api from '../lib/api'
+import { statsApi } from '../lib/api'
 import Layout from '../components/Layout'
 import { useAuth } from '../hooks/useAuth'
 import { ScrollText, Gamepad2, X, Circle, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
@@ -79,10 +79,8 @@ const MatchHistory = () => {
     setLoading(true)
     setError('')
     try {
-      const response = await api.get<MatchHistoryResponse>(
-        `/stats/history?game_type=${selectedGame}&limit=50`
-      )
-      setMatches(response.data.matches || [])
+      const response = await statsApi.getMatchHistory(selectedGame, 50)
+      setMatches(response.matches || [])
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to load match history')
     } finally {

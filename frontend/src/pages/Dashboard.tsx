@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { statsApi, PlayerStats } from '../lib/api'
-import api from '../lib/api'
+import { statsApi, PlayerStats, invitationApi, notificationApi } from '../lib/api'
 import { Mail, Zap, Gamepad2, Trophy, X, Check, Trash2, Bell, Inbox, Circle } from 'lucide-react'
 
 interface TournamentInvitation {
@@ -62,10 +61,10 @@ export default function Dashboard() {
 
   const loadInvitations = async () => {
     try {
-      const response = await api.get<{ invitations: TournamentInvitation[] }>('/invitations')
+      const response = await invitationApi.getInvitations()
       // Filter for pending invitations only
-      const allInvitations = response.data.invitations || []
-      const pending = allInvitations.filter(inv => inv.status === 'pending')
+      const allInvitations = response.invitations || []
+      const pending = allInvitations.filter((inv: TournamentInvitation) => inv.status === 'pending')
       setInvitations(pending)
     } catch (err) {
       console.error('Failed to load invitations:', err)
@@ -75,8 +74,10 @@ export default function Dashboard() {
 
   const loadNotifications = async () => {
     try {
-      const response = await api.get<{ notifications: Notification[], total: number, unread: number }>('/notifications?limit=10')
-      setNotifications(response.data.notifications || [])
+      const params = new URLSearchParams()
+      params.append('limit', '10')
+      const response = await notificationApi.getNotifications(params)
+      setNotifications(response.notifications || [])
     } catch (err) {
       console.error('Failed to load notifications:', err)
       setNotifications([]) // Set to empty array on error
@@ -85,7 +86,7 @@ export default function Dashboard() {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      await api.post(`/notifications/${notificationId}/read`)
+      await notificationApi.markAsRead(notificationId)
       setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, read: true } : n))
     } catch (err) {
       console.error('Failed to mark notification as read:', err)
@@ -111,7 +112,7 @@ export default function Dashboard() {
   const handleAcceptInvitation = async (inviteId: string, tournamentId: string) => {
     setProcessingInvite(inviteId)
     try {
-      await api.post(`/invitations/${inviteId}/accept`)
+      await invitationApi.acceptInvitation(inviteId)
       // Navigate to tournament lobby (singular 'tournament', not 'tournaments')
       navigate(`/tournament/${tournamentId}`)
     } catch (err: any) {
@@ -123,7 +124,7 @@ export default function Dashboard() {
   const handleDeclineInvitation = async (inviteId: string) => {
     setProcessingInvite(inviteId)
     try {
-      await api.post(`/invitations/${inviteId}/decline`)
+      await invitationApi.declineInvitation(inviteId)
       // Remove from list
       setInvitations(prev => prev.filter(inv => inv.id !== inviteId))
     } catch (err: any) {
@@ -135,7 +136,7 @@ export default function Dashboard() {
 
   const handleMarkAllAsRead = async () => {
     try {
-      await api.post('/notifications/read-all')
+      await notificationApi.markAllAsRead()
       // Update all notifications to read=true
       setNotifications(prev => prev.map(n => ({ ...n, read: true })))
     } catch (err: any) {
@@ -145,7 +146,7 @@ export default function Dashboard() {
 
   const handleDeleteNotification = async (notificationId: string) => {
     try {
-      await api.delete(`/notifications/${notificationId}`)
+      await notificationApi.deleteNotification(notificationId)
       // Remove from list
       setNotifications(prev => prev.filter(n => n.id !== notificationId))
     } catch (err: any) {

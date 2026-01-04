@@ -96,6 +96,13 @@ api.interceptors.request.use(
           const params = new URLSearchParams(url.split('?')[1])
           const gameType = params.get('game_type') || 'all'
           mockResponse = await mockStatsApi.getMatchHistory(gameType)
+        } else if (url.match(/\/stats\/[a-z]+$/)) {
+          // Match /stats/{game_type}
+          const gameType = url.split('/stats/')[1]
+          mockResponse = await mockStatsApi.getStatsByGameType(gameType)
+        } else if (url === '/stats/' || url === '/stats') {
+          // Match /stats/ or /stats (overall stats)
+          mockResponse = await mockStatsApi.getMyStats()
         } else if (url.includes('/profile/')) {
           const username = url.split('/profile/')[1]
           mockResponse = await mockProfileApi.getProfile(username)
