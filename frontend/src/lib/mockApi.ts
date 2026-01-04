@@ -424,7 +424,8 @@ export const mockAuthApi = {
 
   login: async (data: LoginRequest): Promise<AuthResponse> => {
     await delay(500)
-    const username = data.username.toLowerCase()
+    // Extract username from email (e.g., "alice@example.com" -> "alice")
+    const username = data.email.split('@')[0].toLowerCase()
     
     // Check if user exists in mock database
     if (mockUsersDatabase[username]) {
@@ -433,8 +434,8 @@ export const mockAuthApi = {
       // Create a new mock user for this username
       const newUser: User = {
         id: 'user-' + username,
-        username: data.username,
-        email: `${username}@playforge.com`,
+        username: username,
+        email: data.email,
         elo_rating: 1500,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),

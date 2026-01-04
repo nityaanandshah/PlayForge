@@ -57,7 +57,7 @@ export default function Tournaments() {
       
       // Filter for private tournaments if that filter is selected
       if (statusFilter === 'private') {
-        tournamentsData = tournamentsData.filter(t => t.is_private);
+        tournamentsData = tournamentsData.filter((t: Tournament) => t.is_private);
       }
       
       setTournaments(tournamentsData);
