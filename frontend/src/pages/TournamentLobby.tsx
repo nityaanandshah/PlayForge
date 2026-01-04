@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../lib/api';
+import api, { tournamentApi } from '../lib/api';
 import { Tournament, BracketMatch, BracketRound } from '../types/tournament';
 import { useAuth } from '../hooks/useAuth';
 import { Lock, Copy, Mail, Trophy, Rocket, Play, Eye, Clock, Plus, Loader2, Circle, Check, AlertTriangle } from 'lucide-react';
@@ -36,13 +36,13 @@ export default function TournamentLobby() {
     try {
       console.log('=== LOADING TOURNAMENT ===');
       console.log('Tournament ID:', id);
-      const response = await api.get<{ tournament: Tournament }>(`/tournaments/${id}`);
-      console.log('Tournament API response:', response.data);
+      const response = await tournamentApi.getTournament(id);
+      console.log('Tournament API response:', response);
       
       // Ensure participants is always an array
       const tournamentData = {
-        ...response.data.tournament,
-        participants: response.data.tournament.participants || []
+        ...response.tournament,
+        participants: response.tournament.participants || []
       };
       
       console.log('Tournament data:', tournamentData);
@@ -93,7 +93,7 @@ export default function TournamentLobby() {
     
     // Public tournament - join directly
     try {
-      await api.post(`/tournaments/${id}/join`);
+      await tournamentApi.joinTournament(id);
       await loadTournament();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to join tournament');
@@ -108,7 +108,7 @@ export default function TournamentLobby() {
     }
 
     try {
-      await api.post(`/tournaments/${id}/join`, { join_code: joinCode });
+      await tournamentApi.joinTournament(id, joinCode);
       setShowJoinCodeModal(false);
       setJoinCode('');
       setError('');
