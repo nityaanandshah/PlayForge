@@ -17,6 +17,10 @@ import {
   mockStatsApi,
   mockMatchmakingApi,
   mockRoomApi,
+  mockTournamentApi,
+  mockNotificationApi,
+  mockInvitationApi,
+  mockProfileApi,
 } from './mockApi'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1'
@@ -33,50 +37,106 @@ const api = axios.create({
   },
 })
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token AND handle mock API routing
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
     const token = localStorage.getItem('access_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    
+    // If using mock data, intercept requests and route to mock APIs
+    if (USE_MOCK_DATA && config.url) {
+      console.log('[MockAPI] Intercepting request:', config.method?.toUpperCase(), config.url)
+      
+      try {
+        let mockResponse: any = null
+        const url = config.url
+        
+        // Route to appropriate mock API based on URL
+        if (url.includes('/tournaments') && config.method === 'get') {
+          if (url.match(/\/tournaments\/[^/]+$/)) {
+            const tournamentId = url.split('/').pop()!
+            mockResponse = await mockTournamentApi.getTournament(tournamentId)
+          } else {
+            const params = new URLSearchParams(url.split('?')[1])
+            mockResponse = await mockTournamentApi.getTournaments(params)
+          }
+        } else if (url.includes('/tournaments') && config.method === 'post') {
+          if (url.includes('/create')) {
+            mockResponse = await mockTournamentApi.createTournament(config.data)
+          } else if (url.includes('/join')) {
+            const tournamentId = url.split('/')[2]
+            mockResponse = await mockTournamentApi.joinTournament(tournamentId)
+          }
+        } else if (url.includes('/invitations') && config.method === 'get') {
+          mockResponse = await mockInvitationApi.getInvitations()
+        } else if (url.includes('/invitations') && url.includes('/accept') && config.method === 'post') {
+          const inviteId = url.split('/')[2]
+          mockResponse = await mockInvitationApi.acceptInvitation(inviteId)
+        } else if (url.includes('/invitations') && url.includes('/decline') && config.method === 'post') {
+          const inviteId = url.split('/')[2]
+          mockResponse = await mockInvitationApi.declineInvitation(inviteId)
+        } else if (url.includes('/notifications') && config.method === 'get') {
+          const params = new URLSearchParams(url.split('?')[1])
+          mockResponse = await mockNotificationApi.getNotifications(params)
+        } else if (url.includes('/notifications') && url.includes('/read-all') && config.method === 'post') {
+          mockResponse = await mockNotificationApi.markAllAsRead()
+        } else if (url.includes('/notifications') && url.includes('/read') && config.method === 'post') {
+          const notifId = url.split('/')[2]
+          mockResponse = await mockNotificationApi.markAsRead(notifId)
+        } else if (url.includes('/notifications') && config.method === 'delete') {
+          const notifId = url.split('/')[2]
+          mockResponse = await mockNotificationApi.deleteNotification(notifId)
+        } else if (url.includes('/stats/leaderboard')) {
+          const params = new URLSearchParams(url.split('?')[1])
+          const gameType = params.get('game_type') || 'all'
+          mockResponse = await mockStatsApi.getLeaderboard(gameType)
+        } else if (url.includes('/stats/history')) {
+          const params = new URLSearchParams(url.split('?')[1])
+          const gameType = params.get('game_type') || 'all'
+          mockResponse = await mockStatsApi.getMatchHistory(gameType)
+        } else if (url.includes('/profile/')) {
+          const username = url.split('/profile/')[1]
+          mockResponse = await mockProfileApi.getProfile(username)
+        }
+        
+        // If we got a mock response, return it and cancel the real request
+        if (mockResponse !== null) {
+          console.log('[MockAPI] Returning mock response for:', url)
+          // Create a fake successful response
+          const fakeResponse = {
+            data: mockResponse,
+            status: 200,
+            statusText: 'OK',
+            headers: {},
+            config,
+          }
+          
+          // Cancel the request by throwing a special error with the response attached
+          const cancelError: any = new Error('Mock API Response')
+          cancelError.mockResponse = fakeResponse
+          throw cancelError
+        }
+      } catch (error: any) {
+        // If it's our special mock response error, return the mock response
+        if (error.mockResponse) {
+          return Promise.resolve(error.mockResponse)
+        }
+        // Otherwise re-throw the error
+        throw error
+      }
+    }
+    
     return config
   },
   (error) => Promise.reject(error)
 )
 
-// Response interceptor to handle token refresh AND mock data
+// Response interceptor to handle token refresh
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    // If using mock data, return empty responses instead of errors
-    if (USE_MOCK_DATA) {
-      const config = error.config as any
-      const url = config?.url || ''
-      
-      console.log('[PlayForge Mock] Intercepted failed request:', url)
-      
-      // Return empty/default responses for common endpoints
-      if (url.includes('/stats/leaderboard')) {
-        return { data: { entries: [] }, status: 200, statusText: 'OK', headers: {}, config }
-      }
-      if (url.includes('/stats/history')) {
-        return { data: { matches: [] }, status: 200, statusText: 'OK', headers: {}, config }
-      }
-      if (url.includes('/tournaments')) {
-        return { data: { tournaments: [] }, status: 200, statusText: 'OK', headers: {}, config }
-      }
-      if (url.includes('/invitations')) {
-        return { data: { invitations: [] }, status: 200, statusText: 'OK', headers: {}, config }
-      }
-      if (url.includes('/notifications')) {
-        return { data: { notifications: [], total: 0, unread: 0 }, status: 200, statusText: 'OK', headers: {}, config }
-      }
-      if (url.includes('/profile/')) {
-        return { data: { user_id: 'current-user', username: 'DemoPlayer', elo_rating: 1500 }, status: 200, statusText: 'OK', headers: {}, config }
-      }
-    }
-    
     const originalRequest = error.config as any
 
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -225,6 +285,18 @@ export const statsApi = {
     const response = await api.get(`/stats/${gameType}`)
     return response.data
   },
+
+  getLeaderboard: async (gameType: string, limit: number = 50) => {
+    if (USE_MOCK_DATA) return mockStatsApi.getLeaderboard(gameType)
+    const response = await api.get(`/stats/leaderboard?game_type=${gameType}&limit=${limit}`)
+    return response.data
+  },
+
+  getMatchHistory: async (gameType: string, limit: number = 50) => {
+    if (USE_MOCK_DATA) return mockStatsApi.getMatchHistory(gameType)
+    const response = await api.get(`/stats/history?game_type=${gameType}&limit=${limit}`)
+    return response.data
+  },
 }
 
 export const matchmakingApi = {
@@ -287,6 +359,94 @@ export const roomApi = {
   startGame: async (roomId: string): Promise<RoomResponse> => {
     if (USE_MOCK_DATA) return mockRoomApi.startGame(roomId)
     const response = await api.post<RoomResponse>(`/rooms/${roomId}/start`)
+    return response.data
+  },
+}
+
+// Tournament API - These routes are used but weren't explicitly exported
+export const tournamentApi = {
+  getTournaments: async (params?: URLSearchParams) => {
+    if (USE_MOCK_DATA) return mockTournamentApi.getTournaments(params)
+    const queryString = params ? `?${params.toString()}` : ''
+    const response = await api.get(`/tournaments${queryString}`)
+    return response.data
+  },
+
+  getTournament: async (tournamentId: string) => {
+    if (USE_MOCK_DATA) return mockTournamentApi.getTournament(tournamentId)
+    const response = await api.get(`/tournaments/${tournamentId}`)
+    return response.data
+  },
+
+  createTournament: async (data: any) => {
+    if (USE_MOCK_DATA) return mockTournamentApi.createTournament(data)
+    const response = await api.post('/tournaments/create', data)
+    return response.data
+  },
+
+  joinTournament: async (tournamentId: string, joinCode?: string) => {
+    if (USE_MOCK_DATA) return mockTournamentApi.joinTournament(tournamentId)
+    const response = await api.post(`/tournaments/${tournamentId}/join`, joinCode ? { join_code: joinCode } : {})
+    return response.data
+  },
+
+  leaveTournament: async (tournamentId: string) => {
+    if (USE_MOCK_DATA) return mockTournamentApi.leaveTournament(tournamentId)
+    await api.post(`/tournaments/${tournamentId}/leave`)
+  },
+}
+
+// Notification API
+export const notificationApi = {
+  getNotifications: async (params?: URLSearchParams) => {
+    if (USE_MOCK_DATA) return mockNotificationApi.getNotifications(params)
+    const queryString = params ? `?${params.toString()}` : ''
+    const response = await api.get(`/notifications${queryString}`)
+    return response.data
+  },
+
+  markAsRead: async (notificationId: string) => {
+    if (USE_MOCK_DATA) return mockNotificationApi.markAsRead(notificationId)
+    await api.post(`/notifications/${notificationId}/read`)
+  },
+
+  markAllAsRead: async () => {
+    if (USE_MOCK_DATA) return mockNotificationApi.markAllAsRead()
+    await api.post('/notifications/read-all')
+  },
+
+  deleteNotification: async (notificationId: string) => {
+    if (USE_MOCK_DATA) return mockNotificationApi.deleteNotification(notificationId)
+    await api.delete(`/notifications/${notificationId}`)
+  },
+}
+
+// Invitation API
+export const invitationApi = {
+  getInvitations: async () => {
+    if (USE_MOCK_DATA) return mockInvitationApi.getInvitations()
+    const response = await api.get('/invitations')
+    return response.data
+  },
+
+  acceptInvitation: async (invitationId: string) => {
+    if (USE_MOCK_DATA) return mockInvitationApi.acceptInvitation(invitationId)
+    const response = await api.post(`/invitations/${invitationId}/accept`)
+    return response.data
+  },
+
+  declineInvitation: async (invitationId: string) => {
+    if (USE_MOCK_DATA) return mockInvitationApi.declineInvitation(invitationId)
+    const response = await api.post(`/invitations/${invitationId}/decline`)
+    return response.data
+  },
+}
+
+// Profile API
+export const profileApi = {
+  getProfile: async (username: string) => {
+    if (USE_MOCK_DATA) return mockProfileApi.getProfile(username)
+    const response = await api.get(`/profile/${username}`)
     return response.data
   },
 }
