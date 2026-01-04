@@ -277,13 +277,27 @@ export const mockGameApi = {
 export const mockStatsApi = {
   getMyStats: async () => {
     await delay(300)
-    return { stats: mockStats }
+    // Return aggregated stats across all games
+    const totalStats = {
+      id: 'aggregate',
+      user_id: 'current-user',
+      game_type: 'all',
+      wins: mockStats.reduce((sum, s) => sum + s.wins, 0),
+      losses: mockStats.reduce((sum, s) => sum + s.losses, 0),
+      draws: mockStats.reduce((sum, s) => sum + s.draws, 0),
+      current_streak: 3,
+      best_streak: 9,
+      total_games: mockStats.reduce((sum, s) => sum + s.total_games, 0),
+      created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+    return totalStats
   },
 
   getStatsByGameType: async (gameType: string) => {
     await delay(300)
     const stats = mockStats.find(s => s.game_type === gameType)
-    return { stats }
+    return stats || null
   },
 }
 

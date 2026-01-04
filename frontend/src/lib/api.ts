@@ -45,10 +45,38 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// Response interceptor to handle token refresh
+// Response interceptor to handle token refresh AND mock data
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
+    // If using mock data, return empty responses instead of errors
+    if (USE_MOCK_DATA) {
+      const config = error.config as any
+      const url = config?.url || ''
+      
+      console.log('[PlayForge Mock] Intercepted failed request:', url)
+      
+      // Return empty/default responses for common endpoints
+      if (url.includes('/stats/leaderboard')) {
+        return { data: { entries: [] }, status: 200, statusText: 'OK', headers: {}, config }
+      }
+      if (url.includes('/stats/history')) {
+        return { data: { matches: [] }, status: 200, statusText: 'OK', headers: {}, config }
+      }
+      if (url.includes('/tournaments')) {
+        return { data: { tournaments: [] }, status: 200, statusText: 'OK', headers: {}, config }
+      }
+      if (url.includes('/invitations')) {
+        return { data: { invitations: [] }, status: 200, statusText: 'OK', headers: {}, config }
+      }
+      if (url.includes('/notifications')) {
+        return { data: { notifications: [], total: 0, unread: 0 }, status: 200, statusText: 'OK', headers: {}, config }
+      }
+      if (url.includes('/profile/')) {
+        return { data: { user_id: 'current-user', username: 'DemoPlayer', elo_rating: 1500 }, status: 200, statusText: 'OK', headers: {}, config }
+      }
+    }
+    
     const originalRequest = error.config as any
 
     if (error.response?.status === 401 && !originalRequest._retry) {
