@@ -64,9 +64,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshUser = async () => {
     try {
-      const updatedUser = await authApi.getMe()
-      setUser(updatedUser)
-      localStorage.setItem('user', JSON.stringify(updatedUser))
+      const response = await authApi.getMe()
+      setUser(response.user)
+      localStorage.setItem('user', JSON.stringify(response.user))
     } catch (error) {
       console.error('Failed to refresh user:', error)
     }
